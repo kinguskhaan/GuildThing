@@ -3,6 +3,7 @@ import { deflateSync } from "node:zlib";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
+import { env } from "~/env";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import type { db as Db } from "~/server/db";
 import { tbcProfessionRecipes, tbcRecipes } from "@guildthing/wowhead-data";
@@ -160,7 +161,18 @@ function forbiddenOrRateLimited(retryAfterSeconds: number | null) {
   );
 }
 
+function isGuildCreator(email: string) {
+  return email.toLowerCase() === env.GUILD_CREATOR_EMAIL.toLowerCase();
+}
+
 export const guildRouter = createTRPCRouter({
+  // Drives whether the "Create a guild" button/form shows up at all — the
+  // create mutation is the actual enforcement (this is just so non-owners
+  // aren't shown a form they'd get a FORBIDDEN back from).
+  canCreateGuild: protectedProcedure.query(({ ctx }) => {
+    return isGuildCreator(ctx.session.user.email);
+  }),
+
   // Lets the create-guild form offer a "pick your server" dropdown instead
   // of pasting a raw Discord server ID — servers that already have a guild
   // page here are left out, since discordGuildId is unique anyway.
@@ -197,10 +209,9 @@ export const guildRouter = createTRPCRouter({
       }
     }),
 
-  // One guild per instance — this is only ever meant to run once, during
-  // onboarding. The client only shows the create form when no guild exists
-  // yet, but this guard is the actual enforcement (client checks are
-  // trivially bypassable).
+  // Multiple guilds are allowed per instance, but only GUILD_CREATOR_EMAIL
+  // can add new ones — canCreateGuild above is just UI dressing, this check
+  // is the actual enforcement (client checks are trivially bypassable).
   create: protectedProcedure
     .input(
       z.object({
@@ -211,11 +222,10 @@ export const guildRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const existing = await ctx.db.guild.count();
-      if (existing > 0) {
+      if (!isGuildCreator(ctx.session.user.email)) {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "This instance already has a guild set up.",
+          code: "FORBIDDEN",
+          message: "Only the instance owner can create guilds.",
         });
       }
 

@@ -3,18 +3,9 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
+import { GuildSwitcher } from "~/app/_components/guild-switcher";
 import { authClient } from "~/server/better-auth/client";
 import { api } from "~/trpc/react";
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join("")
-    .toUpperCase();
-}
 
 function navLinkClass(active: boolean) {
   return `rounded-lg px-2 py-2 text-sm transition ${
@@ -28,8 +19,15 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
 
+  // Which guild's panel to show — derived from the URL (/guilds/{id}/...),
+  // not just "the first one", now that an account can have several. On the
+  // bare /guilds list (no id in the path) this is undefined and the
+  // per-guild sections below are hidden, since there's no single guild to
+  // show them for.
+  const currentGuildId = /^\/guilds\/([^/]+)/.exec(pathname)?.[1];
+
   const guilds = api.guild.list.useQuery();
-  const guild = guilds.data?.[0];
+  const guild = guilds.data?.find((g) => g.id === currentGuildId);
 
   const guildInfo = api.guild.get.useQuery(
     { guildId: guild?.id ?? "" },
@@ -53,32 +51,8 @@ export function Sidebar() {
 
   return (
     <nav className="flex h-screen w-56 shrink-0 flex-col gap-1 border-r border-black/20 bg-discord-sidebar p-3">
-      {guild && (
-        <>
-          <Link
-            href={`/guilds/${guild.id}`}
-            className="flex flex-col items-center gap-2 rounded-lg px-2 py-3 transition hover:bg-discord-elevated"
-          >
-            <span className="text-sm font-semibold text-discord-text">
-              {guild.name}
-            </span>
-            <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-discord-elevated text-sm font-semibold text-discord-text">
-              {guild.iconUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={guild.iconUrl}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                initials(guild.name)
-              )}
-            </span>
-          </Link>
-
-          <div className="my-2 border-t border-black/20" />
-        </>
-      )}
+      <GuildSwitcher currentGuild={guild} />
+      <div className="my-2 border-t border-black/20" />
 
       {hasAccess && (
         <>

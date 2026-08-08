@@ -14,6 +14,10 @@ export const env = createEnv({
     BETTER_AUTH_URL: z.string().url().default("http://localhost:3000"),
     BETTER_AUTH_DISCORD_CLIENT_ID: z.string(),
     BETTER_AUTH_DISCORD_CLIENT_SECRET: z.string(),
+    // Only this user (matched by their GuildThing account email) is allowed
+    // to create new guilds — everyone else can browse/join guilds they
+    // already have Discord access to.
+    GUILD_CREATOR_EMAIL: z.string().email(),
     DATABASE_URL: z.string().url(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
@@ -39,6 +43,7 @@ export const env = createEnv({
     BETTER_AUTH_DISCORD_CLIENT_ID: process.env.BETTER_AUTH_DISCORD_CLIENT_ID,
     BETTER_AUTH_DISCORD_CLIENT_SECRET:
       process.env.BETTER_AUTH_DISCORD_CLIENT_SECRET,
+    GUILD_CREATOR_EMAIL: process.env.GUILD_CREATOR_EMAIL,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
   },
