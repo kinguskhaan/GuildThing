@@ -1,0 +1,203 @@
+// Prisma schema for Better Auth
+// learn more: https://better-auth.com/docs/concepts/database
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+// NOTE: When using mysql or sqlserver, uncomment the //@db.Text annotations in model Account below
+// Further reading:
+// https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy   User   @relation(fields: [createdById], references: [id])
+  createdById String
+
+  @@index([name])
+}
+
+model User {
+  id            String    @id
+  name          String //@db.Text
+  // Display name shown in-app (Members list, character ownership) instead
+  // of the Discord account name, if the user has set one.
+  nickname      String? //@db.Text
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String? //@db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  posts         Post[]
+
+  createdGuilds      Guild[]
+  lastExportedGuilds Guild[]          @relation("GuildLastExportedBy")
+  guildCharacters    GuildCharacter[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String? //@db.Text
+  userAgent String? //@db.Text
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String //@db.Text
+  providerId            String //@db.Text
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String? //@db.Text
+  refreshToken          String? //@db.Text
+  idToken               String? //@db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String? //@db.Text
+  password              String? //@db.Text
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String //@db.Text
+  value      String //@db.Text
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@map("verification")
+}
+
+model Guild {
+  id             String              @id @default(cuid())
+  name           String
+  discordGuildId String              @unique
+  createdById    String
+  createdBy      User                @relation(fields: [createdById], references: [id])
+  characters     GuildCharacter[]
+  requiredRoles  GuildRequiredRole[]
+  adminRoles     GuildAdminRole[]
+  createdAt      DateTime            @default(now())
+
+  // Who last generated the addon export string, and when — shown on the
+  // guild page so admins can tell if the pasted-in-game data is stale.
+  lastExportedAt   DateTime?
+  lastExportedById String?
+  lastExportedBy   User?     @relation("GuildLastExportedBy", fields: [lastExportedById], references: [id])
+
+  @@index([discordGuildId])
+}
+
+model GuildRequiredRole {
+  id            String @id @default(cuid())
+  guildId       String
+  guild         Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  discordRoleId String
+
+  @@unique([guildId, discordRoleId])
+}
+
+// Discord role IDs that grant admin rights within the app for this guild
+// (editing guild settings, viewing the raw recipe catalog) — separate from
+// requiredRoles, which only grants ordinary view/import access.
+model GuildAdminRole {
+  id            String @id @default(cuid())
+  guildId       String
+  guild         Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  discordRoleId String
+
+  @@unique([guildId, discordRoleId])
+}
+
+model GuildCharacter {
+  id          String       @id @default(cuid())
+  guildId     String
+  guild       Guild        @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  realm       String
+  // WoW class token (e.g. "WARRIOR") — sent by the addon's export, null for
+  // characters added through the manual entry form (createCharacter), which
+  // has no way to know it.
+  class       String?
+  importedAt  DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  professions Profession[]
+
+  @@unique([guildId, userId, name, realm])
+}
+
+model Profession {
+  id          String         @id @default(cuid())
+  characterId String
+  character   GuildCharacter @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  name        String
+  recipes     Recipe[]
+
+  @@unique([characterId, name])
+}
+
+model Recipe {
+  id           String     @id @default(cuid())
+  professionId String
+  profession   Profession @relation(fields: [professionId], references: [id], onDelete: Cascade)
+  name         String
+  itemId       Int?
+  spellId      Int?
+
+  @@index([professionId])
+  @@index([name])
+}
+
+// Persists resolved Discord guild-member roles across server restarts.
+// Discord's /users/@me/guilds/{id}/member endpoint rate-limits hard (order
+// of minutes), and an in-memory-only cache gets wiped by every dev-server
+// reload or prod deploy, which was enough on its own to trigger repeated
+// 429s. roles is JSON-encoded (null when the user isn't a guild member).
+model DiscordMemberRoleCache {
+  id             String   @id @default(cuid())
+  discordGuildId String
+  userId         String
+  roles          String?
+  fetchedAt      DateTime @default(now())
+
+  @@unique([discordGuildId, userId])
+}
+
+// Caches a Discord server's own name/icon (from /users/@me/guilds, keyed by
+// whichever user's token we last used). Server-owned data, not per-viewer —
+// safe to reuse for any user, so this is keyed by discordGuildId alone.
+model DiscordGuildInfoCache {
+  discordGuildId String   @id
+  name           String
+  icon           String?
+  fetchedAt      DateTime @default(now())
+}

@@ -5,11 +5,21 @@ const compat = new FlatCompat({
   baseDirectory: import.meta.dirname,
 });
 
+// next/core-web-vitals pulls in the Next.js plugin (React hooks rules, App
+// Router conventions, etc.) — only apps/web is a Next app, so it's scoped
+// there instead of applying repo-wide.
+const nextConfig = compat
+  .extends("next/core-web-vitals")
+  .map((config) => ({
+    ...config,
+    files: ["apps/web/**/*.{js,jsx,ts,tsx}"],
+  }));
+
 export default tseslint.config(
   {
-    ignores: [".next"],
+    ignores: ["**/.next/**", "**/generated/**", "**/.turbo/**"],
   },
-  ...compat.extends("next/core-web-vitals"),
+  ...nextConfig,
   {
     files: ["**/*.ts", "**/*.tsx"],
     extends: [

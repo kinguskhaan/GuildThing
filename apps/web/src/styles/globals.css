@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  /* Discord's dark theme palette */
+  --color-discord-rail: #1e1f22; /* server/guild icon rail */
+  --color-discord-sidebar: #2b2d31; /* channel-list style sidebars */
+  --color-discord-base: #313338; /* main content background */
+  --color-discord-elevated: #383a40; /* cards/panels on top of base */
+  --color-discord-elevated-hover: #3f4147;
+  --color-discord-text: #f2f3f5;
+  --color-discord-text-muted: #949ba4;
+  --color-discord-brand: #5865f2; /* blurple — buttons, active nav state */
+  --color-discord-brand-hover: #4752c4;
+  --color-discord-link: #00a8fc;
+  --color-discord-green: #23a55a;
+  --color-discord-red: #f23f42;
+  --color-discord-red-hover: #da373c;
+}

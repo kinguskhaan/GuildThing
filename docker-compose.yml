@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "file:./db.sqlite"
+    volumes:
+      - sqlite-data:/app/packages/db/prisma
+
+volumes:
+  sqlite-data:

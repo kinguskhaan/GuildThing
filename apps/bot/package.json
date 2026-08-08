@@ -1,0 +1,12 @@
+{
+  "name": "@guildthing/bot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "discord.js": "^14.27.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  }
+}

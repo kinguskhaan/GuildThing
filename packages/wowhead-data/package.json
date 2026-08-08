@@ -1,0 +1,22 @@
+{
+  "name": "@guildthing/wowhead-data",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "sync": "tsx --env-file=../../.env scripts/wowhead-sync.ts",
+    "resolve-spell-ids": "tsx --env-file=../../.env scripts/resolve-spell-ids.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@guildthing/db": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "tsx": "^4.23.1",
+    "typescript": "^5.8.2"
+  }
+}

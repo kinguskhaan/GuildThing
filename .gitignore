@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+node_modules
 /.pnp
 .pnp.js
 
@@ -9,14 +9,17 @@
 /coverage
 
 # database
-/prisma/db.sqlite
-/prisma/db.sqlite-journal
+packages/db/prisma/db.sqlite
+packages/db/prisma/db.sqlite-journal
 db.sqlite
 
 # next.js
-/.next/
+.next/
 /out/
 next-env.d.ts
+
+# turborepo
+.turbo
 
 # production
 /build
@@ -44,3 +47,9 @@ yarn-error.log*
 
 # idea files
 .idea
+
+# Claude Code per-project state (session memory, worktree locks) — never
+# meant for version control, and can appear in any directory Claude Code
+# has run in, not just the repo root (e.g. addon/GuildThing/.claude/).
+.claude/
+**/.claude/
