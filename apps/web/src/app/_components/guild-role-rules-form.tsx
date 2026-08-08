@@ -147,9 +147,15 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
             disabled={setPugRole.isPending}
             className="rounded-full bg-discord-elevated-hover px-4 text-sm font-semibold"
           >
-            Save
+            {setPugRole.isPending ? "Saving..." : "Save"}
           </button>
         </div>
+        {setPugRole.error && (
+          <p className="text-sm text-discord-red">{setPugRole.error.message}</p>
+        )}
+        {setPugRole.isSuccess && (
+          <p className="text-sm text-discord-green">Saved!</p>
+        )}
       </div>
 
       <div className="flex flex-col gap-4">
