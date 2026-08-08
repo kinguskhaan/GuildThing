@@ -47,6 +47,7 @@ export function Sidebar() {
     ? [
         { href: `/guilds/${guild.id}/admin/recipes`, label: "Raw recipe catalog" },
         { href: `/guilds/${guild.id}/admin/data`, label: "Manage imported data" },
+        { href: `/guilds/${guild.id}/admin/discord-roles`, label: "Discord onboarding roles" },
       ]
     : [];
 

@@ -46,6 +46,31 @@ const rosterExportSchema = z.object({
   ),
 });
 
+// One condition within a GuildRoleRule (see schema.prisma) — "equals"
+// pairs with rank/class (a text value), "between" pairs with level (a
+// min/max pair). Refined so the admin UI can't save a nonsensical
+// combination (e.g. a level condition with no numbers).
+const roleRuleConditionSchema = z
+  .object({
+    field: z.enum(["rank", "level", "class"]),
+    operator: z.enum(["equals", "between"]),
+    textValue: z.string().min(1).optional(),
+    minNumber: z.number().optional(),
+    maxNumber: z.number().optional(),
+  })
+  .refine(
+    (c) =>
+      c.field === "level"
+        ? c.operator === "between" &&
+          c.minNumber != null &&
+          c.maxNumber != null
+        : c.operator === "equals" && !!c.textValue,
+    {
+      message:
+        "level conditions need a min/max range; rank/class conditions need a text value",
+    },
+  );
+
 const wowImportSchema = z.object({
   name: z.string().min(1),
   realm: z.string().min(1),
@@ -958,5 +983,200 @@ export const guildRouter = createTRPCRouter({
           ? (guild.lastRosterImportedBy.nickname ?? guild.lastRosterImportedBy.name)
           : null,
       };
+    }),
+
+  // Distinct rank/class values already in the roster, so the Discord-roles
+  // admin UI can offer a datalist instead of the admin free-typing exact
+  // strings that have to match GuildRosterMember rows verbatim.
+  rosterRankOptions: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const rows = await ctx.db.guildRosterMember.findMany({
+        where: { guildId: input.guildId },
+        distinct: ["rank"],
+        select: { rank: true },
+        orderBy: { rank: "asc" },
+      });
+      return rows.map((r) => r.rank);
+    }),
+
+  rosterClassOptions: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const rows = await ctx.db.guildRosterMember.findMany({
+        where: { guildId: input.guildId, class: { not: null } },
+        distinct: ["class"],
+        select: { class: true },
+        orderBy: { class: "asc" },
+      });
+      return rows
+        .map((r) => r.class)
+        .filter((c): c is string => c !== null);
+    }),
+
+  setPugRole: protectedProcedure
+    .input(z.object({ guildId: z.string(), discordRoleId: z.string().nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      await ctx.db.guild.update({
+        where: { id: input.guildId },
+        data: { pugRoleId: input.discordRoleId },
+      });
+      return { ok: true };
+    }),
+
+  // pugRoleId + every role rule (with conditions) for the guild, one call
+  // for the Discord-roles admin page — same "small dedicated query" shape
+  // as exportStatus/rosterImportStatus above.
+  discordRoleConfig: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const [guild, rules] = await Promise.all([
+        ctx.db.guild.findUnique({
+          where: { id: input.guildId },
+          select: { pugRoleId: true },
+        }),
+        ctx.db.guildRoleRule.findMany({
+          where: { guildId: input.guildId },
+          include: { conditions: true },
+          orderBy: { id: "asc" },
+        }),
+      ]);
+      if (!guild) throw new TRPCError({ code: "NOT_FOUND" });
+
+      return { pugRoleId: guild.pugRoleId, rules };
+    }),
+
+  // Full replace of a rule's conditions on update (delete + recreate),
+  // same convention importRosterMembers uses for the roster snapshot —
+  // simplest correct way to handle added/removed/edited condition rows
+  // without diffing them client-side.
+  upsertRoleRule: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().optional(),
+        guildId: z.string(),
+        label: z.string().optional(),
+        discordRoleId: z.string().min(1),
+        conditions: z.array(roleRuleConditionSchema).min(1),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const conditionsData = input.conditions.map((c) => ({
+        field: c.field,
+        operator: c.operator,
+        textValue: c.textValue ?? null,
+        minNumber: c.minNumber ?? null,
+        maxNumber: c.maxNumber ?? null,
+      }));
+
+      if (input.id) {
+        const existing = await ctx.db.guildRoleRule.findUnique({
+          where: { id: input.id },
+          select: { guildId: true },
+        });
+        if (existing?.guildId !== input.guildId) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+
+        await ctx.db.$transaction([
+          ctx.db.guildRoleRuleCondition.deleteMany({
+            where: { ruleId: input.id },
+          }),
+          ctx.db.guildRoleRule.update({
+            where: { id: input.id },
+            data: {
+              label: input.label,
+              discordRoleId: input.discordRoleId,
+              conditions: { create: conditionsData },
+            },
+          }),
+        ]);
+        return { id: input.id };
+      }
+
+      const created = await ctx.db.guildRoleRule.create({
+        data: {
+          guildId: input.guildId,
+          label: input.label,
+          discordRoleId: input.discordRoleId,
+          conditions: { create: conditionsData },
+        },
+      });
+      return { id: created.id };
+    }),
+
+  deleteRoleRule: protectedProcedure
+    .input(z.object({ guildId: z.string(), id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      await ctx.db.guildRoleRule.deleteMany({
+        where: { id: input.id, guildId: input.guildId },
+      });
+      return { ok: true };
     }),
 });

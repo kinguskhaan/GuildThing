@@ -106,7 +106,14 @@ model Guild {
   requiredRoles  GuildRequiredRole[]
   adminRoles     GuildAdminRole[]
   rosterMembers  GuildRosterMember[]
+  roleRules      GuildRoleRule[]
   createdAt      DateTime            @default(now())
+
+  // Discord role given to someone who says they're here for a PUG, not as
+  // a guild member — set by an admin, bot assigns it directly with no rule
+  // evaluation (see GuildRoleRule) when the bot's onboarding DM gets that
+  // answer.
+  pugRoleId String?
 
   // Who last generated the addon export string, and when — shown on the
   // guild page so admins can tell if the pasted-in-game data is stale.
@@ -143,6 +150,35 @@ model GuildRosterMember {
   officerNote String?
 
   @@unique([guildId, name])
+}
+
+// A Discord-onboarding role grant rule: fires (granting discordRoleId) only
+// when every one of its conditions is satisfied. Admin-built on the site —
+// deliberately not fixed "rank role" / "level role" special cases, so any
+// combination of rank/level/class conditions can gate any role.
+model GuildRoleRule {
+  id            String                   @id @default(cuid())
+  guildId       String
+  guild         Guild                    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  label         String?
+  discordRoleId String
+  conditions    GuildRoleRuleCondition[]
+}
+
+// One AND'd condition within a GuildRoleRule. Satisfied if ANY of the
+// person's matched characters (main or alt, from the bot's onboarding DM)
+// meets it — different conditions in the same rule can each be satisfied
+// by a different character (e.g. rank condition met by the main, level
+// condition met by an alt).
+model GuildRoleRuleCondition {
+  id        String        @id @default(cuid())
+  ruleId    String
+  rule      GuildRoleRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  field     String // "rank" | "level" | "class"
+  operator  String // "equals" (rank/class) | "between" (level)
+  textValue String? // used when operator == "equals"
+  minNumber Int? // used when operator == "between"
+  maxNumber Int? // used when operator == "between"
 }
 
 model GuildRequiredRole {

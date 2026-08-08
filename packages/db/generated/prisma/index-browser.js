@@ -179,6 +179,7 @@ exports.Prisma.GuildScalarFieldEnum = {
   discordGuildId: 'discordGuildId',
   createdById: 'createdById',
   createdAt: 'createdAt',
+  pugRoleId: 'pugRoleId',
   lastExportedAt: 'lastExportedAt',
   lastExportedById: 'lastExportedById',
   lastRosterImportedAt: 'lastRosterImportedAt',
@@ -194,6 +195,23 @@ exports.Prisma.GuildRosterMemberScalarFieldEnum = {
   class: 'class',
   note: 'note',
   officerNote: 'officerNote'
+};
+
+exports.Prisma.GuildRoleRuleScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  label: 'label',
+  discordRoleId: 'discordRoleId'
+};
+
+exports.Prisma.GuildRoleRuleConditionScalarFieldEnum = {
+  id: 'id',
+  ruleId: 'ruleId',
+  field: 'field',
+  operator: 'operator',
+  textValue: 'textValue',
+  minNumber: 'minNumber',
+  maxNumber: 'maxNumber'
 };
 
 exports.Prisma.GuildRequiredRoleScalarFieldEnum = {
@@ -267,6 +285,8 @@ exports.Prisma.ModelName = {
   Verification: 'Verification',
   Guild: 'Guild',
   GuildRosterMember: 'GuildRosterMember',
+  GuildRoleRule: 'GuildRoleRule',
+  GuildRoleRuleCondition: 'GuildRoleRuleCondition',
   GuildRequiredRole: 'GuildRequiredRole',
   GuildAdminRole: 'GuildAdminRole',
   GuildCharacter: 'GuildCharacter',

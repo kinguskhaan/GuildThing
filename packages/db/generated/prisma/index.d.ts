@@ -49,6 +49,16 @@ export type Guild = $Result.DefaultSelection<Prisma.$GuildPayload>
  */
 export type GuildRosterMember = $Result.DefaultSelection<Prisma.$GuildRosterMemberPayload>
 /**
+ * Model GuildRoleRule
+ * 
+ */
+export type GuildRoleRule = $Result.DefaultSelection<Prisma.$GuildRoleRulePayload>
+/**
+ * Model GuildRoleRuleCondition
+ * 
+ */
+export type GuildRoleRuleCondition = $Result.DefaultSelection<Prisma.$GuildRoleRuleConditionPayload>
+/**
  * Model GuildRequiredRole
  * 
  */
@@ -271,6 +281,26 @@ export class PrismaClient<
     * ```
     */
   get guildRosterMember(): Prisma.GuildRosterMemberDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.guildRoleRule`: Exposes CRUD operations for the **GuildRoleRule** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GuildRoleRules
+    * const guildRoleRules = await prisma.guildRoleRule.findMany()
+    * ```
+    */
+  get guildRoleRule(): Prisma.GuildRoleRuleDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.guildRoleRuleCondition`: Exposes CRUD operations for the **GuildRoleRuleCondition** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GuildRoleRuleConditions
+    * const guildRoleRuleConditions = await prisma.guildRoleRuleCondition.findMany()
+    * ```
+    */
+  get guildRoleRuleCondition(): Prisma.GuildRoleRuleConditionDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.guildRequiredRole`: Exposes CRUD operations for the **GuildRequiredRole** model.
@@ -789,6 +819,8 @@ export namespace Prisma {
     Verification: 'Verification',
     Guild: 'Guild',
     GuildRosterMember: 'GuildRosterMember',
+    GuildRoleRule: 'GuildRoleRule',
+    GuildRoleRuleCondition: 'GuildRoleRuleCondition',
     GuildRequiredRole: 'GuildRequiredRole',
     GuildAdminRole: 'GuildAdminRole',
     GuildCharacter: 'GuildCharacter',
@@ -814,7 +846,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "post" | "user" | "session" | "account" | "verification" | "guild" | "guildRosterMember" | "guildRequiredRole" | "guildAdminRole" | "guildCharacter" | "profession" | "recipe" | "discordMemberRoleCache" | "discordGuildInfoCache"
+      modelProps: "post" | "user" | "session" | "account" | "verification" | "guild" | "guildRosterMember" | "guildRoleRule" | "guildRoleRuleCondition" | "guildRequiredRole" | "guildAdminRole" | "guildCharacter" | "profession" | "recipe" | "discordMemberRoleCache" | "discordGuildInfoCache"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1333,6 +1365,154 @@ export namespace Prisma {
           count: {
             args: Prisma.GuildRosterMemberCountArgs<ExtArgs>
             result: $Utils.Optional<GuildRosterMemberCountAggregateOutputType> | number
+          }
+        }
+      }
+      GuildRoleRule: {
+        payload: Prisma.$GuildRoleRulePayload<ExtArgs>
+        fields: Prisma.GuildRoleRuleFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GuildRoleRuleFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRulePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GuildRoleRuleFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRulePayload>
+          }
+          findFirst: {
+            args: Prisma.GuildRoleRuleFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRulePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GuildRoleRuleFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRulePayload>
+          }
+          findMany: {
+            args: Prisma.GuildRoleRuleFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRulePayload>[]
+          }
+          create: {
+            args: Prisma.GuildRoleRuleCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRulePayload>
+          }
+          createMany: {
+            args: Prisma.GuildRoleRuleCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GuildRoleRuleCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRulePayload>[]
+          }
+          delete: {
+            args: Prisma.GuildRoleRuleDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRulePayload>
+          }
+          update: {
+            args: Prisma.GuildRoleRuleUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRulePayload>
+          }
+          deleteMany: {
+            args: Prisma.GuildRoleRuleDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GuildRoleRuleUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.GuildRoleRuleUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRulePayload>[]
+          }
+          upsert: {
+            args: Prisma.GuildRoleRuleUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRulePayload>
+          }
+          aggregate: {
+            args: Prisma.GuildRoleRuleAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGuildRoleRule>
+          }
+          groupBy: {
+            args: Prisma.GuildRoleRuleGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GuildRoleRuleGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GuildRoleRuleCountArgs<ExtArgs>
+            result: $Utils.Optional<GuildRoleRuleCountAggregateOutputType> | number
+          }
+        }
+      }
+      GuildRoleRuleCondition: {
+        payload: Prisma.$GuildRoleRuleConditionPayload<ExtArgs>
+        fields: Prisma.GuildRoleRuleConditionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GuildRoleRuleConditionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRuleConditionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GuildRoleRuleConditionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRuleConditionPayload>
+          }
+          findFirst: {
+            args: Prisma.GuildRoleRuleConditionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRuleConditionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GuildRoleRuleConditionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRuleConditionPayload>
+          }
+          findMany: {
+            args: Prisma.GuildRoleRuleConditionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRuleConditionPayload>[]
+          }
+          create: {
+            args: Prisma.GuildRoleRuleConditionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRuleConditionPayload>
+          }
+          createMany: {
+            args: Prisma.GuildRoleRuleConditionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GuildRoleRuleConditionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRuleConditionPayload>[]
+          }
+          delete: {
+            args: Prisma.GuildRoleRuleConditionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRuleConditionPayload>
+          }
+          update: {
+            args: Prisma.GuildRoleRuleConditionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRuleConditionPayload>
+          }
+          deleteMany: {
+            args: Prisma.GuildRoleRuleConditionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GuildRoleRuleConditionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.GuildRoleRuleConditionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRuleConditionPayload>[]
+          }
+          upsert: {
+            args: Prisma.GuildRoleRuleConditionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildRoleRuleConditionPayload>
+          }
+          aggregate: {
+            args: Prisma.GuildRoleRuleConditionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGuildRoleRuleCondition>
+          }
+          groupBy: {
+            args: Prisma.GuildRoleRuleConditionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GuildRoleRuleConditionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GuildRoleRuleConditionCountArgs<ExtArgs>
+            result: $Utils.Optional<GuildRoleRuleConditionCountAggregateOutputType> | number
           }
         }
       }
@@ -1957,6 +2137,8 @@ export namespace Prisma {
     verification?: VerificationOmit
     guild?: GuildOmit
     guildRosterMember?: GuildRosterMemberOmit
+    guildRoleRule?: GuildRoleRuleOmit
+    guildRoleRuleCondition?: GuildRoleRuleConditionOmit
     guildRequiredRole?: GuildRequiredRoleOmit
     guildAdminRole?: GuildAdminRoleOmit
     guildCharacter?: GuildCharacterOmit
@@ -2133,6 +2315,7 @@ export namespace Prisma {
     requiredRoles: number
     adminRoles: number
     rosterMembers: number
+    roleRules: number
   }
 
   export type GuildCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2140,6 +2323,7 @@ export namespace Prisma {
     requiredRoles?: boolean | GuildCountOutputTypeCountRequiredRolesArgs
     adminRoles?: boolean | GuildCountOutputTypeCountAdminRolesArgs
     rosterMembers?: boolean | GuildCountOutputTypeCountRosterMembersArgs
+    roleRules?: boolean | GuildCountOutputTypeCountRoleRulesArgs
   }
 
   // Custom InputTypes
@@ -2179,6 +2363,44 @@ export namespace Prisma {
    */
   export type GuildCountOutputTypeCountRosterMembersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: GuildRosterMemberWhereInput
+  }
+
+  /**
+   * GuildCountOutputType without action
+   */
+  export type GuildCountOutputTypeCountRoleRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GuildRoleRuleWhereInput
+  }
+
+
+  /**
+   * Count Type GuildRoleRuleCountOutputType
+   */
+
+  export type GuildRoleRuleCountOutputType = {
+    conditions: number
+  }
+
+  export type GuildRoleRuleCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conditions?: boolean | GuildRoleRuleCountOutputTypeCountConditionsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * GuildRoleRuleCountOutputType without action
+   */
+  export type GuildRoleRuleCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRuleCountOutputType
+     */
+    select?: GuildRoleRuleCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * GuildRoleRuleCountOutputType without action
+   */
+  export type GuildRoleRuleCountOutputTypeCountConditionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GuildRoleRuleConditionWhereInput
   }
 
 
@@ -7856,6 +8078,7 @@ export namespace Prisma {
     discordGuildId: string | null
     createdById: string | null
     createdAt: Date | null
+    pugRoleId: string | null
     lastExportedAt: Date | null
     lastExportedById: string | null
     lastRosterImportedAt: Date | null
@@ -7868,6 +8091,7 @@ export namespace Prisma {
     discordGuildId: string | null
     createdById: string | null
     createdAt: Date | null
+    pugRoleId: string | null
     lastExportedAt: Date | null
     lastExportedById: string | null
     lastRosterImportedAt: Date | null
@@ -7880,6 +8104,7 @@ export namespace Prisma {
     discordGuildId: number
     createdById: number
     createdAt: number
+    pugRoleId: number
     lastExportedAt: number
     lastExportedById: number
     lastRosterImportedAt: number
@@ -7894,6 +8119,7 @@ export namespace Prisma {
     discordGuildId?: true
     createdById?: true
     createdAt?: true
+    pugRoleId?: true
     lastExportedAt?: true
     lastExportedById?: true
     lastRosterImportedAt?: true
@@ -7906,6 +8132,7 @@ export namespace Prisma {
     discordGuildId?: true
     createdById?: true
     createdAt?: true
+    pugRoleId?: true
     lastExportedAt?: true
     lastExportedById?: true
     lastRosterImportedAt?: true
@@ -7918,6 +8145,7 @@ export namespace Prisma {
     discordGuildId?: true
     createdById?: true
     createdAt?: true
+    pugRoleId?: true
     lastExportedAt?: true
     lastExportedById?: true
     lastRosterImportedAt?: true
@@ -8003,6 +8231,7 @@ export namespace Prisma {
     discordGuildId: string
     createdById: string
     createdAt: Date
+    pugRoleId: string | null
     lastExportedAt: Date | null
     lastExportedById: string | null
     lastRosterImportedAt: Date | null
@@ -8032,6 +8261,7 @@ export namespace Prisma {
     discordGuildId?: boolean
     createdById?: boolean
     createdAt?: boolean
+    pugRoleId?: boolean
     lastExportedAt?: boolean
     lastExportedById?: boolean
     lastRosterImportedAt?: boolean
@@ -8041,6 +8271,7 @@ export namespace Prisma {
     requiredRoles?: boolean | Guild$requiredRolesArgs<ExtArgs>
     adminRoles?: boolean | Guild$adminRolesArgs<ExtArgs>
     rosterMembers?: boolean | Guild$rosterMembersArgs<ExtArgs>
+    roleRules?: boolean | Guild$roleRulesArgs<ExtArgs>
     lastExportedBy?: boolean | Guild$lastExportedByArgs<ExtArgs>
     lastRosterImportedBy?: boolean | Guild$lastRosterImportedByArgs<ExtArgs>
     _count?: boolean | GuildCountOutputTypeDefaultArgs<ExtArgs>
@@ -8052,6 +8283,7 @@ export namespace Prisma {
     discordGuildId?: boolean
     createdById?: boolean
     createdAt?: boolean
+    pugRoleId?: boolean
     lastExportedAt?: boolean
     lastExportedById?: boolean
     lastRosterImportedAt?: boolean
@@ -8067,6 +8299,7 @@ export namespace Prisma {
     discordGuildId?: boolean
     createdById?: boolean
     createdAt?: boolean
+    pugRoleId?: boolean
     lastExportedAt?: boolean
     lastExportedById?: boolean
     lastRosterImportedAt?: boolean
@@ -8082,19 +8315,21 @@ export namespace Prisma {
     discordGuildId?: boolean
     createdById?: boolean
     createdAt?: boolean
+    pugRoleId?: boolean
     lastExportedAt?: boolean
     lastExportedById?: boolean
     lastRosterImportedAt?: boolean
     lastRosterImportedById?: boolean
   }
 
-  export type GuildOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "discordGuildId" | "createdById" | "createdAt" | "lastExportedAt" | "lastExportedById" | "lastRosterImportedAt" | "lastRosterImportedById", ExtArgs["result"]["guild"]>
+  export type GuildOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "discordGuildId" | "createdById" | "createdAt" | "pugRoleId" | "lastExportedAt" | "lastExportedById" | "lastRosterImportedAt" | "lastRosterImportedById", ExtArgs["result"]["guild"]>
   export type GuildInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     createdBy?: boolean | UserDefaultArgs<ExtArgs>
     characters?: boolean | Guild$charactersArgs<ExtArgs>
     requiredRoles?: boolean | Guild$requiredRolesArgs<ExtArgs>
     adminRoles?: boolean | Guild$adminRolesArgs<ExtArgs>
     rosterMembers?: boolean | Guild$rosterMembersArgs<ExtArgs>
+    roleRules?: boolean | Guild$roleRulesArgs<ExtArgs>
     lastExportedBy?: boolean | Guild$lastExportedByArgs<ExtArgs>
     lastRosterImportedBy?: boolean | Guild$lastRosterImportedByArgs<ExtArgs>
     _count?: boolean | GuildCountOutputTypeDefaultArgs<ExtArgs>
@@ -8118,6 +8353,7 @@ export namespace Prisma {
       requiredRoles: Prisma.$GuildRequiredRolePayload<ExtArgs>[]
       adminRoles: Prisma.$GuildAdminRolePayload<ExtArgs>[]
       rosterMembers: Prisma.$GuildRosterMemberPayload<ExtArgs>[]
+      roleRules: Prisma.$GuildRoleRulePayload<ExtArgs>[]
       lastExportedBy: Prisma.$UserPayload<ExtArgs> | null
       lastRosterImportedBy: Prisma.$UserPayload<ExtArgs> | null
     }
@@ -8127,6 +8363,7 @@ export namespace Prisma {
       discordGuildId: string
       createdById: string
       createdAt: Date
+      pugRoleId: string | null
       lastExportedAt: Date | null
       lastExportedById: string | null
       lastRosterImportedAt: Date | null
@@ -8530,6 +8767,7 @@ export namespace Prisma {
     requiredRoles<T extends Guild$requiredRolesArgs<ExtArgs> = {}>(args?: Subset<T, Guild$requiredRolesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildRequiredRolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     adminRoles<T extends Guild$adminRolesArgs<ExtArgs> = {}>(args?: Subset<T, Guild$adminRolesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildAdminRolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     rosterMembers<T extends Guild$rosterMembersArgs<ExtArgs> = {}>(args?: Subset<T, Guild$rosterMembersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildRosterMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    roleRules<T extends Guild$roleRulesArgs<ExtArgs> = {}>(args?: Subset<T, Guild$roleRulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildRoleRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     lastExportedBy<T extends Guild$lastExportedByArgs<ExtArgs> = {}>(args?: Subset<T, Guild$lastExportedByArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     lastRosterImportedBy<T extends Guild$lastRosterImportedByArgs<ExtArgs> = {}>(args?: Subset<T, Guild$lastRosterImportedByArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
@@ -8566,6 +8804,7 @@ export namespace Prisma {
     readonly discordGuildId: FieldRef<"Guild", 'String'>
     readonly createdById: FieldRef<"Guild", 'String'>
     readonly createdAt: FieldRef<"Guild", 'DateTime'>
+    readonly pugRoleId: FieldRef<"Guild", 'String'>
     readonly lastExportedAt: FieldRef<"Guild", 'DateTime'>
     readonly lastExportedById: FieldRef<"Guild", 'String'>
     readonly lastRosterImportedAt: FieldRef<"Guild", 'DateTime'>
@@ -9057,6 +9296,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: GuildRosterMemberScalarFieldEnum | GuildRosterMemberScalarFieldEnum[]
+  }
+
+  /**
+   * Guild.roleRules
+   */
+  export type Guild$roleRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRule
+     */
+    select?: GuildRoleRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRule
+     */
+    omit?: GuildRoleRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleInclude<ExtArgs> | null
+    where?: GuildRoleRuleWhereInput
+    orderBy?: GuildRoleRuleOrderByWithRelationInput | GuildRoleRuleOrderByWithRelationInput[]
+    cursor?: GuildRoleRuleWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GuildRoleRuleScalarFieldEnum | GuildRoleRuleScalarFieldEnum[]
   }
 
   /**
@@ -10242,6 +10505,2199 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: GuildRosterMemberInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model GuildRoleRule
+   */
+
+  export type AggregateGuildRoleRule = {
+    _count: GuildRoleRuleCountAggregateOutputType | null
+    _min: GuildRoleRuleMinAggregateOutputType | null
+    _max: GuildRoleRuleMaxAggregateOutputType | null
+  }
+
+  export type GuildRoleRuleMinAggregateOutputType = {
+    id: string | null
+    guildId: string | null
+    label: string | null
+    discordRoleId: string | null
+  }
+
+  export type GuildRoleRuleMaxAggregateOutputType = {
+    id: string | null
+    guildId: string | null
+    label: string | null
+    discordRoleId: string | null
+  }
+
+  export type GuildRoleRuleCountAggregateOutputType = {
+    id: number
+    guildId: number
+    label: number
+    discordRoleId: number
+    _all: number
+  }
+
+
+  export type GuildRoleRuleMinAggregateInputType = {
+    id?: true
+    guildId?: true
+    label?: true
+    discordRoleId?: true
+  }
+
+  export type GuildRoleRuleMaxAggregateInputType = {
+    id?: true
+    guildId?: true
+    label?: true
+    discordRoleId?: true
+  }
+
+  export type GuildRoleRuleCountAggregateInputType = {
+    id?: true
+    guildId?: true
+    label?: true
+    discordRoleId?: true
+    _all?: true
+  }
+
+  export type GuildRoleRuleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GuildRoleRule to aggregate.
+     */
+    where?: GuildRoleRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuildRoleRules to fetch.
+     */
+    orderBy?: GuildRoleRuleOrderByWithRelationInput | GuildRoleRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GuildRoleRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuildRoleRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuildRoleRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GuildRoleRules
+    **/
+    _count?: true | GuildRoleRuleCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GuildRoleRuleMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GuildRoleRuleMaxAggregateInputType
+  }
+
+  export type GetGuildRoleRuleAggregateType<T extends GuildRoleRuleAggregateArgs> = {
+        [P in keyof T & keyof AggregateGuildRoleRule]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGuildRoleRule[P]>
+      : GetScalarType<T[P], AggregateGuildRoleRule[P]>
+  }
+
+
+
+
+  export type GuildRoleRuleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GuildRoleRuleWhereInput
+    orderBy?: GuildRoleRuleOrderByWithAggregationInput | GuildRoleRuleOrderByWithAggregationInput[]
+    by: GuildRoleRuleScalarFieldEnum[] | GuildRoleRuleScalarFieldEnum
+    having?: GuildRoleRuleScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GuildRoleRuleCountAggregateInputType | true
+    _min?: GuildRoleRuleMinAggregateInputType
+    _max?: GuildRoleRuleMaxAggregateInputType
+  }
+
+  export type GuildRoleRuleGroupByOutputType = {
+    id: string
+    guildId: string
+    label: string | null
+    discordRoleId: string
+    _count: GuildRoleRuleCountAggregateOutputType | null
+    _min: GuildRoleRuleMinAggregateOutputType | null
+    _max: GuildRoleRuleMaxAggregateOutputType | null
+  }
+
+  type GetGuildRoleRuleGroupByPayload<T extends GuildRoleRuleGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GuildRoleRuleGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GuildRoleRuleGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GuildRoleRuleGroupByOutputType[P]>
+            : GetScalarType<T[P], GuildRoleRuleGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GuildRoleRuleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    guildId?: boolean
+    label?: boolean
+    discordRoleId?: boolean
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+    conditions?: boolean | GuildRoleRule$conditionsArgs<ExtArgs>
+    _count?: boolean | GuildRoleRuleCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guildRoleRule"]>
+
+  export type GuildRoleRuleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    guildId?: boolean
+    label?: boolean
+    discordRoleId?: boolean
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guildRoleRule"]>
+
+  export type GuildRoleRuleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    guildId?: boolean
+    label?: boolean
+    discordRoleId?: boolean
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guildRoleRule"]>
+
+  export type GuildRoleRuleSelectScalar = {
+    id?: boolean
+    guildId?: boolean
+    label?: boolean
+    discordRoleId?: boolean
+  }
+
+  export type GuildRoleRuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "label" | "discordRoleId", ExtArgs["result"]["guildRoleRule"]>
+  export type GuildRoleRuleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+    conditions?: boolean | GuildRoleRule$conditionsArgs<ExtArgs>
+    _count?: boolean | GuildRoleRuleCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type GuildRoleRuleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+  }
+  export type GuildRoleRuleIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+  }
+
+  export type $GuildRoleRulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GuildRoleRule"
+    objects: {
+      guild: Prisma.$GuildPayload<ExtArgs>
+      conditions: Prisma.$GuildRoleRuleConditionPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      guildId: string
+      label: string | null
+      discordRoleId: string
+    }, ExtArgs["result"]["guildRoleRule"]>
+    composites: {}
+  }
+
+  type GuildRoleRuleGetPayload<S extends boolean | null | undefined | GuildRoleRuleDefaultArgs> = $Result.GetResult<Prisma.$GuildRoleRulePayload, S>
+
+  type GuildRoleRuleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<GuildRoleRuleFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: GuildRoleRuleCountAggregateInputType | true
+    }
+
+  export interface GuildRoleRuleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GuildRoleRule'], meta: { name: 'GuildRoleRule' } }
+    /**
+     * Find zero or one GuildRoleRule that matches the filter.
+     * @param {GuildRoleRuleFindUniqueArgs} args - Arguments to find a GuildRoleRule
+     * @example
+     * // Get one GuildRoleRule
+     * const guildRoleRule = await prisma.guildRoleRule.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GuildRoleRuleFindUniqueArgs>(args: SelectSubset<T, GuildRoleRuleFindUniqueArgs<ExtArgs>>): Prisma__GuildRoleRuleClient<$Result.GetResult<Prisma.$GuildRoleRulePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one GuildRoleRule that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {GuildRoleRuleFindUniqueOrThrowArgs} args - Arguments to find a GuildRoleRule
+     * @example
+     * // Get one GuildRoleRule
+     * const guildRoleRule = await prisma.guildRoleRule.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GuildRoleRuleFindUniqueOrThrowArgs>(args: SelectSubset<T, GuildRoleRuleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GuildRoleRuleClient<$Result.GetResult<Prisma.$GuildRoleRulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GuildRoleRule that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildRoleRuleFindFirstArgs} args - Arguments to find a GuildRoleRule
+     * @example
+     * // Get one GuildRoleRule
+     * const guildRoleRule = await prisma.guildRoleRule.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GuildRoleRuleFindFirstArgs>(args?: SelectSubset<T, GuildRoleRuleFindFirstArgs<ExtArgs>>): Prisma__GuildRoleRuleClient<$Result.GetResult<Prisma.$GuildRoleRulePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GuildRoleRule that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildRoleRuleFindFirstOrThrowArgs} args - Arguments to find a GuildRoleRule
+     * @example
+     * // Get one GuildRoleRule
+     * const guildRoleRule = await prisma.guildRoleRule.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GuildRoleRuleFindFirstOrThrowArgs>(args?: SelectSubset<T, GuildRoleRuleFindFirstOrThrowArgs<ExtArgs>>): Prisma__GuildRoleRuleClient<$Result.GetResult<Prisma.$GuildRoleRulePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more GuildRoleRules that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildRoleRuleFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GuildRoleRules
+     * const guildRoleRules = await prisma.guildRoleRule.findMany()
+     * 
+     * // Get first 10 GuildRoleRules
+     * const guildRoleRules = await prisma.guildRoleRule.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const guildRoleRuleWithIdOnly = await prisma.guildRoleRule.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GuildRoleRuleFindManyArgs>(args?: SelectSubset<T, GuildRoleRuleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildRoleRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a GuildRoleRule.
+     * @param {GuildRoleRuleCreateArgs} args - Arguments to create a GuildRoleRule.
+     * @example
+     * // Create one GuildRoleRule
+     * const GuildRoleRule = await prisma.guildRoleRule.create({
+     *   data: {
+     *     // ... data to create a GuildRoleRule
+     *   }
+     * })
+     * 
+     */
+    create<T extends GuildRoleRuleCreateArgs>(args: SelectSubset<T, GuildRoleRuleCreateArgs<ExtArgs>>): Prisma__GuildRoleRuleClient<$Result.GetResult<Prisma.$GuildRoleRulePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many GuildRoleRules.
+     * @param {GuildRoleRuleCreateManyArgs} args - Arguments to create many GuildRoleRules.
+     * @example
+     * // Create many GuildRoleRules
+     * const guildRoleRule = await prisma.guildRoleRule.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GuildRoleRuleCreateManyArgs>(args?: SelectSubset<T, GuildRoleRuleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GuildRoleRules and returns the data saved in the database.
+     * @param {GuildRoleRuleCreateManyAndReturnArgs} args - Arguments to create many GuildRoleRules.
+     * @example
+     * // Create many GuildRoleRules
+     * const guildRoleRule = await prisma.guildRoleRule.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GuildRoleRules and only return the `id`
+     * const guildRoleRuleWithIdOnly = await prisma.guildRoleRule.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GuildRoleRuleCreateManyAndReturnArgs>(args?: SelectSubset<T, GuildRoleRuleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildRoleRulePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a GuildRoleRule.
+     * @param {GuildRoleRuleDeleteArgs} args - Arguments to delete one GuildRoleRule.
+     * @example
+     * // Delete one GuildRoleRule
+     * const GuildRoleRule = await prisma.guildRoleRule.delete({
+     *   where: {
+     *     // ... filter to delete one GuildRoleRule
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GuildRoleRuleDeleteArgs>(args: SelectSubset<T, GuildRoleRuleDeleteArgs<ExtArgs>>): Prisma__GuildRoleRuleClient<$Result.GetResult<Prisma.$GuildRoleRulePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one GuildRoleRule.
+     * @param {GuildRoleRuleUpdateArgs} args - Arguments to update one GuildRoleRule.
+     * @example
+     * // Update one GuildRoleRule
+     * const guildRoleRule = await prisma.guildRoleRule.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GuildRoleRuleUpdateArgs>(args: SelectSubset<T, GuildRoleRuleUpdateArgs<ExtArgs>>): Prisma__GuildRoleRuleClient<$Result.GetResult<Prisma.$GuildRoleRulePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more GuildRoleRules.
+     * @param {GuildRoleRuleDeleteManyArgs} args - Arguments to filter GuildRoleRules to delete.
+     * @example
+     * // Delete a few GuildRoleRules
+     * const { count } = await prisma.guildRoleRule.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GuildRoleRuleDeleteManyArgs>(args?: SelectSubset<T, GuildRoleRuleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GuildRoleRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildRoleRuleUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GuildRoleRules
+     * const guildRoleRule = await prisma.guildRoleRule.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GuildRoleRuleUpdateManyArgs>(args: SelectSubset<T, GuildRoleRuleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GuildRoleRules and returns the data updated in the database.
+     * @param {GuildRoleRuleUpdateManyAndReturnArgs} args - Arguments to update many GuildRoleRules.
+     * @example
+     * // Update many GuildRoleRules
+     * const guildRoleRule = await prisma.guildRoleRule.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more GuildRoleRules and only return the `id`
+     * const guildRoleRuleWithIdOnly = await prisma.guildRoleRule.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends GuildRoleRuleUpdateManyAndReturnArgs>(args: SelectSubset<T, GuildRoleRuleUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildRoleRulePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one GuildRoleRule.
+     * @param {GuildRoleRuleUpsertArgs} args - Arguments to update or create a GuildRoleRule.
+     * @example
+     * // Update or create a GuildRoleRule
+     * const guildRoleRule = await prisma.guildRoleRule.upsert({
+     *   create: {
+     *     // ... data to create a GuildRoleRule
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GuildRoleRule we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GuildRoleRuleUpsertArgs>(args: SelectSubset<T, GuildRoleRuleUpsertArgs<ExtArgs>>): Prisma__GuildRoleRuleClient<$Result.GetResult<Prisma.$GuildRoleRulePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of GuildRoleRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildRoleRuleCountArgs} args - Arguments to filter GuildRoleRules to count.
+     * @example
+     * // Count the number of GuildRoleRules
+     * const count = await prisma.guildRoleRule.count({
+     *   where: {
+     *     // ... the filter for the GuildRoleRules we want to count
+     *   }
+     * })
+    **/
+    count<T extends GuildRoleRuleCountArgs>(
+      args?: Subset<T, GuildRoleRuleCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GuildRoleRuleCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GuildRoleRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildRoleRuleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GuildRoleRuleAggregateArgs>(args: Subset<T, GuildRoleRuleAggregateArgs>): Prisma.PrismaPromise<GetGuildRoleRuleAggregateType<T>>
+
+    /**
+     * Group by GuildRoleRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildRoleRuleGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GuildRoleRuleGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GuildRoleRuleGroupByArgs['orderBy'] }
+        : { orderBy?: GuildRoleRuleGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GuildRoleRuleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGuildRoleRuleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GuildRoleRule model
+   */
+  readonly fields: GuildRoleRuleFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GuildRoleRule.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GuildRoleRuleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    guild<T extends GuildDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GuildDefaultArgs<ExtArgs>>): Prisma__GuildClient<$Result.GetResult<Prisma.$GuildPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    conditions<T extends GuildRoleRule$conditionsArgs<ExtArgs> = {}>(args?: Subset<T, GuildRoleRule$conditionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildRoleRuleConditionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GuildRoleRule model
+   */
+  interface GuildRoleRuleFieldRefs {
+    readonly id: FieldRef<"GuildRoleRule", 'String'>
+    readonly guildId: FieldRef<"GuildRoleRule", 'String'>
+    readonly label: FieldRef<"GuildRoleRule", 'String'>
+    readonly discordRoleId: FieldRef<"GuildRoleRule", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GuildRoleRule findUnique
+   */
+  export type GuildRoleRuleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRule
+     */
+    select?: GuildRoleRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRule
+     */
+    omit?: GuildRoleRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildRoleRule to fetch.
+     */
+    where: GuildRoleRuleWhereUniqueInput
+  }
+
+  /**
+   * GuildRoleRule findUniqueOrThrow
+   */
+  export type GuildRoleRuleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRule
+     */
+    select?: GuildRoleRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRule
+     */
+    omit?: GuildRoleRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildRoleRule to fetch.
+     */
+    where: GuildRoleRuleWhereUniqueInput
+  }
+
+  /**
+   * GuildRoleRule findFirst
+   */
+  export type GuildRoleRuleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRule
+     */
+    select?: GuildRoleRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRule
+     */
+    omit?: GuildRoleRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildRoleRule to fetch.
+     */
+    where?: GuildRoleRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuildRoleRules to fetch.
+     */
+    orderBy?: GuildRoleRuleOrderByWithRelationInput | GuildRoleRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GuildRoleRules.
+     */
+    cursor?: GuildRoleRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuildRoleRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuildRoleRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GuildRoleRules.
+     */
+    distinct?: GuildRoleRuleScalarFieldEnum | GuildRoleRuleScalarFieldEnum[]
+  }
+
+  /**
+   * GuildRoleRule findFirstOrThrow
+   */
+  export type GuildRoleRuleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRule
+     */
+    select?: GuildRoleRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRule
+     */
+    omit?: GuildRoleRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildRoleRule to fetch.
+     */
+    where?: GuildRoleRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuildRoleRules to fetch.
+     */
+    orderBy?: GuildRoleRuleOrderByWithRelationInput | GuildRoleRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GuildRoleRules.
+     */
+    cursor?: GuildRoleRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuildRoleRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuildRoleRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GuildRoleRules.
+     */
+    distinct?: GuildRoleRuleScalarFieldEnum | GuildRoleRuleScalarFieldEnum[]
+  }
+
+  /**
+   * GuildRoleRule findMany
+   */
+  export type GuildRoleRuleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRule
+     */
+    select?: GuildRoleRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRule
+     */
+    omit?: GuildRoleRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildRoleRules to fetch.
+     */
+    where?: GuildRoleRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuildRoleRules to fetch.
+     */
+    orderBy?: GuildRoleRuleOrderByWithRelationInput | GuildRoleRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GuildRoleRules.
+     */
+    cursor?: GuildRoleRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuildRoleRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuildRoleRules.
+     */
+    skip?: number
+    distinct?: GuildRoleRuleScalarFieldEnum | GuildRoleRuleScalarFieldEnum[]
+  }
+
+  /**
+   * GuildRoleRule create
+   */
+  export type GuildRoleRuleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRule
+     */
+    select?: GuildRoleRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRule
+     */
+    omit?: GuildRoleRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleInclude<ExtArgs> | null
+    /**
+     * The data needed to create a GuildRoleRule.
+     */
+    data: XOR<GuildRoleRuleCreateInput, GuildRoleRuleUncheckedCreateInput>
+  }
+
+  /**
+   * GuildRoleRule createMany
+   */
+  export type GuildRoleRuleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GuildRoleRules.
+     */
+    data: GuildRoleRuleCreateManyInput | GuildRoleRuleCreateManyInput[]
+  }
+
+  /**
+   * GuildRoleRule createManyAndReturn
+   */
+  export type GuildRoleRuleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRule
+     */
+    select?: GuildRoleRuleSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRule
+     */
+    omit?: GuildRoleRuleOmit<ExtArgs> | null
+    /**
+     * The data used to create many GuildRoleRules.
+     */
+    data: GuildRoleRuleCreateManyInput | GuildRoleRuleCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GuildRoleRule update
+   */
+  export type GuildRoleRuleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRule
+     */
+    select?: GuildRoleRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRule
+     */
+    omit?: GuildRoleRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleInclude<ExtArgs> | null
+    /**
+     * The data needed to update a GuildRoleRule.
+     */
+    data: XOR<GuildRoleRuleUpdateInput, GuildRoleRuleUncheckedUpdateInput>
+    /**
+     * Choose, which GuildRoleRule to update.
+     */
+    where: GuildRoleRuleWhereUniqueInput
+  }
+
+  /**
+   * GuildRoleRule updateMany
+   */
+  export type GuildRoleRuleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GuildRoleRules.
+     */
+    data: XOR<GuildRoleRuleUpdateManyMutationInput, GuildRoleRuleUncheckedUpdateManyInput>
+    /**
+     * Filter which GuildRoleRules to update
+     */
+    where?: GuildRoleRuleWhereInput
+    /**
+     * Limit how many GuildRoleRules to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * GuildRoleRule updateManyAndReturn
+   */
+  export type GuildRoleRuleUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRule
+     */
+    select?: GuildRoleRuleSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRule
+     */
+    omit?: GuildRoleRuleOmit<ExtArgs> | null
+    /**
+     * The data used to update GuildRoleRules.
+     */
+    data: XOR<GuildRoleRuleUpdateManyMutationInput, GuildRoleRuleUncheckedUpdateManyInput>
+    /**
+     * Filter which GuildRoleRules to update
+     */
+    where?: GuildRoleRuleWhereInput
+    /**
+     * Limit how many GuildRoleRules to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GuildRoleRule upsert
+   */
+  export type GuildRoleRuleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRule
+     */
+    select?: GuildRoleRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRule
+     */
+    omit?: GuildRoleRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleInclude<ExtArgs> | null
+    /**
+     * The filter to search for the GuildRoleRule to update in case it exists.
+     */
+    where: GuildRoleRuleWhereUniqueInput
+    /**
+     * In case the GuildRoleRule found by the `where` argument doesn't exist, create a new GuildRoleRule with this data.
+     */
+    create: XOR<GuildRoleRuleCreateInput, GuildRoleRuleUncheckedCreateInput>
+    /**
+     * In case the GuildRoleRule was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GuildRoleRuleUpdateInput, GuildRoleRuleUncheckedUpdateInput>
+  }
+
+  /**
+   * GuildRoleRule delete
+   */
+  export type GuildRoleRuleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRule
+     */
+    select?: GuildRoleRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRule
+     */
+    omit?: GuildRoleRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleInclude<ExtArgs> | null
+    /**
+     * Filter which GuildRoleRule to delete.
+     */
+    where: GuildRoleRuleWhereUniqueInput
+  }
+
+  /**
+   * GuildRoleRule deleteMany
+   */
+  export type GuildRoleRuleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GuildRoleRules to delete
+     */
+    where?: GuildRoleRuleWhereInput
+    /**
+     * Limit how many GuildRoleRules to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * GuildRoleRule.conditions
+   */
+  export type GuildRoleRule$conditionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRuleCondition
+     */
+    select?: GuildRoleRuleConditionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRuleCondition
+     */
+    omit?: GuildRoleRuleConditionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleConditionInclude<ExtArgs> | null
+    where?: GuildRoleRuleConditionWhereInput
+    orderBy?: GuildRoleRuleConditionOrderByWithRelationInput | GuildRoleRuleConditionOrderByWithRelationInput[]
+    cursor?: GuildRoleRuleConditionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GuildRoleRuleConditionScalarFieldEnum | GuildRoleRuleConditionScalarFieldEnum[]
+  }
+
+  /**
+   * GuildRoleRule without action
+   */
+  export type GuildRoleRuleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRule
+     */
+    select?: GuildRoleRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRule
+     */
+    omit?: GuildRoleRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model GuildRoleRuleCondition
+   */
+
+  export type AggregateGuildRoleRuleCondition = {
+    _count: GuildRoleRuleConditionCountAggregateOutputType | null
+    _avg: GuildRoleRuleConditionAvgAggregateOutputType | null
+    _sum: GuildRoleRuleConditionSumAggregateOutputType | null
+    _min: GuildRoleRuleConditionMinAggregateOutputType | null
+    _max: GuildRoleRuleConditionMaxAggregateOutputType | null
+  }
+
+  export type GuildRoleRuleConditionAvgAggregateOutputType = {
+    minNumber: number | null
+    maxNumber: number | null
+  }
+
+  export type GuildRoleRuleConditionSumAggregateOutputType = {
+    minNumber: number | null
+    maxNumber: number | null
+  }
+
+  export type GuildRoleRuleConditionMinAggregateOutputType = {
+    id: string | null
+    ruleId: string | null
+    field: string | null
+    operator: string | null
+    textValue: string | null
+    minNumber: number | null
+    maxNumber: number | null
+  }
+
+  export type GuildRoleRuleConditionMaxAggregateOutputType = {
+    id: string | null
+    ruleId: string | null
+    field: string | null
+    operator: string | null
+    textValue: string | null
+    minNumber: number | null
+    maxNumber: number | null
+  }
+
+  export type GuildRoleRuleConditionCountAggregateOutputType = {
+    id: number
+    ruleId: number
+    field: number
+    operator: number
+    textValue: number
+    minNumber: number
+    maxNumber: number
+    _all: number
+  }
+
+
+  export type GuildRoleRuleConditionAvgAggregateInputType = {
+    minNumber?: true
+    maxNumber?: true
+  }
+
+  export type GuildRoleRuleConditionSumAggregateInputType = {
+    minNumber?: true
+    maxNumber?: true
+  }
+
+  export type GuildRoleRuleConditionMinAggregateInputType = {
+    id?: true
+    ruleId?: true
+    field?: true
+    operator?: true
+    textValue?: true
+    minNumber?: true
+    maxNumber?: true
+  }
+
+  export type GuildRoleRuleConditionMaxAggregateInputType = {
+    id?: true
+    ruleId?: true
+    field?: true
+    operator?: true
+    textValue?: true
+    minNumber?: true
+    maxNumber?: true
+  }
+
+  export type GuildRoleRuleConditionCountAggregateInputType = {
+    id?: true
+    ruleId?: true
+    field?: true
+    operator?: true
+    textValue?: true
+    minNumber?: true
+    maxNumber?: true
+    _all?: true
+  }
+
+  export type GuildRoleRuleConditionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GuildRoleRuleCondition to aggregate.
+     */
+    where?: GuildRoleRuleConditionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuildRoleRuleConditions to fetch.
+     */
+    orderBy?: GuildRoleRuleConditionOrderByWithRelationInput | GuildRoleRuleConditionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GuildRoleRuleConditionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuildRoleRuleConditions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuildRoleRuleConditions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GuildRoleRuleConditions
+    **/
+    _count?: true | GuildRoleRuleConditionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: GuildRoleRuleConditionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: GuildRoleRuleConditionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GuildRoleRuleConditionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GuildRoleRuleConditionMaxAggregateInputType
+  }
+
+  export type GetGuildRoleRuleConditionAggregateType<T extends GuildRoleRuleConditionAggregateArgs> = {
+        [P in keyof T & keyof AggregateGuildRoleRuleCondition]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGuildRoleRuleCondition[P]>
+      : GetScalarType<T[P], AggregateGuildRoleRuleCondition[P]>
+  }
+
+
+
+
+  export type GuildRoleRuleConditionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GuildRoleRuleConditionWhereInput
+    orderBy?: GuildRoleRuleConditionOrderByWithAggregationInput | GuildRoleRuleConditionOrderByWithAggregationInput[]
+    by: GuildRoleRuleConditionScalarFieldEnum[] | GuildRoleRuleConditionScalarFieldEnum
+    having?: GuildRoleRuleConditionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GuildRoleRuleConditionCountAggregateInputType | true
+    _avg?: GuildRoleRuleConditionAvgAggregateInputType
+    _sum?: GuildRoleRuleConditionSumAggregateInputType
+    _min?: GuildRoleRuleConditionMinAggregateInputType
+    _max?: GuildRoleRuleConditionMaxAggregateInputType
+  }
+
+  export type GuildRoleRuleConditionGroupByOutputType = {
+    id: string
+    ruleId: string
+    field: string
+    operator: string
+    textValue: string | null
+    minNumber: number | null
+    maxNumber: number | null
+    _count: GuildRoleRuleConditionCountAggregateOutputType | null
+    _avg: GuildRoleRuleConditionAvgAggregateOutputType | null
+    _sum: GuildRoleRuleConditionSumAggregateOutputType | null
+    _min: GuildRoleRuleConditionMinAggregateOutputType | null
+    _max: GuildRoleRuleConditionMaxAggregateOutputType | null
+  }
+
+  type GetGuildRoleRuleConditionGroupByPayload<T extends GuildRoleRuleConditionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GuildRoleRuleConditionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GuildRoleRuleConditionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GuildRoleRuleConditionGroupByOutputType[P]>
+            : GetScalarType<T[P], GuildRoleRuleConditionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GuildRoleRuleConditionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    ruleId?: boolean
+    field?: boolean
+    operator?: boolean
+    textValue?: boolean
+    minNumber?: boolean
+    maxNumber?: boolean
+    rule?: boolean | GuildRoleRuleDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guildRoleRuleCondition"]>
+
+  export type GuildRoleRuleConditionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    ruleId?: boolean
+    field?: boolean
+    operator?: boolean
+    textValue?: boolean
+    minNumber?: boolean
+    maxNumber?: boolean
+    rule?: boolean | GuildRoleRuleDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guildRoleRuleCondition"]>
+
+  export type GuildRoleRuleConditionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    ruleId?: boolean
+    field?: boolean
+    operator?: boolean
+    textValue?: boolean
+    minNumber?: boolean
+    maxNumber?: boolean
+    rule?: boolean | GuildRoleRuleDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guildRoleRuleCondition"]>
+
+  export type GuildRoleRuleConditionSelectScalar = {
+    id?: boolean
+    ruleId?: boolean
+    field?: boolean
+    operator?: boolean
+    textValue?: boolean
+    minNumber?: boolean
+    maxNumber?: boolean
+  }
+
+  export type GuildRoleRuleConditionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "ruleId" | "field" | "operator" | "textValue" | "minNumber" | "maxNumber", ExtArgs["result"]["guildRoleRuleCondition"]>
+  export type GuildRoleRuleConditionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    rule?: boolean | GuildRoleRuleDefaultArgs<ExtArgs>
+  }
+  export type GuildRoleRuleConditionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    rule?: boolean | GuildRoleRuleDefaultArgs<ExtArgs>
+  }
+  export type GuildRoleRuleConditionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    rule?: boolean | GuildRoleRuleDefaultArgs<ExtArgs>
+  }
+
+  export type $GuildRoleRuleConditionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GuildRoleRuleCondition"
+    objects: {
+      rule: Prisma.$GuildRoleRulePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      ruleId: string
+      field: string
+      operator: string
+      textValue: string | null
+      minNumber: number | null
+      maxNumber: number | null
+    }, ExtArgs["result"]["guildRoleRuleCondition"]>
+    composites: {}
+  }
+
+  type GuildRoleRuleConditionGetPayload<S extends boolean | null | undefined | GuildRoleRuleConditionDefaultArgs> = $Result.GetResult<Prisma.$GuildRoleRuleConditionPayload, S>
+
+  type GuildRoleRuleConditionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<GuildRoleRuleConditionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: GuildRoleRuleConditionCountAggregateInputType | true
+    }
+
+  export interface GuildRoleRuleConditionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GuildRoleRuleCondition'], meta: { name: 'GuildRoleRuleCondition' } }
+    /**
+     * Find zero or one GuildRoleRuleCondition that matches the filter.
+     * @param {GuildRoleRuleConditionFindUniqueArgs} args - Arguments to find a GuildRoleRuleCondition
+     * @example
+     * // Get one GuildRoleRuleCondition
+     * const guildRoleRuleCondition = await prisma.guildRoleRuleCondition.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GuildRoleRuleConditionFindUniqueArgs>(args: SelectSubset<T, GuildRoleRuleConditionFindUniqueArgs<ExtArgs>>): Prisma__GuildRoleRuleConditionClient<$Result.GetResult<Prisma.$GuildRoleRuleConditionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one GuildRoleRuleCondition that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {GuildRoleRuleConditionFindUniqueOrThrowArgs} args - Arguments to find a GuildRoleRuleCondition
+     * @example
+     * // Get one GuildRoleRuleCondition
+     * const guildRoleRuleCondition = await prisma.guildRoleRuleCondition.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GuildRoleRuleConditionFindUniqueOrThrowArgs>(args: SelectSubset<T, GuildRoleRuleConditionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GuildRoleRuleConditionClient<$Result.GetResult<Prisma.$GuildRoleRuleConditionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GuildRoleRuleCondition that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildRoleRuleConditionFindFirstArgs} args - Arguments to find a GuildRoleRuleCondition
+     * @example
+     * // Get one GuildRoleRuleCondition
+     * const guildRoleRuleCondition = await prisma.guildRoleRuleCondition.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GuildRoleRuleConditionFindFirstArgs>(args?: SelectSubset<T, GuildRoleRuleConditionFindFirstArgs<ExtArgs>>): Prisma__GuildRoleRuleConditionClient<$Result.GetResult<Prisma.$GuildRoleRuleConditionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GuildRoleRuleCondition that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildRoleRuleConditionFindFirstOrThrowArgs} args - Arguments to find a GuildRoleRuleCondition
+     * @example
+     * // Get one GuildRoleRuleCondition
+     * const guildRoleRuleCondition = await prisma.guildRoleRuleCondition.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GuildRoleRuleConditionFindFirstOrThrowArgs>(args?: SelectSubset<T, GuildRoleRuleConditionFindFirstOrThrowArgs<ExtArgs>>): Prisma__GuildRoleRuleConditionClient<$Result.GetResult<Prisma.$GuildRoleRuleConditionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more GuildRoleRuleConditions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildRoleRuleConditionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GuildRoleRuleConditions
+     * const guildRoleRuleConditions = await prisma.guildRoleRuleCondition.findMany()
+     * 
+     * // Get first 10 GuildRoleRuleConditions
+     * const guildRoleRuleConditions = await prisma.guildRoleRuleCondition.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const guildRoleRuleConditionWithIdOnly = await prisma.guildRoleRuleCondition.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GuildRoleRuleConditionFindManyArgs>(args?: SelectSubset<T, GuildRoleRuleConditionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildRoleRuleConditionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a GuildRoleRuleCondition.
+     * @param {GuildRoleRuleConditionCreateArgs} args - Arguments to create a GuildRoleRuleCondition.
+     * @example
+     * // Create one GuildRoleRuleCondition
+     * const GuildRoleRuleCondition = await prisma.guildRoleRuleCondition.create({
+     *   data: {
+     *     // ... data to create a GuildRoleRuleCondition
+     *   }
+     * })
+     * 
+     */
+    create<T extends GuildRoleRuleConditionCreateArgs>(args: SelectSubset<T, GuildRoleRuleConditionCreateArgs<ExtArgs>>): Prisma__GuildRoleRuleConditionClient<$Result.GetResult<Prisma.$GuildRoleRuleConditionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many GuildRoleRuleConditions.
+     * @param {GuildRoleRuleConditionCreateManyArgs} args - Arguments to create many GuildRoleRuleConditions.
+     * @example
+     * // Create many GuildRoleRuleConditions
+     * const guildRoleRuleCondition = await prisma.guildRoleRuleCondition.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GuildRoleRuleConditionCreateManyArgs>(args?: SelectSubset<T, GuildRoleRuleConditionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GuildRoleRuleConditions and returns the data saved in the database.
+     * @param {GuildRoleRuleConditionCreateManyAndReturnArgs} args - Arguments to create many GuildRoleRuleConditions.
+     * @example
+     * // Create many GuildRoleRuleConditions
+     * const guildRoleRuleCondition = await prisma.guildRoleRuleCondition.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GuildRoleRuleConditions and only return the `id`
+     * const guildRoleRuleConditionWithIdOnly = await prisma.guildRoleRuleCondition.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GuildRoleRuleConditionCreateManyAndReturnArgs>(args?: SelectSubset<T, GuildRoleRuleConditionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildRoleRuleConditionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a GuildRoleRuleCondition.
+     * @param {GuildRoleRuleConditionDeleteArgs} args - Arguments to delete one GuildRoleRuleCondition.
+     * @example
+     * // Delete one GuildRoleRuleCondition
+     * const GuildRoleRuleCondition = await prisma.guildRoleRuleCondition.delete({
+     *   where: {
+     *     // ... filter to delete one GuildRoleRuleCondition
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GuildRoleRuleConditionDeleteArgs>(args: SelectSubset<T, GuildRoleRuleConditionDeleteArgs<ExtArgs>>): Prisma__GuildRoleRuleConditionClient<$Result.GetResult<Prisma.$GuildRoleRuleConditionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one GuildRoleRuleCondition.
+     * @param {GuildRoleRuleConditionUpdateArgs} args - Arguments to update one GuildRoleRuleCondition.
+     * @example
+     * // Update one GuildRoleRuleCondition
+     * const guildRoleRuleCondition = await prisma.guildRoleRuleCondition.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GuildRoleRuleConditionUpdateArgs>(args: SelectSubset<T, GuildRoleRuleConditionUpdateArgs<ExtArgs>>): Prisma__GuildRoleRuleConditionClient<$Result.GetResult<Prisma.$GuildRoleRuleConditionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more GuildRoleRuleConditions.
+     * @param {GuildRoleRuleConditionDeleteManyArgs} args - Arguments to filter GuildRoleRuleConditions to delete.
+     * @example
+     * // Delete a few GuildRoleRuleConditions
+     * const { count } = await prisma.guildRoleRuleCondition.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GuildRoleRuleConditionDeleteManyArgs>(args?: SelectSubset<T, GuildRoleRuleConditionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GuildRoleRuleConditions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildRoleRuleConditionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GuildRoleRuleConditions
+     * const guildRoleRuleCondition = await prisma.guildRoleRuleCondition.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GuildRoleRuleConditionUpdateManyArgs>(args: SelectSubset<T, GuildRoleRuleConditionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GuildRoleRuleConditions and returns the data updated in the database.
+     * @param {GuildRoleRuleConditionUpdateManyAndReturnArgs} args - Arguments to update many GuildRoleRuleConditions.
+     * @example
+     * // Update many GuildRoleRuleConditions
+     * const guildRoleRuleCondition = await prisma.guildRoleRuleCondition.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more GuildRoleRuleConditions and only return the `id`
+     * const guildRoleRuleConditionWithIdOnly = await prisma.guildRoleRuleCondition.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends GuildRoleRuleConditionUpdateManyAndReturnArgs>(args: SelectSubset<T, GuildRoleRuleConditionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildRoleRuleConditionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one GuildRoleRuleCondition.
+     * @param {GuildRoleRuleConditionUpsertArgs} args - Arguments to update or create a GuildRoleRuleCondition.
+     * @example
+     * // Update or create a GuildRoleRuleCondition
+     * const guildRoleRuleCondition = await prisma.guildRoleRuleCondition.upsert({
+     *   create: {
+     *     // ... data to create a GuildRoleRuleCondition
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GuildRoleRuleCondition we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GuildRoleRuleConditionUpsertArgs>(args: SelectSubset<T, GuildRoleRuleConditionUpsertArgs<ExtArgs>>): Prisma__GuildRoleRuleConditionClient<$Result.GetResult<Prisma.$GuildRoleRuleConditionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of GuildRoleRuleConditions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildRoleRuleConditionCountArgs} args - Arguments to filter GuildRoleRuleConditions to count.
+     * @example
+     * // Count the number of GuildRoleRuleConditions
+     * const count = await prisma.guildRoleRuleCondition.count({
+     *   where: {
+     *     // ... the filter for the GuildRoleRuleConditions we want to count
+     *   }
+     * })
+    **/
+    count<T extends GuildRoleRuleConditionCountArgs>(
+      args?: Subset<T, GuildRoleRuleConditionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GuildRoleRuleConditionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GuildRoleRuleCondition.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildRoleRuleConditionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GuildRoleRuleConditionAggregateArgs>(args: Subset<T, GuildRoleRuleConditionAggregateArgs>): Prisma.PrismaPromise<GetGuildRoleRuleConditionAggregateType<T>>
+
+    /**
+     * Group by GuildRoleRuleCondition.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildRoleRuleConditionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GuildRoleRuleConditionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GuildRoleRuleConditionGroupByArgs['orderBy'] }
+        : { orderBy?: GuildRoleRuleConditionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GuildRoleRuleConditionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGuildRoleRuleConditionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GuildRoleRuleCondition model
+   */
+  readonly fields: GuildRoleRuleConditionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GuildRoleRuleCondition.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GuildRoleRuleConditionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    rule<T extends GuildRoleRuleDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GuildRoleRuleDefaultArgs<ExtArgs>>): Prisma__GuildRoleRuleClient<$Result.GetResult<Prisma.$GuildRoleRulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GuildRoleRuleCondition model
+   */
+  interface GuildRoleRuleConditionFieldRefs {
+    readonly id: FieldRef<"GuildRoleRuleCondition", 'String'>
+    readonly ruleId: FieldRef<"GuildRoleRuleCondition", 'String'>
+    readonly field: FieldRef<"GuildRoleRuleCondition", 'String'>
+    readonly operator: FieldRef<"GuildRoleRuleCondition", 'String'>
+    readonly textValue: FieldRef<"GuildRoleRuleCondition", 'String'>
+    readonly minNumber: FieldRef<"GuildRoleRuleCondition", 'Int'>
+    readonly maxNumber: FieldRef<"GuildRoleRuleCondition", 'Int'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GuildRoleRuleCondition findUnique
+   */
+  export type GuildRoleRuleConditionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRuleCondition
+     */
+    select?: GuildRoleRuleConditionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRuleCondition
+     */
+    omit?: GuildRoleRuleConditionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleConditionInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildRoleRuleCondition to fetch.
+     */
+    where: GuildRoleRuleConditionWhereUniqueInput
+  }
+
+  /**
+   * GuildRoleRuleCondition findUniqueOrThrow
+   */
+  export type GuildRoleRuleConditionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRuleCondition
+     */
+    select?: GuildRoleRuleConditionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRuleCondition
+     */
+    omit?: GuildRoleRuleConditionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleConditionInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildRoleRuleCondition to fetch.
+     */
+    where: GuildRoleRuleConditionWhereUniqueInput
+  }
+
+  /**
+   * GuildRoleRuleCondition findFirst
+   */
+  export type GuildRoleRuleConditionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRuleCondition
+     */
+    select?: GuildRoleRuleConditionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRuleCondition
+     */
+    omit?: GuildRoleRuleConditionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleConditionInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildRoleRuleCondition to fetch.
+     */
+    where?: GuildRoleRuleConditionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuildRoleRuleConditions to fetch.
+     */
+    orderBy?: GuildRoleRuleConditionOrderByWithRelationInput | GuildRoleRuleConditionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GuildRoleRuleConditions.
+     */
+    cursor?: GuildRoleRuleConditionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuildRoleRuleConditions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuildRoleRuleConditions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GuildRoleRuleConditions.
+     */
+    distinct?: GuildRoleRuleConditionScalarFieldEnum | GuildRoleRuleConditionScalarFieldEnum[]
+  }
+
+  /**
+   * GuildRoleRuleCondition findFirstOrThrow
+   */
+  export type GuildRoleRuleConditionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRuleCondition
+     */
+    select?: GuildRoleRuleConditionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRuleCondition
+     */
+    omit?: GuildRoleRuleConditionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleConditionInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildRoleRuleCondition to fetch.
+     */
+    where?: GuildRoleRuleConditionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuildRoleRuleConditions to fetch.
+     */
+    orderBy?: GuildRoleRuleConditionOrderByWithRelationInput | GuildRoleRuleConditionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GuildRoleRuleConditions.
+     */
+    cursor?: GuildRoleRuleConditionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuildRoleRuleConditions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuildRoleRuleConditions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GuildRoleRuleConditions.
+     */
+    distinct?: GuildRoleRuleConditionScalarFieldEnum | GuildRoleRuleConditionScalarFieldEnum[]
+  }
+
+  /**
+   * GuildRoleRuleCondition findMany
+   */
+  export type GuildRoleRuleConditionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRuleCondition
+     */
+    select?: GuildRoleRuleConditionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRuleCondition
+     */
+    omit?: GuildRoleRuleConditionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleConditionInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildRoleRuleConditions to fetch.
+     */
+    where?: GuildRoleRuleConditionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuildRoleRuleConditions to fetch.
+     */
+    orderBy?: GuildRoleRuleConditionOrderByWithRelationInput | GuildRoleRuleConditionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GuildRoleRuleConditions.
+     */
+    cursor?: GuildRoleRuleConditionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuildRoleRuleConditions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuildRoleRuleConditions.
+     */
+    skip?: number
+    distinct?: GuildRoleRuleConditionScalarFieldEnum | GuildRoleRuleConditionScalarFieldEnum[]
+  }
+
+  /**
+   * GuildRoleRuleCondition create
+   */
+  export type GuildRoleRuleConditionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRuleCondition
+     */
+    select?: GuildRoleRuleConditionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRuleCondition
+     */
+    omit?: GuildRoleRuleConditionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleConditionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a GuildRoleRuleCondition.
+     */
+    data: XOR<GuildRoleRuleConditionCreateInput, GuildRoleRuleConditionUncheckedCreateInput>
+  }
+
+  /**
+   * GuildRoleRuleCondition createMany
+   */
+  export type GuildRoleRuleConditionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GuildRoleRuleConditions.
+     */
+    data: GuildRoleRuleConditionCreateManyInput | GuildRoleRuleConditionCreateManyInput[]
+  }
+
+  /**
+   * GuildRoleRuleCondition createManyAndReturn
+   */
+  export type GuildRoleRuleConditionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRuleCondition
+     */
+    select?: GuildRoleRuleConditionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRuleCondition
+     */
+    omit?: GuildRoleRuleConditionOmit<ExtArgs> | null
+    /**
+     * The data used to create many GuildRoleRuleConditions.
+     */
+    data: GuildRoleRuleConditionCreateManyInput | GuildRoleRuleConditionCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleConditionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GuildRoleRuleCondition update
+   */
+  export type GuildRoleRuleConditionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRuleCondition
+     */
+    select?: GuildRoleRuleConditionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRuleCondition
+     */
+    omit?: GuildRoleRuleConditionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleConditionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a GuildRoleRuleCondition.
+     */
+    data: XOR<GuildRoleRuleConditionUpdateInput, GuildRoleRuleConditionUncheckedUpdateInput>
+    /**
+     * Choose, which GuildRoleRuleCondition to update.
+     */
+    where: GuildRoleRuleConditionWhereUniqueInput
+  }
+
+  /**
+   * GuildRoleRuleCondition updateMany
+   */
+  export type GuildRoleRuleConditionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GuildRoleRuleConditions.
+     */
+    data: XOR<GuildRoleRuleConditionUpdateManyMutationInput, GuildRoleRuleConditionUncheckedUpdateManyInput>
+    /**
+     * Filter which GuildRoleRuleConditions to update
+     */
+    where?: GuildRoleRuleConditionWhereInput
+    /**
+     * Limit how many GuildRoleRuleConditions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * GuildRoleRuleCondition updateManyAndReturn
+   */
+  export type GuildRoleRuleConditionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRuleCondition
+     */
+    select?: GuildRoleRuleConditionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRuleCondition
+     */
+    omit?: GuildRoleRuleConditionOmit<ExtArgs> | null
+    /**
+     * The data used to update GuildRoleRuleConditions.
+     */
+    data: XOR<GuildRoleRuleConditionUpdateManyMutationInput, GuildRoleRuleConditionUncheckedUpdateManyInput>
+    /**
+     * Filter which GuildRoleRuleConditions to update
+     */
+    where?: GuildRoleRuleConditionWhereInput
+    /**
+     * Limit how many GuildRoleRuleConditions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleConditionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GuildRoleRuleCondition upsert
+   */
+  export type GuildRoleRuleConditionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRuleCondition
+     */
+    select?: GuildRoleRuleConditionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRuleCondition
+     */
+    omit?: GuildRoleRuleConditionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleConditionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the GuildRoleRuleCondition to update in case it exists.
+     */
+    where: GuildRoleRuleConditionWhereUniqueInput
+    /**
+     * In case the GuildRoleRuleCondition found by the `where` argument doesn't exist, create a new GuildRoleRuleCondition with this data.
+     */
+    create: XOR<GuildRoleRuleConditionCreateInput, GuildRoleRuleConditionUncheckedCreateInput>
+    /**
+     * In case the GuildRoleRuleCondition was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GuildRoleRuleConditionUpdateInput, GuildRoleRuleConditionUncheckedUpdateInput>
+  }
+
+  /**
+   * GuildRoleRuleCondition delete
+   */
+  export type GuildRoleRuleConditionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRuleCondition
+     */
+    select?: GuildRoleRuleConditionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRuleCondition
+     */
+    omit?: GuildRoleRuleConditionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleConditionInclude<ExtArgs> | null
+    /**
+     * Filter which GuildRoleRuleCondition to delete.
+     */
+    where: GuildRoleRuleConditionWhereUniqueInput
+  }
+
+  /**
+   * GuildRoleRuleCondition deleteMany
+   */
+  export type GuildRoleRuleConditionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GuildRoleRuleConditions to delete
+     */
+    where?: GuildRoleRuleConditionWhereInput
+    /**
+     * Limit how many GuildRoleRuleConditions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * GuildRoleRuleCondition without action
+   */
+  export type GuildRoleRuleConditionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildRoleRuleCondition
+     */
+    select?: GuildRoleRuleConditionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildRoleRuleCondition
+     */
+    omit?: GuildRoleRuleConditionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildRoleRuleConditionInclude<ExtArgs> | null
   }
 
 
@@ -17652,6 +20108,7 @@ export namespace Prisma {
     discordGuildId: 'discordGuildId',
     createdById: 'createdById',
     createdAt: 'createdAt',
+    pugRoleId: 'pugRoleId',
     lastExportedAt: 'lastExportedAt',
     lastExportedById: 'lastExportedById',
     lastRosterImportedAt: 'lastRosterImportedAt',
@@ -17673,6 +20130,29 @@ export namespace Prisma {
   };
 
   export type GuildRosterMemberScalarFieldEnum = (typeof GuildRosterMemberScalarFieldEnum)[keyof typeof GuildRosterMemberScalarFieldEnum]
+
+
+  export const GuildRoleRuleScalarFieldEnum: {
+    id: 'id',
+    guildId: 'guildId',
+    label: 'label',
+    discordRoleId: 'discordRoleId'
+  };
+
+  export type GuildRoleRuleScalarFieldEnum = (typeof GuildRoleRuleScalarFieldEnum)[keyof typeof GuildRoleRuleScalarFieldEnum]
+
+
+  export const GuildRoleRuleConditionScalarFieldEnum: {
+    id: 'id',
+    ruleId: 'ruleId',
+    field: 'field',
+    operator: 'operator',
+    textValue: 'textValue',
+    minNumber: 'minNumber',
+    maxNumber: 'maxNumber'
+  };
+
+  export type GuildRoleRuleConditionScalarFieldEnum = (typeof GuildRoleRuleConditionScalarFieldEnum)[keyof typeof GuildRoleRuleConditionScalarFieldEnum]
 
 
   export const GuildRequiredRoleScalarFieldEnum: {
@@ -18181,6 +20661,7 @@ export namespace Prisma {
     discordGuildId?: StringFilter<"Guild"> | string
     createdById?: StringFilter<"Guild"> | string
     createdAt?: DateTimeFilter<"Guild"> | Date | string
+    pugRoleId?: StringNullableFilter<"Guild"> | string | null
     lastExportedAt?: DateTimeNullableFilter<"Guild"> | Date | string | null
     lastExportedById?: StringNullableFilter<"Guild"> | string | null
     lastRosterImportedAt?: DateTimeNullableFilter<"Guild"> | Date | string | null
@@ -18190,6 +20671,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleListRelationFilter
     adminRoles?: GuildAdminRoleListRelationFilter
     rosterMembers?: GuildRosterMemberListRelationFilter
+    roleRules?: GuildRoleRuleListRelationFilter
     lastExportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     lastRosterImportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }
@@ -18200,6 +20682,7 @@ export namespace Prisma {
     discordGuildId?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
+    pugRoleId?: SortOrderInput | SortOrder
     lastExportedAt?: SortOrderInput | SortOrder
     lastExportedById?: SortOrderInput | SortOrder
     lastRosterImportedAt?: SortOrderInput | SortOrder
@@ -18209,6 +20692,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleOrderByRelationAggregateInput
     adminRoles?: GuildAdminRoleOrderByRelationAggregateInput
     rosterMembers?: GuildRosterMemberOrderByRelationAggregateInput
+    roleRules?: GuildRoleRuleOrderByRelationAggregateInput
     lastExportedBy?: UserOrderByWithRelationInput
     lastRosterImportedBy?: UserOrderByWithRelationInput
   }
@@ -18222,6 +20706,7 @@ export namespace Prisma {
     name?: StringFilter<"Guild"> | string
     createdById?: StringFilter<"Guild"> | string
     createdAt?: DateTimeFilter<"Guild"> | Date | string
+    pugRoleId?: StringNullableFilter<"Guild"> | string | null
     lastExportedAt?: DateTimeNullableFilter<"Guild"> | Date | string | null
     lastExportedById?: StringNullableFilter<"Guild"> | string | null
     lastRosterImportedAt?: DateTimeNullableFilter<"Guild"> | Date | string | null
@@ -18231,6 +20716,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleListRelationFilter
     adminRoles?: GuildAdminRoleListRelationFilter
     rosterMembers?: GuildRosterMemberListRelationFilter
+    roleRules?: GuildRoleRuleListRelationFilter
     lastExportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     lastRosterImportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }, "id" | "discordGuildId">
@@ -18241,6 +20727,7 @@ export namespace Prisma {
     discordGuildId?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
+    pugRoleId?: SortOrderInput | SortOrder
     lastExportedAt?: SortOrderInput | SortOrder
     lastExportedById?: SortOrderInput | SortOrder
     lastRosterImportedAt?: SortOrderInput | SortOrder
@@ -18259,6 +20746,7 @@ export namespace Prisma {
     discordGuildId?: StringWithAggregatesFilter<"Guild"> | string
     createdById?: StringWithAggregatesFilter<"Guild"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Guild"> | Date | string
+    pugRoleId?: StringNullableWithAggregatesFilter<"Guild"> | string | null
     lastExportedAt?: DateTimeNullableWithAggregatesFilter<"Guild"> | Date | string | null
     lastExportedById?: StringNullableWithAggregatesFilter<"Guild"> | string | null
     lastRosterImportedAt?: DateTimeNullableWithAggregatesFilter<"Guild"> | Date | string | null
@@ -18336,6 +20824,126 @@ export namespace Prisma {
     class?: StringNullableWithAggregatesFilter<"GuildRosterMember"> | string | null
     note?: StringNullableWithAggregatesFilter<"GuildRosterMember"> | string | null
     officerNote?: StringNullableWithAggregatesFilter<"GuildRosterMember"> | string | null
+  }
+
+  export type GuildRoleRuleWhereInput = {
+    AND?: GuildRoleRuleWhereInput | GuildRoleRuleWhereInput[]
+    OR?: GuildRoleRuleWhereInput[]
+    NOT?: GuildRoleRuleWhereInput | GuildRoleRuleWhereInput[]
+    id?: StringFilter<"GuildRoleRule"> | string
+    guildId?: StringFilter<"GuildRoleRule"> | string
+    label?: StringNullableFilter<"GuildRoleRule"> | string | null
+    discordRoleId?: StringFilter<"GuildRoleRule"> | string
+    guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
+    conditions?: GuildRoleRuleConditionListRelationFilter
+  }
+
+  export type GuildRoleRuleOrderByWithRelationInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    label?: SortOrderInput | SortOrder
+    discordRoleId?: SortOrder
+    guild?: GuildOrderByWithRelationInput
+    conditions?: GuildRoleRuleConditionOrderByRelationAggregateInput
+  }
+
+  export type GuildRoleRuleWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: GuildRoleRuleWhereInput | GuildRoleRuleWhereInput[]
+    OR?: GuildRoleRuleWhereInput[]
+    NOT?: GuildRoleRuleWhereInput | GuildRoleRuleWhereInput[]
+    guildId?: StringFilter<"GuildRoleRule"> | string
+    label?: StringNullableFilter<"GuildRoleRule"> | string | null
+    discordRoleId?: StringFilter<"GuildRoleRule"> | string
+    guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
+    conditions?: GuildRoleRuleConditionListRelationFilter
+  }, "id">
+
+  export type GuildRoleRuleOrderByWithAggregationInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    label?: SortOrderInput | SortOrder
+    discordRoleId?: SortOrder
+    _count?: GuildRoleRuleCountOrderByAggregateInput
+    _max?: GuildRoleRuleMaxOrderByAggregateInput
+    _min?: GuildRoleRuleMinOrderByAggregateInput
+  }
+
+  export type GuildRoleRuleScalarWhereWithAggregatesInput = {
+    AND?: GuildRoleRuleScalarWhereWithAggregatesInput | GuildRoleRuleScalarWhereWithAggregatesInput[]
+    OR?: GuildRoleRuleScalarWhereWithAggregatesInput[]
+    NOT?: GuildRoleRuleScalarWhereWithAggregatesInput | GuildRoleRuleScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"GuildRoleRule"> | string
+    guildId?: StringWithAggregatesFilter<"GuildRoleRule"> | string
+    label?: StringNullableWithAggregatesFilter<"GuildRoleRule"> | string | null
+    discordRoleId?: StringWithAggregatesFilter<"GuildRoleRule"> | string
+  }
+
+  export type GuildRoleRuleConditionWhereInput = {
+    AND?: GuildRoleRuleConditionWhereInput | GuildRoleRuleConditionWhereInput[]
+    OR?: GuildRoleRuleConditionWhereInput[]
+    NOT?: GuildRoleRuleConditionWhereInput | GuildRoleRuleConditionWhereInput[]
+    id?: StringFilter<"GuildRoleRuleCondition"> | string
+    ruleId?: StringFilter<"GuildRoleRuleCondition"> | string
+    field?: StringFilter<"GuildRoleRuleCondition"> | string
+    operator?: StringFilter<"GuildRoleRuleCondition"> | string
+    textValue?: StringNullableFilter<"GuildRoleRuleCondition"> | string | null
+    minNumber?: IntNullableFilter<"GuildRoleRuleCondition"> | number | null
+    maxNumber?: IntNullableFilter<"GuildRoleRuleCondition"> | number | null
+    rule?: XOR<GuildRoleRuleScalarRelationFilter, GuildRoleRuleWhereInput>
+  }
+
+  export type GuildRoleRuleConditionOrderByWithRelationInput = {
+    id?: SortOrder
+    ruleId?: SortOrder
+    field?: SortOrder
+    operator?: SortOrder
+    textValue?: SortOrderInput | SortOrder
+    minNumber?: SortOrderInput | SortOrder
+    maxNumber?: SortOrderInput | SortOrder
+    rule?: GuildRoleRuleOrderByWithRelationInput
+  }
+
+  export type GuildRoleRuleConditionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: GuildRoleRuleConditionWhereInput | GuildRoleRuleConditionWhereInput[]
+    OR?: GuildRoleRuleConditionWhereInput[]
+    NOT?: GuildRoleRuleConditionWhereInput | GuildRoleRuleConditionWhereInput[]
+    ruleId?: StringFilter<"GuildRoleRuleCondition"> | string
+    field?: StringFilter<"GuildRoleRuleCondition"> | string
+    operator?: StringFilter<"GuildRoleRuleCondition"> | string
+    textValue?: StringNullableFilter<"GuildRoleRuleCondition"> | string | null
+    minNumber?: IntNullableFilter<"GuildRoleRuleCondition"> | number | null
+    maxNumber?: IntNullableFilter<"GuildRoleRuleCondition"> | number | null
+    rule?: XOR<GuildRoleRuleScalarRelationFilter, GuildRoleRuleWhereInput>
+  }, "id">
+
+  export type GuildRoleRuleConditionOrderByWithAggregationInput = {
+    id?: SortOrder
+    ruleId?: SortOrder
+    field?: SortOrder
+    operator?: SortOrder
+    textValue?: SortOrderInput | SortOrder
+    minNumber?: SortOrderInput | SortOrder
+    maxNumber?: SortOrderInput | SortOrder
+    _count?: GuildRoleRuleConditionCountOrderByAggregateInput
+    _avg?: GuildRoleRuleConditionAvgOrderByAggregateInput
+    _max?: GuildRoleRuleConditionMaxOrderByAggregateInput
+    _min?: GuildRoleRuleConditionMinOrderByAggregateInput
+    _sum?: GuildRoleRuleConditionSumOrderByAggregateInput
+  }
+
+  export type GuildRoleRuleConditionScalarWhereWithAggregatesInput = {
+    AND?: GuildRoleRuleConditionScalarWhereWithAggregatesInput | GuildRoleRuleConditionScalarWhereWithAggregatesInput[]
+    OR?: GuildRoleRuleConditionScalarWhereWithAggregatesInput[]
+    NOT?: GuildRoleRuleConditionScalarWhereWithAggregatesInput | GuildRoleRuleConditionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"GuildRoleRuleCondition"> | string
+    ruleId?: StringWithAggregatesFilter<"GuildRoleRuleCondition"> | string
+    field?: StringWithAggregatesFilter<"GuildRoleRuleCondition"> | string
+    operator?: StringWithAggregatesFilter<"GuildRoleRuleCondition"> | string
+    textValue?: StringNullableWithAggregatesFilter<"GuildRoleRuleCondition"> | string | null
+    minNumber?: IntNullableWithAggregatesFilter<"GuildRoleRuleCondition"> | number | null
+    maxNumber?: IntNullableWithAggregatesFilter<"GuildRoleRuleCondition"> | number | null
   }
 
   export type GuildRequiredRoleWhereInput = {
@@ -19128,6 +21736,7 @@ export namespace Prisma {
     name: string
     discordGuildId: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastRosterImportedAt?: Date | string | null
     createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
@@ -19135,6 +21744,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -19145,6 +21755,7 @@ export namespace Prisma {
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastExportedById?: string | null
     lastRosterImportedAt?: Date | string | null
@@ -19153,6 +21764,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberUncheckedCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildUpdateInput = {
@@ -19160,6 +21772,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
@@ -19167,6 +21780,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -19177,6 +21791,7 @@ export namespace Prisma {
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastExportedById?: NullableStringFieldUpdateOperationsInput | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -19185,6 +21800,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUncheckedUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateManyInput = {
@@ -19193,6 +21809,7 @@ export namespace Prisma {
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastExportedById?: string | null
     lastRosterImportedAt?: Date | string | null
@@ -19204,6 +21821,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
@@ -19214,6 +21832,7 @@ export namespace Prisma {
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastExportedById?: NullableStringFieldUpdateOperationsInput | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -19294,6 +21913,127 @@ export namespace Prisma {
     class?: NullableStringFieldUpdateOperationsInput | string | null
     note?: NullableStringFieldUpdateOperationsInput | string | null
     officerNote?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type GuildRoleRuleCreateInput = {
+    id?: string
+    label?: string | null
+    discordRoleId: string
+    guild: GuildCreateNestedOneWithoutRoleRulesInput
+    conditions?: GuildRoleRuleConditionCreateNestedManyWithoutRuleInput
+  }
+
+  export type GuildRoleRuleUncheckedCreateInput = {
+    id?: string
+    guildId: string
+    label?: string | null
+    discordRoleId: string
+    conditions?: GuildRoleRuleConditionUncheckedCreateNestedManyWithoutRuleInput
+  }
+
+  export type GuildRoleRuleUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    label?: NullableStringFieldUpdateOperationsInput | string | null
+    discordRoleId?: StringFieldUpdateOperationsInput | string
+    guild?: GuildUpdateOneRequiredWithoutRoleRulesNestedInput
+    conditions?: GuildRoleRuleConditionUpdateManyWithoutRuleNestedInput
+  }
+
+  export type GuildRoleRuleUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    guildId?: StringFieldUpdateOperationsInput | string
+    label?: NullableStringFieldUpdateOperationsInput | string | null
+    discordRoleId?: StringFieldUpdateOperationsInput | string
+    conditions?: GuildRoleRuleConditionUncheckedUpdateManyWithoutRuleNestedInput
+  }
+
+  export type GuildRoleRuleCreateManyInput = {
+    id?: string
+    guildId: string
+    label?: string | null
+    discordRoleId: string
+  }
+
+  export type GuildRoleRuleUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    label?: NullableStringFieldUpdateOperationsInput | string | null
+    discordRoleId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type GuildRoleRuleUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    guildId?: StringFieldUpdateOperationsInput | string
+    label?: NullableStringFieldUpdateOperationsInput | string | null
+    discordRoleId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type GuildRoleRuleConditionCreateInput = {
+    id?: string
+    field: string
+    operator: string
+    textValue?: string | null
+    minNumber?: number | null
+    maxNumber?: number | null
+    rule: GuildRoleRuleCreateNestedOneWithoutConditionsInput
+  }
+
+  export type GuildRoleRuleConditionUncheckedCreateInput = {
+    id?: string
+    ruleId: string
+    field: string
+    operator: string
+    textValue?: string | null
+    minNumber?: number | null
+    maxNumber?: number | null
+  }
+
+  export type GuildRoleRuleConditionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    field?: StringFieldUpdateOperationsInput | string
+    operator?: StringFieldUpdateOperationsInput | string
+    textValue?: NullableStringFieldUpdateOperationsInput | string | null
+    minNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    maxNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    rule?: GuildRoleRuleUpdateOneRequiredWithoutConditionsNestedInput
+  }
+
+  export type GuildRoleRuleConditionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ruleId?: StringFieldUpdateOperationsInput | string
+    field?: StringFieldUpdateOperationsInput | string
+    operator?: StringFieldUpdateOperationsInput | string
+    textValue?: NullableStringFieldUpdateOperationsInput | string | null
+    minNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    maxNumber?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type GuildRoleRuleConditionCreateManyInput = {
+    id?: string
+    ruleId: string
+    field: string
+    operator: string
+    textValue?: string | null
+    minNumber?: number | null
+    maxNumber?: number | null
+  }
+
+  export type GuildRoleRuleConditionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    field?: StringFieldUpdateOperationsInput | string
+    operator?: StringFieldUpdateOperationsInput | string
+    textValue?: NullableStringFieldUpdateOperationsInput | string | null
+    minNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    maxNumber?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type GuildRoleRuleConditionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ruleId?: StringFieldUpdateOperationsInput | string
+    field?: StringFieldUpdateOperationsInput | string
+    operator?: StringFieldUpdateOperationsInput | string
+    textValue?: NullableStringFieldUpdateOperationsInput | string | null
+    minNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    maxNumber?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type GuildRequiredRoleCreateInput = {
@@ -20030,6 +22770,12 @@ export namespace Prisma {
     none?: GuildRosterMemberWhereInput
   }
 
+  export type GuildRoleRuleListRelationFilter = {
+    every?: GuildRoleRuleWhereInput
+    some?: GuildRoleRuleWhereInput
+    none?: GuildRoleRuleWhereInput
+  }
+
   export type UserNullableScalarRelationFilter = {
     is?: UserWhereInput | null
     isNot?: UserWhereInput | null
@@ -20047,12 +22793,17 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type GuildRoleRuleOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type GuildCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
     discordGuildId?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
+    pugRoleId?: SortOrder
     lastExportedAt?: SortOrder
     lastExportedById?: SortOrder
     lastRosterImportedAt?: SortOrder
@@ -20065,6 +22816,7 @@ export namespace Prisma {
     discordGuildId?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
+    pugRoleId?: SortOrder
     lastExportedAt?: SortOrder
     lastExportedById?: SortOrder
     lastRosterImportedAt?: SortOrder
@@ -20077,6 +22829,7 @@ export namespace Prisma {
     discordGuildId?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
+    pugRoleId?: SortOrder
     lastExportedAt?: SortOrder
     lastExportedById?: SortOrder
     lastRosterImportedAt?: SortOrder
@@ -20159,6 +22912,109 @@ export namespace Prisma {
     _sum?: NestedIntFilter<$PrismaModel>
     _min?: NestedIntFilter<$PrismaModel>
     _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type GuildRoleRuleConditionListRelationFilter = {
+    every?: GuildRoleRuleConditionWhereInput
+    some?: GuildRoleRuleConditionWhereInput
+    none?: GuildRoleRuleConditionWhereInput
+  }
+
+  export type GuildRoleRuleConditionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type GuildRoleRuleCountOrderByAggregateInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    label?: SortOrder
+    discordRoleId?: SortOrder
+  }
+
+  export type GuildRoleRuleMaxOrderByAggregateInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    label?: SortOrder
+    discordRoleId?: SortOrder
+  }
+
+  export type GuildRoleRuleMinOrderByAggregateInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    label?: SortOrder
+    discordRoleId?: SortOrder
+  }
+
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type GuildRoleRuleScalarRelationFilter = {
+    is?: GuildRoleRuleWhereInput
+    isNot?: GuildRoleRuleWhereInput
+  }
+
+  export type GuildRoleRuleConditionCountOrderByAggregateInput = {
+    id?: SortOrder
+    ruleId?: SortOrder
+    field?: SortOrder
+    operator?: SortOrder
+    textValue?: SortOrder
+    minNumber?: SortOrder
+    maxNumber?: SortOrder
+  }
+
+  export type GuildRoleRuleConditionAvgOrderByAggregateInput = {
+    minNumber?: SortOrder
+    maxNumber?: SortOrder
+  }
+
+  export type GuildRoleRuleConditionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    ruleId?: SortOrder
+    field?: SortOrder
+    operator?: SortOrder
+    textValue?: SortOrder
+    minNumber?: SortOrder
+    maxNumber?: SortOrder
+  }
+
+  export type GuildRoleRuleConditionMinOrderByAggregateInput = {
+    id?: SortOrder
+    ruleId?: SortOrder
+    field?: SortOrder
+    operator?: SortOrder
+    textValue?: SortOrder
+    minNumber?: SortOrder
+    maxNumber?: SortOrder
+  }
+
+  export type GuildRoleRuleConditionSumOrderByAggregateInput = {
+    minNumber?: SortOrder
+    maxNumber?: SortOrder
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type GuildRequiredRoleGuildIdDiscordRoleIdCompoundUniqueInput = {
@@ -20295,17 +23151,6 @@ export namespace Prisma {
     name?: SortOrder
   }
 
-  export type IntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
-  }
-
   export type ProfessionScalarRelationFilter = {
     is?: ProfessionWhereInput
     isNot?: ProfessionWhereInput
@@ -20343,22 +23188,6 @@ export namespace Prisma {
   export type RecipeSumOrderByAggregateInput = {
     itemId?: SortOrder
     spellId?: SortOrder
-  }
-
-  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type DiscordMemberRoleCacheDiscordGuildIdUserIdCompoundUniqueInput = {
@@ -20801,6 +23630,13 @@ export namespace Prisma {
     connect?: GuildRosterMemberWhereUniqueInput | GuildRosterMemberWhereUniqueInput[]
   }
 
+  export type GuildRoleRuleCreateNestedManyWithoutGuildInput = {
+    create?: XOR<GuildRoleRuleCreateWithoutGuildInput, GuildRoleRuleUncheckedCreateWithoutGuildInput> | GuildRoleRuleCreateWithoutGuildInput[] | GuildRoleRuleUncheckedCreateWithoutGuildInput[]
+    connectOrCreate?: GuildRoleRuleCreateOrConnectWithoutGuildInput | GuildRoleRuleCreateOrConnectWithoutGuildInput[]
+    createMany?: GuildRoleRuleCreateManyGuildInputEnvelope
+    connect?: GuildRoleRuleWhereUniqueInput | GuildRoleRuleWhereUniqueInput[]
+  }
+
   export type UserCreateNestedOneWithoutLastExportedGuildsInput = {
     create?: XOR<UserCreateWithoutLastExportedGuildsInput, UserUncheckedCreateWithoutLastExportedGuildsInput>
     connectOrCreate?: UserCreateOrConnectWithoutLastExportedGuildsInput
@@ -20839,6 +23675,13 @@ export namespace Prisma {
     connectOrCreate?: GuildRosterMemberCreateOrConnectWithoutGuildInput | GuildRosterMemberCreateOrConnectWithoutGuildInput[]
     createMany?: GuildRosterMemberCreateManyGuildInputEnvelope
     connect?: GuildRosterMemberWhereUniqueInput | GuildRosterMemberWhereUniqueInput[]
+  }
+
+  export type GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput = {
+    create?: XOR<GuildRoleRuleCreateWithoutGuildInput, GuildRoleRuleUncheckedCreateWithoutGuildInput> | GuildRoleRuleCreateWithoutGuildInput[] | GuildRoleRuleUncheckedCreateWithoutGuildInput[]
+    connectOrCreate?: GuildRoleRuleCreateOrConnectWithoutGuildInput | GuildRoleRuleCreateOrConnectWithoutGuildInput[]
+    createMany?: GuildRoleRuleCreateManyGuildInputEnvelope
+    connect?: GuildRoleRuleWhereUniqueInput | GuildRoleRuleWhereUniqueInput[]
   }
 
   export type UserUpdateOneRequiredWithoutCreatedGuildsNestedInput = {
@@ -20903,6 +23746,20 @@ export namespace Prisma {
     update?: GuildRosterMemberUpdateWithWhereUniqueWithoutGuildInput | GuildRosterMemberUpdateWithWhereUniqueWithoutGuildInput[]
     updateMany?: GuildRosterMemberUpdateManyWithWhereWithoutGuildInput | GuildRosterMemberUpdateManyWithWhereWithoutGuildInput[]
     deleteMany?: GuildRosterMemberScalarWhereInput | GuildRosterMemberScalarWhereInput[]
+  }
+
+  export type GuildRoleRuleUpdateManyWithoutGuildNestedInput = {
+    create?: XOR<GuildRoleRuleCreateWithoutGuildInput, GuildRoleRuleUncheckedCreateWithoutGuildInput> | GuildRoleRuleCreateWithoutGuildInput[] | GuildRoleRuleUncheckedCreateWithoutGuildInput[]
+    connectOrCreate?: GuildRoleRuleCreateOrConnectWithoutGuildInput | GuildRoleRuleCreateOrConnectWithoutGuildInput[]
+    upsert?: GuildRoleRuleUpsertWithWhereUniqueWithoutGuildInput | GuildRoleRuleUpsertWithWhereUniqueWithoutGuildInput[]
+    createMany?: GuildRoleRuleCreateManyGuildInputEnvelope
+    set?: GuildRoleRuleWhereUniqueInput | GuildRoleRuleWhereUniqueInput[]
+    disconnect?: GuildRoleRuleWhereUniqueInput | GuildRoleRuleWhereUniqueInput[]
+    delete?: GuildRoleRuleWhereUniqueInput | GuildRoleRuleWhereUniqueInput[]
+    connect?: GuildRoleRuleWhereUniqueInput | GuildRoleRuleWhereUniqueInput[]
+    update?: GuildRoleRuleUpdateWithWhereUniqueWithoutGuildInput | GuildRoleRuleUpdateWithWhereUniqueWithoutGuildInput[]
+    updateMany?: GuildRoleRuleUpdateManyWithWhereWithoutGuildInput | GuildRoleRuleUpdateManyWithWhereWithoutGuildInput[]
+    deleteMany?: GuildRoleRuleScalarWhereInput | GuildRoleRuleScalarWhereInput[]
   }
 
   export type UserUpdateOneWithoutLastExportedGuildsNestedInput = {
@@ -20981,6 +23838,20 @@ export namespace Prisma {
     deleteMany?: GuildRosterMemberScalarWhereInput | GuildRosterMemberScalarWhereInput[]
   }
 
+  export type GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput = {
+    create?: XOR<GuildRoleRuleCreateWithoutGuildInput, GuildRoleRuleUncheckedCreateWithoutGuildInput> | GuildRoleRuleCreateWithoutGuildInput[] | GuildRoleRuleUncheckedCreateWithoutGuildInput[]
+    connectOrCreate?: GuildRoleRuleCreateOrConnectWithoutGuildInput | GuildRoleRuleCreateOrConnectWithoutGuildInput[]
+    upsert?: GuildRoleRuleUpsertWithWhereUniqueWithoutGuildInput | GuildRoleRuleUpsertWithWhereUniqueWithoutGuildInput[]
+    createMany?: GuildRoleRuleCreateManyGuildInputEnvelope
+    set?: GuildRoleRuleWhereUniqueInput | GuildRoleRuleWhereUniqueInput[]
+    disconnect?: GuildRoleRuleWhereUniqueInput | GuildRoleRuleWhereUniqueInput[]
+    delete?: GuildRoleRuleWhereUniqueInput | GuildRoleRuleWhereUniqueInput[]
+    connect?: GuildRoleRuleWhereUniqueInput | GuildRoleRuleWhereUniqueInput[]
+    update?: GuildRoleRuleUpdateWithWhereUniqueWithoutGuildInput | GuildRoleRuleUpdateWithWhereUniqueWithoutGuildInput[]
+    updateMany?: GuildRoleRuleUpdateManyWithWhereWithoutGuildInput | GuildRoleRuleUpdateManyWithWhereWithoutGuildInput[]
+    deleteMany?: GuildRoleRuleScalarWhereInput | GuildRoleRuleScalarWhereInput[]
+  }
+
   export type GuildCreateNestedOneWithoutRosterMembersInput = {
     create?: XOR<GuildCreateWithoutRosterMembersInput, GuildUncheckedCreateWithoutRosterMembersInput>
     connectOrCreate?: GuildCreateOrConnectWithoutRosterMembersInput
@@ -21001,6 +23872,84 @@ export namespace Prisma {
     upsert?: GuildUpsertWithoutRosterMembersInput
     connect?: GuildWhereUniqueInput
     update?: XOR<XOR<GuildUpdateToOneWithWhereWithoutRosterMembersInput, GuildUpdateWithoutRosterMembersInput>, GuildUncheckedUpdateWithoutRosterMembersInput>
+  }
+
+  export type GuildCreateNestedOneWithoutRoleRulesInput = {
+    create?: XOR<GuildCreateWithoutRoleRulesInput, GuildUncheckedCreateWithoutRoleRulesInput>
+    connectOrCreate?: GuildCreateOrConnectWithoutRoleRulesInput
+    connect?: GuildWhereUniqueInput
+  }
+
+  export type GuildRoleRuleConditionCreateNestedManyWithoutRuleInput = {
+    create?: XOR<GuildRoleRuleConditionCreateWithoutRuleInput, GuildRoleRuleConditionUncheckedCreateWithoutRuleInput> | GuildRoleRuleConditionCreateWithoutRuleInput[] | GuildRoleRuleConditionUncheckedCreateWithoutRuleInput[]
+    connectOrCreate?: GuildRoleRuleConditionCreateOrConnectWithoutRuleInput | GuildRoleRuleConditionCreateOrConnectWithoutRuleInput[]
+    createMany?: GuildRoleRuleConditionCreateManyRuleInputEnvelope
+    connect?: GuildRoleRuleConditionWhereUniqueInput | GuildRoleRuleConditionWhereUniqueInput[]
+  }
+
+  export type GuildRoleRuleConditionUncheckedCreateNestedManyWithoutRuleInput = {
+    create?: XOR<GuildRoleRuleConditionCreateWithoutRuleInput, GuildRoleRuleConditionUncheckedCreateWithoutRuleInput> | GuildRoleRuleConditionCreateWithoutRuleInput[] | GuildRoleRuleConditionUncheckedCreateWithoutRuleInput[]
+    connectOrCreate?: GuildRoleRuleConditionCreateOrConnectWithoutRuleInput | GuildRoleRuleConditionCreateOrConnectWithoutRuleInput[]
+    createMany?: GuildRoleRuleConditionCreateManyRuleInputEnvelope
+    connect?: GuildRoleRuleConditionWhereUniqueInput | GuildRoleRuleConditionWhereUniqueInput[]
+  }
+
+  export type GuildUpdateOneRequiredWithoutRoleRulesNestedInput = {
+    create?: XOR<GuildCreateWithoutRoleRulesInput, GuildUncheckedCreateWithoutRoleRulesInput>
+    connectOrCreate?: GuildCreateOrConnectWithoutRoleRulesInput
+    upsert?: GuildUpsertWithoutRoleRulesInput
+    connect?: GuildWhereUniqueInput
+    update?: XOR<XOR<GuildUpdateToOneWithWhereWithoutRoleRulesInput, GuildUpdateWithoutRoleRulesInput>, GuildUncheckedUpdateWithoutRoleRulesInput>
+  }
+
+  export type GuildRoleRuleConditionUpdateManyWithoutRuleNestedInput = {
+    create?: XOR<GuildRoleRuleConditionCreateWithoutRuleInput, GuildRoleRuleConditionUncheckedCreateWithoutRuleInput> | GuildRoleRuleConditionCreateWithoutRuleInput[] | GuildRoleRuleConditionUncheckedCreateWithoutRuleInput[]
+    connectOrCreate?: GuildRoleRuleConditionCreateOrConnectWithoutRuleInput | GuildRoleRuleConditionCreateOrConnectWithoutRuleInput[]
+    upsert?: GuildRoleRuleConditionUpsertWithWhereUniqueWithoutRuleInput | GuildRoleRuleConditionUpsertWithWhereUniqueWithoutRuleInput[]
+    createMany?: GuildRoleRuleConditionCreateManyRuleInputEnvelope
+    set?: GuildRoleRuleConditionWhereUniqueInput | GuildRoleRuleConditionWhereUniqueInput[]
+    disconnect?: GuildRoleRuleConditionWhereUniqueInput | GuildRoleRuleConditionWhereUniqueInput[]
+    delete?: GuildRoleRuleConditionWhereUniqueInput | GuildRoleRuleConditionWhereUniqueInput[]
+    connect?: GuildRoleRuleConditionWhereUniqueInput | GuildRoleRuleConditionWhereUniqueInput[]
+    update?: GuildRoleRuleConditionUpdateWithWhereUniqueWithoutRuleInput | GuildRoleRuleConditionUpdateWithWhereUniqueWithoutRuleInput[]
+    updateMany?: GuildRoleRuleConditionUpdateManyWithWhereWithoutRuleInput | GuildRoleRuleConditionUpdateManyWithWhereWithoutRuleInput[]
+    deleteMany?: GuildRoleRuleConditionScalarWhereInput | GuildRoleRuleConditionScalarWhereInput[]
+  }
+
+  export type GuildRoleRuleConditionUncheckedUpdateManyWithoutRuleNestedInput = {
+    create?: XOR<GuildRoleRuleConditionCreateWithoutRuleInput, GuildRoleRuleConditionUncheckedCreateWithoutRuleInput> | GuildRoleRuleConditionCreateWithoutRuleInput[] | GuildRoleRuleConditionUncheckedCreateWithoutRuleInput[]
+    connectOrCreate?: GuildRoleRuleConditionCreateOrConnectWithoutRuleInput | GuildRoleRuleConditionCreateOrConnectWithoutRuleInput[]
+    upsert?: GuildRoleRuleConditionUpsertWithWhereUniqueWithoutRuleInput | GuildRoleRuleConditionUpsertWithWhereUniqueWithoutRuleInput[]
+    createMany?: GuildRoleRuleConditionCreateManyRuleInputEnvelope
+    set?: GuildRoleRuleConditionWhereUniqueInput | GuildRoleRuleConditionWhereUniqueInput[]
+    disconnect?: GuildRoleRuleConditionWhereUniqueInput | GuildRoleRuleConditionWhereUniqueInput[]
+    delete?: GuildRoleRuleConditionWhereUniqueInput | GuildRoleRuleConditionWhereUniqueInput[]
+    connect?: GuildRoleRuleConditionWhereUniqueInput | GuildRoleRuleConditionWhereUniqueInput[]
+    update?: GuildRoleRuleConditionUpdateWithWhereUniqueWithoutRuleInput | GuildRoleRuleConditionUpdateWithWhereUniqueWithoutRuleInput[]
+    updateMany?: GuildRoleRuleConditionUpdateManyWithWhereWithoutRuleInput | GuildRoleRuleConditionUpdateManyWithWhereWithoutRuleInput[]
+    deleteMany?: GuildRoleRuleConditionScalarWhereInput | GuildRoleRuleConditionScalarWhereInput[]
+  }
+
+  export type GuildRoleRuleCreateNestedOneWithoutConditionsInput = {
+    create?: XOR<GuildRoleRuleCreateWithoutConditionsInput, GuildRoleRuleUncheckedCreateWithoutConditionsInput>
+    connectOrCreate?: GuildRoleRuleCreateOrConnectWithoutConditionsInput
+    connect?: GuildRoleRuleWhereUniqueInput
+  }
+
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type GuildRoleRuleUpdateOneRequiredWithoutConditionsNestedInput = {
+    create?: XOR<GuildRoleRuleCreateWithoutConditionsInput, GuildRoleRuleUncheckedCreateWithoutConditionsInput>
+    connectOrCreate?: GuildRoleRuleCreateOrConnectWithoutConditionsInput
+    upsert?: GuildRoleRuleUpsertWithoutConditionsInput
+    connect?: GuildRoleRuleWhereUniqueInput
+    update?: XOR<XOR<GuildRoleRuleUpdateToOneWithWhereWithoutConditionsInput, GuildRoleRuleUpdateWithoutConditionsInput>, GuildRoleRuleUncheckedUpdateWithoutConditionsInput>
   }
 
   export type GuildCreateNestedOneWithoutRequiredRolesInput = {
@@ -21161,14 +24110,6 @@ export namespace Prisma {
     create?: XOR<ProfessionCreateWithoutRecipesInput, ProfessionUncheckedCreateWithoutRecipesInput>
     connectOrCreate?: ProfessionCreateOrConnectWithoutRecipesInput
     connect?: ProfessionWhereUniqueInput
-  }
-
-  export type NullableIntFieldUpdateOperationsInput = {
-    set?: number | null
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type ProfessionUpdateOneRequiredWithoutRecipesNestedInput = {
@@ -21560,12 +24501,14 @@ export namespace Prisma {
     name: string
     discordGuildId: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastRosterImportedAt?: Date | string | null
     characters?: GuildCharacterCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -21575,6 +24518,7 @@ export namespace Prisma {
     name: string
     discordGuildId: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastExportedById?: string | null
     lastRosterImportedAt?: Date | string | null
@@ -21583,6 +24527,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberUncheckedCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutCreatedByInput = {
@@ -21599,6 +24544,7 @@ export namespace Prisma {
     name: string
     discordGuildId: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastRosterImportedAt?: Date | string | null
     createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
@@ -21606,6 +24552,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
 
@@ -21615,6 +24562,7 @@ export namespace Prisma {
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastRosterImportedAt?: Date | string | null
     lastRosterImportedById?: string | null
@@ -21622,6 +24570,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberUncheckedCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutLastExportedByInput = {
@@ -21638,6 +24587,7 @@ export namespace Prisma {
     name: string
     discordGuildId: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastRosterImportedAt?: Date | string | null
     createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
@@ -21645,6 +24595,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
   }
 
@@ -21654,6 +24605,7 @@ export namespace Prisma {
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastExportedById?: string | null
     lastRosterImportedAt?: Date | string | null
@@ -21661,6 +24613,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberUncheckedCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutLastRosterImportedByInput = {
@@ -21820,6 +24773,7 @@ export namespace Prisma {
     discordGuildId?: StringFilter<"Guild"> | string
     createdById?: StringFilter<"Guild"> | string
     createdAt?: DateTimeFilter<"Guild"> | Date | string
+    pugRoleId?: StringNullableFilter<"Guild"> | string | null
     lastExportedAt?: DateTimeNullableFilter<"Guild"> | Date | string | null
     lastExportedById?: StringNullableFilter<"Guild"> | string | null
     lastRosterImportedAt?: DateTimeNullableFilter<"Guild"> | Date | string | null
@@ -22193,6 +25147,29 @@ export namespace Prisma {
     data: GuildRosterMemberCreateManyGuildInput | GuildRosterMemberCreateManyGuildInput[]
   }
 
+  export type GuildRoleRuleCreateWithoutGuildInput = {
+    id?: string
+    label?: string | null
+    discordRoleId: string
+    conditions?: GuildRoleRuleConditionCreateNestedManyWithoutRuleInput
+  }
+
+  export type GuildRoleRuleUncheckedCreateWithoutGuildInput = {
+    id?: string
+    label?: string | null
+    discordRoleId: string
+    conditions?: GuildRoleRuleConditionUncheckedCreateNestedManyWithoutRuleInput
+  }
+
+  export type GuildRoleRuleCreateOrConnectWithoutGuildInput = {
+    where: GuildRoleRuleWhereUniqueInput
+    create: XOR<GuildRoleRuleCreateWithoutGuildInput, GuildRoleRuleUncheckedCreateWithoutGuildInput>
+  }
+
+  export type GuildRoleRuleCreateManyGuildInputEnvelope = {
+    data: GuildRoleRuleCreateManyGuildInput | GuildRoleRuleCreateManyGuildInput[]
+  }
+
   export type UserCreateWithoutLastExportedGuildsInput = {
     id: string
     name: string
@@ -22412,6 +25389,32 @@ export namespace Prisma {
     officerNote?: StringNullableFilter<"GuildRosterMember"> | string | null
   }
 
+  export type GuildRoleRuleUpsertWithWhereUniqueWithoutGuildInput = {
+    where: GuildRoleRuleWhereUniqueInput
+    update: XOR<GuildRoleRuleUpdateWithoutGuildInput, GuildRoleRuleUncheckedUpdateWithoutGuildInput>
+    create: XOR<GuildRoleRuleCreateWithoutGuildInput, GuildRoleRuleUncheckedCreateWithoutGuildInput>
+  }
+
+  export type GuildRoleRuleUpdateWithWhereUniqueWithoutGuildInput = {
+    where: GuildRoleRuleWhereUniqueInput
+    data: XOR<GuildRoleRuleUpdateWithoutGuildInput, GuildRoleRuleUncheckedUpdateWithoutGuildInput>
+  }
+
+  export type GuildRoleRuleUpdateManyWithWhereWithoutGuildInput = {
+    where: GuildRoleRuleScalarWhereInput
+    data: XOR<GuildRoleRuleUpdateManyMutationInput, GuildRoleRuleUncheckedUpdateManyWithoutGuildInput>
+  }
+
+  export type GuildRoleRuleScalarWhereInput = {
+    AND?: GuildRoleRuleScalarWhereInput | GuildRoleRuleScalarWhereInput[]
+    OR?: GuildRoleRuleScalarWhereInput[]
+    NOT?: GuildRoleRuleScalarWhereInput | GuildRoleRuleScalarWhereInput[]
+    id?: StringFilter<"GuildRoleRule"> | string
+    guildId?: StringFilter<"GuildRoleRule"> | string
+    label?: StringNullableFilter<"GuildRoleRule"> | string | null
+    discordRoleId?: StringFilter<"GuildRoleRule"> | string
+  }
+
   export type UserUpsertWithoutLastExportedGuildsInput = {
     update: XOR<UserUpdateWithoutLastExportedGuildsInput, UserUncheckedUpdateWithoutLastExportedGuildsInput>
     create: XOR<UserCreateWithoutLastExportedGuildsInput, UserUncheckedCreateWithoutLastExportedGuildsInput>
@@ -22507,12 +25510,14 @@ export namespace Prisma {
     name: string
     discordGuildId: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastRosterImportedAt?: Date | string | null
     createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
     characters?: GuildCharacterCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -22523,6 +25528,7 @@ export namespace Prisma {
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastExportedById?: string | null
     lastRosterImportedAt?: Date | string | null
@@ -22530,6 +25536,7 @@ export namespace Prisma {
     characters?: GuildCharacterUncheckedCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutRosterMembersInput = {
@@ -22553,12 +25560,14 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
     characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -22569,6 +25578,7 @@ export namespace Prisma {
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastExportedById?: NullableStringFieldUpdateOperationsInput | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -22576,6 +25586,191 @@ export namespace Prisma {
     characters?: GuildCharacterUncheckedUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
+  }
+
+  export type GuildCreateWithoutRoleRulesInput = {
+    id?: string
+    name: string
+    discordGuildId: string
+    createdAt?: Date | string
+    pugRoleId?: string | null
+    lastExportedAt?: Date | string | null
+    lastRosterImportedAt?: Date | string | null
+    createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
+    characters?: GuildCharacterCreateNestedManyWithoutGuildInput
+    requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
+    adminRoles?: GuildAdminRoleCreateNestedManyWithoutGuildInput
+    rosterMembers?: GuildRosterMemberCreateNestedManyWithoutGuildInput
+    lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
+    lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
+  }
+
+  export type GuildUncheckedCreateWithoutRoleRulesInput = {
+    id?: string
+    name: string
+    discordGuildId: string
+    createdById: string
+    createdAt?: Date | string
+    pugRoleId?: string | null
+    lastExportedAt?: Date | string | null
+    lastExportedById?: string | null
+    lastRosterImportedAt?: Date | string | null
+    lastRosterImportedById?: string | null
+    characters?: GuildCharacterUncheckedCreateNestedManyWithoutGuildInput
+    requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
+    adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
+    rosterMembers?: GuildRosterMemberUncheckedCreateNestedManyWithoutGuildInput
+  }
+
+  export type GuildCreateOrConnectWithoutRoleRulesInput = {
+    where: GuildWhereUniqueInput
+    create: XOR<GuildCreateWithoutRoleRulesInput, GuildUncheckedCreateWithoutRoleRulesInput>
+  }
+
+  export type GuildRoleRuleConditionCreateWithoutRuleInput = {
+    id?: string
+    field: string
+    operator: string
+    textValue?: string | null
+    minNumber?: number | null
+    maxNumber?: number | null
+  }
+
+  export type GuildRoleRuleConditionUncheckedCreateWithoutRuleInput = {
+    id?: string
+    field: string
+    operator: string
+    textValue?: string | null
+    minNumber?: number | null
+    maxNumber?: number | null
+  }
+
+  export type GuildRoleRuleConditionCreateOrConnectWithoutRuleInput = {
+    where: GuildRoleRuleConditionWhereUniqueInput
+    create: XOR<GuildRoleRuleConditionCreateWithoutRuleInput, GuildRoleRuleConditionUncheckedCreateWithoutRuleInput>
+  }
+
+  export type GuildRoleRuleConditionCreateManyRuleInputEnvelope = {
+    data: GuildRoleRuleConditionCreateManyRuleInput | GuildRoleRuleConditionCreateManyRuleInput[]
+  }
+
+  export type GuildUpsertWithoutRoleRulesInput = {
+    update: XOR<GuildUpdateWithoutRoleRulesInput, GuildUncheckedUpdateWithoutRoleRulesInput>
+    create: XOR<GuildCreateWithoutRoleRulesInput, GuildUncheckedCreateWithoutRoleRulesInput>
+    where?: GuildWhereInput
+  }
+
+  export type GuildUpdateToOneWithWhereWithoutRoleRulesInput = {
+    where?: GuildWhereInput
+    data: XOR<GuildUpdateWithoutRoleRulesInput, GuildUncheckedUpdateWithoutRoleRulesInput>
+  }
+
+  export type GuildUpdateWithoutRoleRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    discordGuildId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
+    characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
+    requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
+    adminRoles?: GuildAdminRoleUpdateManyWithoutGuildNestedInput
+    rosterMembers?: GuildRosterMemberUpdateManyWithoutGuildNestedInput
+    lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
+    lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
+  }
+
+  export type GuildUncheckedUpdateWithoutRoleRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    discordGuildId?: StringFieldUpdateOperationsInput | string
+    createdById?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastExportedById?: NullableStringFieldUpdateOperationsInput | string | null
+    lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRosterImportedById?: NullableStringFieldUpdateOperationsInput | string | null
+    characters?: GuildCharacterUncheckedUpdateManyWithoutGuildNestedInput
+    requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
+    adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
+    rosterMembers?: GuildRosterMemberUncheckedUpdateManyWithoutGuildNestedInput
+  }
+
+  export type GuildRoleRuleConditionUpsertWithWhereUniqueWithoutRuleInput = {
+    where: GuildRoleRuleConditionWhereUniqueInput
+    update: XOR<GuildRoleRuleConditionUpdateWithoutRuleInput, GuildRoleRuleConditionUncheckedUpdateWithoutRuleInput>
+    create: XOR<GuildRoleRuleConditionCreateWithoutRuleInput, GuildRoleRuleConditionUncheckedCreateWithoutRuleInput>
+  }
+
+  export type GuildRoleRuleConditionUpdateWithWhereUniqueWithoutRuleInput = {
+    where: GuildRoleRuleConditionWhereUniqueInput
+    data: XOR<GuildRoleRuleConditionUpdateWithoutRuleInput, GuildRoleRuleConditionUncheckedUpdateWithoutRuleInput>
+  }
+
+  export type GuildRoleRuleConditionUpdateManyWithWhereWithoutRuleInput = {
+    where: GuildRoleRuleConditionScalarWhereInput
+    data: XOR<GuildRoleRuleConditionUpdateManyMutationInput, GuildRoleRuleConditionUncheckedUpdateManyWithoutRuleInput>
+  }
+
+  export type GuildRoleRuleConditionScalarWhereInput = {
+    AND?: GuildRoleRuleConditionScalarWhereInput | GuildRoleRuleConditionScalarWhereInput[]
+    OR?: GuildRoleRuleConditionScalarWhereInput[]
+    NOT?: GuildRoleRuleConditionScalarWhereInput | GuildRoleRuleConditionScalarWhereInput[]
+    id?: StringFilter<"GuildRoleRuleCondition"> | string
+    ruleId?: StringFilter<"GuildRoleRuleCondition"> | string
+    field?: StringFilter<"GuildRoleRuleCondition"> | string
+    operator?: StringFilter<"GuildRoleRuleCondition"> | string
+    textValue?: StringNullableFilter<"GuildRoleRuleCondition"> | string | null
+    minNumber?: IntNullableFilter<"GuildRoleRuleCondition"> | number | null
+    maxNumber?: IntNullableFilter<"GuildRoleRuleCondition"> | number | null
+  }
+
+  export type GuildRoleRuleCreateWithoutConditionsInput = {
+    id?: string
+    label?: string | null
+    discordRoleId: string
+    guild: GuildCreateNestedOneWithoutRoleRulesInput
+  }
+
+  export type GuildRoleRuleUncheckedCreateWithoutConditionsInput = {
+    id?: string
+    guildId: string
+    label?: string | null
+    discordRoleId: string
+  }
+
+  export type GuildRoleRuleCreateOrConnectWithoutConditionsInput = {
+    where: GuildRoleRuleWhereUniqueInput
+    create: XOR<GuildRoleRuleCreateWithoutConditionsInput, GuildRoleRuleUncheckedCreateWithoutConditionsInput>
+  }
+
+  export type GuildRoleRuleUpsertWithoutConditionsInput = {
+    update: XOR<GuildRoleRuleUpdateWithoutConditionsInput, GuildRoleRuleUncheckedUpdateWithoutConditionsInput>
+    create: XOR<GuildRoleRuleCreateWithoutConditionsInput, GuildRoleRuleUncheckedCreateWithoutConditionsInput>
+    where?: GuildRoleRuleWhereInput
+  }
+
+  export type GuildRoleRuleUpdateToOneWithWhereWithoutConditionsInput = {
+    where?: GuildRoleRuleWhereInput
+    data: XOR<GuildRoleRuleUpdateWithoutConditionsInput, GuildRoleRuleUncheckedUpdateWithoutConditionsInput>
+  }
+
+  export type GuildRoleRuleUpdateWithoutConditionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    label?: NullableStringFieldUpdateOperationsInput | string | null
+    discordRoleId?: StringFieldUpdateOperationsInput | string
+    guild?: GuildUpdateOneRequiredWithoutRoleRulesNestedInput
+  }
+
+  export type GuildRoleRuleUncheckedUpdateWithoutConditionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    guildId?: StringFieldUpdateOperationsInput | string
+    label?: NullableStringFieldUpdateOperationsInput | string | null
+    discordRoleId?: StringFieldUpdateOperationsInput | string
   }
 
   export type GuildCreateWithoutRequiredRolesInput = {
@@ -22583,12 +25778,14 @@ export namespace Prisma {
     name: string
     discordGuildId: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastRosterImportedAt?: Date | string | null
     createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
     characters?: GuildCharacterCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -22599,6 +25796,7 @@ export namespace Prisma {
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastExportedById?: string | null
     lastRosterImportedAt?: Date | string | null
@@ -22606,6 +25804,7 @@ export namespace Prisma {
     characters?: GuildCharacterUncheckedCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberUncheckedCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutRequiredRolesInput = {
@@ -22629,12 +25828,14 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
     characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -22645,6 +25846,7 @@ export namespace Prisma {
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastExportedById?: NullableStringFieldUpdateOperationsInput | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -22652,6 +25854,7 @@ export namespace Prisma {
     characters?: GuildCharacterUncheckedUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUncheckedUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutAdminRolesInput = {
@@ -22659,12 +25862,14 @@ export namespace Prisma {
     name: string
     discordGuildId: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastRosterImportedAt?: Date | string | null
     createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
     characters?: GuildCharacterCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -22675,6 +25880,7 @@ export namespace Prisma {
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastExportedById?: string | null
     lastRosterImportedAt?: Date | string | null
@@ -22682,6 +25888,7 @@ export namespace Prisma {
     characters?: GuildCharacterUncheckedCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberUncheckedCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutAdminRolesInput = {
@@ -22705,12 +25912,14 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
     characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -22721,6 +25930,7 @@ export namespace Prisma {
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastExportedById?: NullableStringFieldUpdateOperationsInput | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -22728,6 +25938,7 @@ export namespace Prisma {
     characters?: GuildCharacterUncheckedUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUncheckedUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutCharactersInput = {
@@ -22735,12 +25946,14 @@ export namespace Prisma {
     name: string
     discordGuildId: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastRosterImportedAt?: Date | string | null
     createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
     requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -22751,6 +25964,7 @@ export namespace Prisma {
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastExportedById?: string | null
     lastRosterImportedAt?: Date | string | null
@@ -22758,6 +25972,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberUncheckedCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutCharactersInput = {
@@ -22841,12 +26056,14 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
     requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -22857,6 +26074,7 @@ export namespace Prisma {
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastExportedById?: NullableStringFieldUpdateOperationsInput | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -22864,6 +26082,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUncheckedUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type UserUpsertWithoutGuildCharactersInput = {
@@ -23123,6 +26342,7 @@ export namespace Prisma {
     name: string
     discordGuildId: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastExportedById?: string | null
     lastRosterImportedAt?: Date | string | null
@@ -23135,6 +26355,7 @@ export namespace Prisma {
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastRosterImportedAt?: Date | string | null
     lastRosterImportedById?: string | null
@@ -23146,6 +26367,7 @@ export namespace Prisma {
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
+    pugRoleId?: string | null
     lastExportedAt?: Date | string | null
     lastExportedById?: string | null
     lastRosterImportedAt?: Date | string | null
@@ -23262,12 +26484,14 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -23277,6 +26501,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastExportedById?: NullableStringFieldUpdateOperationsInput | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -23285,6 +26510,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUncheckedUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildUncheckedUpdateManyWithoutCreatedByInput = {
@@ -23292,6 +26518,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastExportedById?: NullableStringFieldUpdateOperationsInput | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -23303,6 +26530,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
@@ -23310,6 +26538,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
 
@@ -23319,6 +26548,7 @@ export namespace Prisma {
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastRosterImportedById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23326,6 +26556,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUncheckedUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildUncheckedUpdateManyWithoutLastExportedByInput = {
@@ -23334,6 +26565,7 @@ export namespace Prisma {
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastRosterImportedById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23344,6 +26576,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
@@ -23351,6 +26584,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
   }
 
@@ -23360,6 +26594,7 @@ export namespace Prisma {
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastExportedById?: NullableStringFieldUpdateOperationsInput | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -23367,6 +26602,7 @@ export namespace Prisma {
     requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUncheckedUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildUncheckedUpdateManyWithoutLastRosterImportedByInput = {
@@ -23375,6 +26611,7 @@ export namespace Prisma {
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastExportedById?: NullableStringFieldUpdateOperationsInput | string | null
     lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -23440,6 +26677,12 @@ export namespace Prisma {
     class?: string | null
     note?: string | null
     officerNote?: string | null
+  }
+
+  export type GuildRoleRuleCreateManyGuildInput = {
+    id?: string
+    label?: string | null
+    discordRoleId: string
   }
 
   export type GuildCharacterUpdateWithoutGuildInput = {
@@ -23532,6 +26775,62 @@ export namespace Prisma {
     class?: NullableStringFieldUpdateOperationsInput | string | null
     note?: NullableStringFieldUpdateOperationsInput | string | null
     officerNote?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type GuildRoleRuleUpdateWithoutGuildInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    label?: NullableStringFieldUpdateOperationsInput | string | null
+    discordRoleId?: StringFieldUpdateOperationsInput | string
+    conditions?: GuildRoleRuleConditionUpdateManyWithoutRuleNestedInput
+  }
+
+  export type GuildRoleRuleUncheckedUpdateWithoutGuildInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    label?: NullableStringFieldUpdateOperationsInput | string | null
+    discordRoleId?: StringFieldUpdateOperationsInput | string
+    conditions?: GuildRoleRuleConditionUncheckedUpdateManyWithoutRuleNestedInput
+  }
+
+  export type GuildRoleRuleUncheckedUpdateManyWithoutGuildInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    label?: NullableStringFieldUpdateOperationsInput | string | null
+    discordRoleId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type GuildRoleRuleConditionCreateManyRuleInput = {
+    id?: string
+    field: string
+    operator: string
+    textValue?: string | null
+    minNumber?: number | null
+    maxNumber?: number | null
+  }
+
+  export type GuildRoleRuleConditionUpdateWithoutRuleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    field?: StringFieldUpdateOperationsInput | string
+    operator?: StringFieldUpdateOperationsInput | string
+    textValue?: NullableStringFieldUpdateOperationsInput | string | null
+    minNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    maxNumber?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type GuildRoleRuleConditionUncheckedUpdateWithoutRuleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    field?: StringFieldUpdateOperationsInput | string
+    operator?: StringFieldUpdateOperationsInput | string
+    textValue?: NullableStringFieldUpdateOperationsInput | string | null
+    minNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    maxNumber?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type GuildRoleRuleConditionUncheckedUpdateManyWithoutRuleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    field?: StringFieldUpdateOperationsInput | string
+    operator?: StringFieldUpdateOperationsInput | string
+    textValue?: NullableStringFieldUpdateOperationsInput | string | null
+    minNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    maxNumber?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type ProfessionCreateManyCharacterInput = {
