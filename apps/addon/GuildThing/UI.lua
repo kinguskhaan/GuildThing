@@ -1,4 +1,4 @@
-local GT = GuildThing
+local GT = GuildThingRoster
 
 local frame
 
@@ -55,7 +55,7 @@ local function CreateExportBox(parent, width, height)
 end
 
 local function CreateGTFrame()
-    local f = CreateFrame("Frame", "GuildThingFrame", UIParent, "BackdropTemplate")
+    local f = CreateFrame("Frame", "GuildThingRosterFrame", UIParent, "BackdropTemplate")
     f:SetSize(480, 420)
     f:SetPoint("CENTER")
     f:SetMovable(true)
@@ -73,7 +73,7 @@ local function CreateGTFrame()
 
     local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("TOP", 0, -16)
-    title:SetText("GuildThing")
+    title:SetText("GuildThing Roster")
 
     local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", -4, -4)
@@ -138,7 +138,7 @@ local function ToggleGTFrame()
     if not frame then
         local ok, result = pcall(CreateGTFrame)
         if not ok then
-            print("|cffff0000GuildThing error:|r " .. tostring(result))
+            print("|cffff0000GuildThing Roster error:|r " .. tostring(result))
             return
         end
         frame = result
@@ -150,6 +150,10 @@ local function ToggleGTFrame()
     end
 end
 
-SLASH_GUILDTHING1 = "/gt"
-SLASH_GUILDTHING2 = "/guildthing"
-SlashCmdList["GUILDTHING"] = ToggleGTFrame
+-- /gt and /guildthing are already claimed by OurRecipes (forked from the
+-- same original addon, never renamed its own slash triggers) — use
+-- distinct ones so SlashCmdList entries don't stomp each other based on
+-- load order.
+SLASH_GUILDTHINGROSTER1 = "/gtr"
+SLASH_GUILDTHINGROSTER2 = "/guildroster"
+SlashCmdList["GUILDTHINGROSTER"] = ToggleGTFrame

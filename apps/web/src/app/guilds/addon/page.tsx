@@ -38,9 +38,9 @@ export default function AddonPage() {
           <>
             In-game, type{" "}
             <code className="rounded bg-discord-elevated-hover px-1 py-0.5 text-sm">
-              /gt
+              /gtr
             </code>{" "}
-            to open the GuildThing window.
+            to open the GuildThing Roster window.
           </>,
           'Click "Scan guild roster" — GuildThing requests the roster and fills the box with JSON.',
           "Select everything (Ctrl+A) and copy it (Ctrl+C).",

@@ -1,8 +1,8 @@
-## Interface: 20505
-## Title: GuildThing
-## Notes: Export your guild roster (name, rank, level) to the GuildThing website
+## Interface: 20506
+## Title: GuildThing Roster
+## Notes: Export your guild roster (name, rank, level) to the GuildThing website. Use /gtr or /guildroster.
 ## Version: 1.0
-## SavedVariables: GuildThingDB
+## SavedVariables: GuildThingRosterDB
 
 Core.lua
 UI.lua
