@@ -28,6 +28,24 @@ async function safeGuildIconUrl(
   }
 }
 
+// Matches the JSON GuildThing Roster's /gtr export produces (Core.lua's
+// GT.ExportRoster) — plain JSON, not the base64+zlib pipeline the older
+// recipe export uses, since a roster scan is small enough not to need it.
+const rosterExportSchema = z.object({
+  guild: z.string().optional(),
+  exportedAt: z.number().optional(),
+  members: z.array(
+    z.object({
+      name: z.string().min(1),
+      rank: z.string(),
+      level: z.number(),
+      class: z.string().nullable().optional(),
+      note: z.string().nullable().optional(),
+      officernote: z.string().nullable().optional(),
+    }),
+  ),
+});
+
 const wowImportSchema = z.object({
   name: z.string().min(1),
   realm: z.string().min(1),
@@ -831,5 +849,114 @@ export const guildRouter = createTRPCRouter({
             realm: r.profession.character.realm,
           })),
         }));
+    }),
+
+  // Full replace, not merge — a GuildThing Roster addon scan is a complete
+  // point-in-time snapshot of everyone in the guild, so stale rows (people
+  // who've since left) should disappear on the next import rather than
+  // linger forever.
+  importRosterMembers: protectedProcedure
+    .input(z.object({ guildId: z.string(), exportString: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(input.exportString);
+      } catch {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "That doesn't look like valid JSON — make sure you copied the whole export string.",
+        });
+      }
+
+      const result = rosterExportSchema.safeParse(parsed);
+      if (!result.success) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "That doesn't look like a GuildThing Roster export.",
+        });
+      }
+
+      const { members } = result.data;
+
+      await ctx.db.$transaction([
+        ctx.db.guildRosterMember.deleteMany({
+          where: { guildId: input.guildId },
+        }),
+        ctx.db.guildRosterMember.createMany({
+          data: members.map((m) => ({
+            guildId: input.guildId,
+            name: m.name,
+            rank: m.rank,
+            level: m.level,
+            class: m.class ?? null,
+            note: m.note ?? null,
+            officerNote: m.officernote ?? null,
+          })),
+        }),
+        ctx.db.guild.update({
+          where: { id: input.guildId },
+          data: {
+            lastRosterImportedAt: new Date(),
+            lastRosterImportedById: ctx.session.user.id,
+          },
+        }),
+      ]);
+
+      return { count: members.length };
+    }),
+
+  // officerNote is stripped for non-admins — same visibility rule the
+  // in-game guild panel itself enforces (regular members can't see officer
+  // notes there either), so the addon-sourced copy shouldn't leak it.
+  rosterMembers: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const [{ hasAccess, retryAfterSeconds }, { isAdmin }] = await Promise.all([
+        checkGuildRole(ctx.db, input.guildId, ctx.session.user.id),
+        checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id),
+      ]);
+      if (!hasAccess) {
+        throw forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const members = await ctx.db.guildRosterMember.findMany({
+        where: { guildId: input.guildId },
+        orderBy: [{ level: "desc" }, { name: "asc" }],
+      });
+
+      if (isAdmin) return members;
+      return members.map((m) => ({ ...m, officerNote: null }));
+    }),
+
+  rosterImportStatus: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const guild = await ctx.db.guild.findUnique({
+        where: { id: input.guildId },
+        select: {
+          lastRosterImportedAt: true,
+          lastRosterImportedBy: { select: { nickname: true, name: true } },
+        },
+      });
+      if (!guild) throw new TRPCError({ code: "NOT_FOUND" });
+
+      return {
+        lastRosterImportedAt: guild.lastRosterImportedAt,
+        lastRosterImportedByName: guild.lastRosterImportedBy
+          ? (guild.lastRosterImportedBy.nickname ?? guild.lastRosterImportedBy.name)
+          : null,
+      };
     }),
 });

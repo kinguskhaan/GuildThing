@@ -42,6 +42,7 @@ export function Sidebar() {
   );
 
   const membersHref = guild ? `/guilds/${guild.id}/members` : "";
+  const rosterHref = guild ? `/guilds/${guild.id}/roster` : "";
   const adminLinks = guild
     ? [
         { href: `/guilds/${guild.id}/admin/recipes`, label: "Raw recipe catalog" },
@@ -58,6 +59,9 @@ export function Sidebar() {
         <>
           <Link href={membersHref} className={navLinkClass(pathname === membersHref)}>
             Members
+          </Link>
+          <Link href={rosterHref} className={navLinkClass(pathname === rosterHref)}>
+            Roster
           </Link>
 
           <div className="my-2 border-t border-black/20" />

@@ -42,9 +42,10 @@ model User {
   accounts      Account[]
   posts         Post[]
 
-  createdGuilds      Guild[]
-  lastExportedGuilds Guild[]          @relation("GuildLastExportedBy")
-  guildCharacters    GuildCharacter[]
+  createdGuilds            Guild[]
+  lastExportedGuilds       Guild[]          @relation("GuildLastExportedBy")
+  lastRosterImportedGuilds Guild[]          @relation("GuildLastRosterImportedBy")
+  guildCharacters          GuildCharacter[]
 
   @@unique([email])
   @@map("user")
@@ -104,6 +105,7 @@ model Guild {
   characters     GuildCharacter[]
   requiredRoles  GuildRequiredRole[]
   adminRoles     GuildAdminRole[]
+  rosterMembers  GuildRosterMember[]
   createdAt      DateTime            @default(now())
 
   // Who last generated the addon export string, and when — shown on the
@@ -112,7 +114,35 @@ model Guild {
   lastExportedById String?
   lastExportedBy   User?     @relation("GuildLastExportedBy", fields: [lastExportedById], references: [id])
 
+  // Who last pasted in a GuildThing Roster addon export, and when — same
+  // staleness-flagging idea as lastExportedAt, for the separate roster
+  // (name/rank/level/class, not recipes) import.
+  lastRosterImportedAt   DateTime?
+  lastRosterImportedById String?
+  lastRosterImportedBy   User?     @relation("GuildLastRosterImportedBy", fields: [lastRosterImportedById], references: [id])
+
   @@index([discordGuildId])
+}
+
+// A snapshot of the guild's in-game roster (name/rank/level/class/notes),
+// pasted in from the GuildThing Roster addon's /gtr export by an admin.
+// Deliberately NOT tied to userId like GuildCharacter is — a roster scan
+// covers every member at once, reported by whoever ran the addon, not
+// self-reported per account. Each import fully replaces the previous
+// snapshot (see guild.importRoster) rather than merging, since a roster
+// scan is a complete point-in-time picture, not incremental data.
+model GuildRosterMember {
+  id          String  @id @default(cuid())
+  guildId     String
+  guild       Guild   @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  name        String
+  rank        String
+  level       Int
+  class       String?
+  note        String?
+  officerNote String?
+
+  @@unique([guildId, name])
 }
 
 model GuildRequiredRole {

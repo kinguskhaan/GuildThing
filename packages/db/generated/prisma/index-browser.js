@@ -180,7 +180,20 @@ exports.Prisma.GuildScalarFieldEnum = {
   createdById: 'createdById',
   createdAt: 'createdAt',
   lastExportedAt: 'lastExportedAt',
-  lastExportedById: 'lastExportedById'
+  lastExportedById: 'lastExportedById',
+  lastRosterImportedAt: 'lastRosterImportedAt',
+  lastRosterImportedById: 'lastRosterImportedById'
+};
+
+exports.Prisma.GuildRosterMemberScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  name: 'name',
+  rank: 'rank',
+  level: 'level',
+  class: 'class',
+  note: 'note',
+  officerNote: 'officerNote'
 };
 
 exports.Prisma.GuildRequiredRoleScalarFieldEnum = {
@@ -253,6 +266,7 @@ exports.Prisma.ModelName = {
   Account: 'Account',
   Verification: 'Verification',
   Guild: 'Guild',
+  GuildRosterMember: 'GuildRosterMember',
   GuildRequiredRole: 'GuildRequiredRole',
   GuildAdminRole: 'GuildAdminRole',
   GuildCharacter: 'GuildCharacter',
