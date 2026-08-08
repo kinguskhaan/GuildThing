@@ -4,12 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "catalog": "tsx scripts/export-addon-catalog.ts",
     "package": "tsx scripts/package-addon.ts",
     "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@guildthing/wowhead-data": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.14.10",

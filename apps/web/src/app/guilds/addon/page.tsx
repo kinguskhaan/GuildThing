@@ -8,8 +8,8 @@ export default function AddonPage() {
           GuildThing addon
         </h1>
         <p className="max-w-md text-discord-text-muted">
-          A small in-game addon that exports your known profession recipes as
-          JSON, ready to paste into a guild here.
+          A small in-game addon that scans your guild&apos;s roster (name,
+          rank, level) and exports it as JSON.
         </p>
       </div>
 
@@ -42,9 +42,8 @@ export default function AddonPage() {
             </code>{" "}
             to open the GuildThing window.
           </>,
-          'Open a profession window and click "Import" — GuildThing scans it and fills the box with JSON.',
+          'Click "Scan guild roster" — GuildThing requests the roster and fills the box with JSON.',
           "Select everything (Ctrl+A) and copy it (Ctrl+C).",
-          "Paste it (Ctrl+V) into the import box on a guild page here.",
         ].map((step, i) => (
           <li key={i} className="flex gap-3 rounded-xl bg-discord-elevated p-4">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-discord-brand text-sm font-semibold">
@@ -54,18 +53,6 @@ export default function AddonPage() {
           </li>
         ))}
       </ol>
-
-      <div className="flex w-full max-w-xl flex-col items-center gap-2">
-        <p className="text-sm text-discord-text-muted">
-          What &ldquo;Import&rdquo; looks like in-game:
-        </p>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/addon/screenshot.png"
-          alt="GuildThing in-game window showing imported professions and the exported JSON, with an Import button at the bottom"
-          className="w-full rounded-xl border border-black/20"
-        />
-      </div>
 
       <Link href="/guilds" className="underline">
         Back to guilds

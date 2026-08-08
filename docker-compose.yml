@@ -6,7 +6,10 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: "file:./db.sqlite"
+      # Must be absolute, see the comment in .env.example — WORKDIR is /app,
+      # so this is unambiguous for both the Prisma CLI (docker-entrypoint.sh)
+      # and the Next.js runtime, unlike a relative file: URL would be.
+      DATABASE_URL: "file:/app/packages/db/prisma/db.sqlite"
     volumes:
       - sqlite-data:/app/packages/db/prisma
 

@@ -40,10 +40,6 @@ importers:
         version: 8.65.0(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
 
   apps/addon:
-    dependencies:
-      '@guildthing/wowhead-data':
-        specifier: workspace:*
-        version: link:../../packages/wowhead-data
     devDependencies:
       '@types/node':
         specifier: ^20.14.10
