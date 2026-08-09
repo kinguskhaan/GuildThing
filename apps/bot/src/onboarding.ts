@@ -342,8 +342,23 @@ async function runOnboarding(triggerInteraction: ModalTriggerInteraction): Promi
       [],
       { notify: createNotifier(cursor) },
     );
+    // The authoritative "chose PUG" record — independent of whether a PUG
+    // role is even configured, or whether the role assignment above
+    // actually succeeded — so the site's "hasn't claimed a character" view
+    // can correctly exclude them either way.
+    await db.guildPugMember.upsert({
+      where: { guildId_discordUserId: { guildId: guild.id, discordUserId: member.id } },
+      create: { guildId: guild.id, discordUserId: member.id, discordUserTag: member.user.tag },
+      update: { discordUserTag: member.user.tag },
+    });
     return;
   }
+
+  // They're onboarding as a guild member now — clear any stale "chose PUG"
+  // record from a previous run, since that's no longer true.
+  await db.guildPugMember
+    .deleteMany({ where: { guildId: guild.id, discordUserId: member.id } })
+    .catch(() => {});
 
   const hasAltsResult = await askChoice(affiliationResult.interaction, "Do you have any alts?", [
     { id: "yes", label: "Yes", primary: true },

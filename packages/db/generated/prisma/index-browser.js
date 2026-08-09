@@ -173,6 +173,18 @@ exports.Prisma.VerificationScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.InstanceSettingsScalarFieldEnum = {
+  id: 'id',
+  guildCreationMode: 'guildCreationMode'
+};
+
+exports.Prisma.AllowedGuildCreatorScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  addedById: 'addedById',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.GuildScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -230,6 +242,14 @@ exports.Prisma.GuildPendingRosterMatchScalarFieldEnum = {
   names: 'names',
   includeAltsInNickname: 'includeAltsInNickname',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.GuildPugMemberScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  discordUserId: 'discordUserId',
+  discordUserTag: 'discordUserTag',
+  markedAt: 'markedAt'
 };
 
 exports.Prisma.GuildMemberActivityScalarFieldEnum = {
@@ -341,11 +361,14 @@ exports.Prisma.ModelName = {
   Session: 'Session',
   Account: 'Account',
   Verification: 'Verification',
+  InstanceSettings: 'InstanceSettings',
+  AllowedGuildCreator: 'AllowedGuildCreator',
   Guild: 'Guild',
   GuildInactivityTargetRole: 'GuildInactivityTargetRole',
   GuildRosterMember: 'GuildRosterMember',
   GuildRosterClaimConflict: 'GuildRosterClaimConflict',
   GuildPendingRosterMatch: 'GuildPendingRosterMatch',
+  GuildPugMember: 'GuildPugMember',
   GuildMemberActivity: 'GuildMemberActivity',
   GuildRoleRule: 'GuildRoleRule',
   GuildRoleRuleGrantedRole: 'GuildRoleRuleGrantedRole',

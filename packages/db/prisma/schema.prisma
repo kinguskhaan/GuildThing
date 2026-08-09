@@ -46,6 +46,7 @@ model User {
   lastExportedGuilds      Guild[]         @relation("GuildLastExportedBy")
   lastRosterImportedGuilds Guild[]        @relation("GuildLastRosterImportedBy")
   guildCharacters         GuildCharacter[]
+  addedGuildCreators      AllowedGuildCreator[]
 
   @@unique([email])
   @@map("user")
@@ -96,6 +97,33 @@ model Verification {
   @@map("verification")
 }
 
+// Single row (id is always the literal "singleton") holding instance-wide
+// settings that aren't tied to any one Guild — currently just who's
+// allowed to create a guild page at all. Only the instance owner (see
+// env.GUILD_CREATOR_EMAIL — always allowed, can't be locked out) can
+// change this.
+model InstanceSettings {
+  id String @id @default("singleton")
+
+  // "owner" — only GUILD_CREATOR_EMAIL (the default, matches the old
+  //   hardcoded behavior).
+  // "allowlist" — GUILD_CREATOR_EMAIL plus anyone in AllowedGuildCreator.
+  // "public" — any signed-in user.
+  guildCreationMode String @default("owner")
+}
+
+// One email allowed to create a guild page when InstanceSettings is in
+// "allowlist" mode — the instance owner's "let specific friends in"
+// list. Keyed by email (not userId) so the owner can add someone before
+// they've ever signed in.
+model AllowedGuildCreator {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  addedById String
+  addedBy   User     @relation(fields: [addedById], references: [id])
+  createdAt DateTime @default(now())
+}
+
 model Guild {
   id             String   @id @default(cuid())
   name           String
@@ -111,6 +139,7 @@ model Guild {
   pendingRosterMatches GuildPendingRosterMatch[]
   memberActivity GuildMemberActivity[]
   inactivityTargetRoles GuildInactivityTargetRole[]
+  pugMembers     GuildPugMember[]
   createdAt      DateTime @default(now())
 
   // Discord role given to someone who says they're here for a PUG, not as
@@ -244,6 +273,24 @@ model GuildPendingRosterMatch {
   names                 String   // JSON array of the names they typed, main first
   includeAltsInNickname Boolean
   createdAt             DateTime @default(now())
+
+  @@unique([guildId, discordUserId])
+}
+
+// Marks a Discord account as having completed onboarding claiming "PUG",
+// independent of whether a PUG role is even configured (Guild.pugRoleId
+// can be unset, or role assignment can silently fail on permissions) —
+// this is the authoritative record of "chose PUG", used to exclude PUGs
+// from the "hasn't claimed a character" admin view without relying on
+// role state. Removed if the same account later re-onboards as a guild
+// member instead.
+model GuildPugMember {
+  id             String   @id @default(cuid())
+  guildId        String
+  guild          Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  discordUserId  String
+  discordUserTag String
+  markedAt       DateTime @default(now())
 
   @@unique([guildId, discordUserId])
 }

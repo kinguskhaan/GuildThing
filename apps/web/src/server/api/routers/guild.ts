@@ -223,8 +223,33 @@ function forbiddenOrRateLimited(retryAfterSeconds: number | null) {
   );
 }
 
-function isGuildCreator(email: string) {
+// The instance owner is always allowed to create guilds and manage who
+// else can — set once via env, can't be locked out by the settings below.
+export function isInstanceOwner(email: string): boolean {
   return email.toLowerCase() === env.GUILD_CREATOR_EMAIL.toLowerCase();
+}
+
+// InstanceSettings.guildCreationMode gate — see its doc comment in
+// schema.prisma for what each mode means. Defaults to "owner" (the old
+// hardcoded behavior) if no settings row exists yet.
+export async function isAllowedToCreateGuild(
+  db: typeof Db,
+  email: string,
+): Promise<boolean> {
+  if (isInstanceOwner(email)) return true;
+
+  const settings = await db.instanceSettings.findUnique({
+    where: { id: "singleton" },
+  });
+  const mode = settings?.guildCreationMode ?? "owner";
+  if (mode === "public") return true;
+  if (mode === "allowlist") {
+    const allowed = await db.allowedGuildCreator.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+    return allowed != null;
+  }
+  return false;
 }
 
 export const guildRouter = createTRPCRouter({
@@ -232,7 +257,7 @@ export const guildRouter = createTRPCRouter({
   // create mutation is the actual enforcement (this is just so non-owners
   // aren't shown a form they'd get a FORBIDDEN back from).
   canCreateGuild: protectedProcedure.query(({ ctx }) => {
-    return isGuildCreator(ctx.session.user.email);
+    return isAllowedToCreateGuild(ctx.db, ctx.session.user.email);
   }),
 
   // Lets the create-guild form offer a "pick your server" dropdown instead
@@ -271,9 +296,10 @@ export const guildRouter = createTRPCRouter({
       }
     }),
 
-  // Multiple guilds are allowed per instance, but only GUILD_CREATOR_EMAIL
-  // can add new ones — canCreateGuild above is just UI dressing, this check
-  // is the actual enforcement (client checks are trivially bypassable).
+  // Who's allowed to create guilds is governed by InstanceSettings (see
+  // isAllowedToCreateGuild) — canCreateGuild above is just UI dressing,
+  // this check is the actual enforcement (client checks are trivially
+  // bypassable).
   create: protectedProcedure
     .input(
       z.object({
@@ -284,10 +310,10 @@ export const guildRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      if (!isGuildCreator(ctx.session.user.email)) {
+      if (!(await isAllowedToCreateGuild(ctx.db, ctx.session.user.email))) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Only the instance owner can create guilds.",
+          message: "You're not allowed to create guilds on this instance.",
         });
       }
 
@@ -1122,10 +1148,12 @@ export const guildRouter = createTRPCRouter({
     }),
 
   // Discord server members who haven't claimed a roster character —
-  // everyone except bots, PUGs (they were never meant to claim one), and
-  // whoever already has at least one GuildRosterMember row claimed to
-  // them. Computed live against Discord + the roster each call rather
-  // than tracked, since claim state can change from either side.
+  // everyone except bots, PUGs (they were never meant to claim one — see
+  // GuildPugMember, the authoritative "chose PUG" record, not a role
+  // check, since a PUG role might not even be configured), and whoever
+  // already has at least one GuildRosterMember row claimed to them.
+  // Computed live against Discord + the roster each call rather than
+  // tracked, since claim state can change from either side.
   unclaimedMembers: protectedProcedure
     .input(z.object({ guildId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -1137,20 +1165,24 @@ export const guildRouter = createTRPCRouter({
           : forbiddenOrRateLimited(retryAfterSeconds);
       }
 
-      const [members, claimedRows] = await Promise.all([
+      const [members, claimedRows, pugRows] = await Promise.all([
         getGuildMembers(guild.discordGuildId),
         ctx.db.guildRosterMember.findMany({
           where: { guildId: input.guildId, claimedByDiscordUserId: { not: null } },
           select: { claimedByDiscordUserId: true },
         }),
+        ctx.db.guildPugMember.findMany({
+          where: { guildId: input.guildId },
+          select: { discordUserId: true },
+        }),
       ]);
 
       const claimedIds = new Set(claimedRows.map((r) => r.claimedByDiscordUserId));
-      const pugRoleId = guild.pugRoleId;
+      const pugIds = new Set(pugRows.map((r) => r.discordUserId));
 
       return members
         .filter((m) => !m.bot)
-        .filter((m) => !pugRoleId || !m.roleIds.includes(pugRoleId))
+        .filter((m) => !pugIds.has(m.id))
         .filter((m) => !claimedIds.has(m.id))
         .map((m) => ({ id: m.id, tag: m.tag }));
     }),

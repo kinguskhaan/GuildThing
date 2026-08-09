@@ -1,4 +1,5 @@
 import { guildRouter } from "~/server/api/routers/guild";
+import { instanceSettingsRouter } from "~/server/api/routers/instanceSettings";
 import { postRouter } from "~/server/api/routers/post";
 import { userRouter } from "~/server/api/routers/user";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
@@ -12,6 +13,7 @@ export const appRouter = createTRPCRouter({
   post: postRouter,
   guild: guildRouter,
   user: userRouter,
+  instanceSettings: instanceSettingsRouter,
 });
 
 // export type definition of API

@@ -26,6 +26,9 @@ export function Sidebar() {
   // show them for.
   const currentGuildId = /^\/guilds\/([^/]+)/.exec(pathname)?.[1];
 
+  const instanceSettings = api.instanceSettings.get.useQuery();
+  const isInstanceOwner = instanceSettings.data?.isOwner ?? false;
+
   const guilds = api.guild.list.useQuery();
   const guild = guilds.data?.find((g) => g.id === currentGuildId);
 
@@ -129,6 +132,20 @@ export function Sidebar() {
       <Link href="/guilds/bot" className={navLinkClass(pathname === "/guilds/bot")}>
         Add to Discord
       </Link>
+
+      {isInstanceOwner && (
+        <>
+          <span className="mt-3 px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-discord-text-muted">
+            Instance
+          </span>
+          <Link
+            href="/guilds/settings"
+            className={navLinkClass(pathname === "/guilds/settings")}
+          >
+            Settings
+          </Link>
+        </>
+      )}
 
       <div className="flex-1" />
 

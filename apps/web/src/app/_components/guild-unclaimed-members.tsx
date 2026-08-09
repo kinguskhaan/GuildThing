@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { api } from "~/trpc/react";
 import type { RouterOutputs } from "~/trpc/react";
@@ -16,17 +16,36 @@ export function GuildUnclaimedMembers({
 }) {
   const [collapsed, setCollapsed] = useState(true);
   const [assignRoleId, setAssignRoleId] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(members.map((m) => m.id)),
+  );
   const discordRoles = api.guild.discordRoles.useQuery(
     { guildId },
     { enabled: !collapsed },
   );
+
+  // Selection defaults to "everyone" whenever the underlying list changes
+  // (e.g. after a reminder/role-assign refreshes the page) — matches the
+  // old "act on all" behavior unless someone actually deselects people.
+  useEffect(() => {
+    setSelected(new Set(members.map((m) => m.id)));
+  }, [members]);
 
   const remind = api.guild.remindUnclaimedMembers.useMutation();
   const assignRole = api.guild.assignRoleToMembers.useMutation();
 
   if (members.length === 0) return null;
 
-  const memberIds = members.map((m) => m.id);
+  function toggle(id: string) {
+    setSelected((s) => {
+      const next = new Set(s);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  const memberIds = [...selected];
 
   return (
     <div className="flex w-full flex-col gap-2 rounded-xl bg-discord-elevated p-4">
@@ -46,27 +65,57 @@ export function GuildUnclaimedMembers({
             Server members (excluding PUGs and bots) who don&apos;t have a
             roster character claimed to their Discord account yet —
             probably haven&apos;t run onboarding, or ran it before their
-            name was in the roster.
+            name was in the roster. Click a name to include/exclude it from
+            the actions below.
           </p>
-          <ul className="flex flex-wrap gap-2">
-            {members.map((m) => (
-              <li
-                key={m.id}
-                className="rounded-full bg-discord-base px-3 py-1 text-sm"
-              >
-                {m.tag}
-              </li>
-            ))}
-          </ul>
+          <div className="flex flex-wrap items-center gap-2">
+            <ul className="flex flex-wrap gap-2">
+              {members.map((m) => {
+                const isSelected = selected.has(m.id);
+                return (
+                  <li key={m.id}>
+                    <button
+                      type="button"
+                      onClick={() => toggle(m.id)}
+                      aria-pressed={isSelected}
+                      className={
+                        isSelected
+                          ? "rounded-full bg-discord-brand px-3 py-1 text-sm text-white"
+                          : "rounded-full bg-discord-base px-3 py-1 text-sm text-discord-text-muted line-through"
+                      }
+                    >
+                      {m.tag}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            <button
+              type="button"
+              onClick={() => setSelected(new Set(members.map((m) => m.id)))}
+              className="text-xs text-discord-text-muted underline hover:text-discord-text"
+            >
+              Select all
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelected(new Set())}
+              className="text-xs text-discord-text-muted underline hover:text-discord-text"
+            >
+              Select none
+            </button>
+          </div>
 
           <div className="flex flex-wrap items-center gap-2 border-t border-black/10 pt-3">
             <button
               type="button"
               onClick={() => remind.mutate({ guildId, memberIds })}
-              disabled={remind.isPending}
+              disabled={remind.isPending || memberIds.length === 0}
               className="rounded-full bg-discord-elevated-hover px-4 py-1.5 text-sm font-semibold"
             >
-              {remind.isPending ? "Sending..." : `DM all ${members.length} a reminder`}
+              {remind.isPending
+                ? "Sending..."
+                : `DM ${memberIds.length} selected a reminder`}
             </button>
             {remind.isSuccess && (
               <span className="text-sm text-discord-text-muted">
@@ -85,7 +134,7 @@ export function GuildUnclaimedMembers({
               value={assignRoleId}
               onChange={(e) => setAssignRoleId(e.target.value)}
             >
-              <option value="">Select a role to assign to all</option>
+              <option value="">Select a role to assign</option>
               {discordRoles.data?.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.name}
@@ -97,10 +146,14 @@ export function GuildUnclaimedMembers({
               onClick={() =>
                 assignRole.mutate({ guildId, memberIds, discordRoleId: assignRoleId })
               }
-              disabled={assignRole.isPending || assignRoleId.trim() === ""}
+              disabled={
+                assignRole.isPending || assignRoleId.trim() === "" || memberIds.length === 0
+              }
               className="rounded-full bg-discord-elevated-hover px-4 py-1.5 text-sm font-semibold"
             >
-              {assignRole.isPending ? "Assigning..." : "Assign to all"}
+              {assignRole.isPending
+                ? "Assigning..."
+                : `Assign to ${memberIds.length} selected`}
             </button>
             {assignRole.isSuccess && (
               <span className="text-sm text-discord-text-muted">
