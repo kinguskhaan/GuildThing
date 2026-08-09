@@ -183,7 +183,7 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
   const [onboardingMessageText, setOnboardingMessageText] = useState("");
   const [inactivityEnabled, setInactivityEnabled] = useState(false);
   const [inactivityDays, setInactivityDays] = useState("");
-  const [inactivityTargetRoleId, setInactivityTargetRoleId] = useState("");
+  const [inactivityTargetRoleIds, setInactivityTargetRoleIds] = useState<string[]>([""]);
   const [inactivityRoleId, setInactivityRoleId] = useState("");
   const [rules, setRules] = useState<RuleDraft[]>([]);
 
@@ -197,7 +197,11 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
     setInactivityDays(
       config.data.inactivityDays != null ? String(config.data.inactivityDays) : "",
     );
-    setInactivityTargetRoleId(config.data.inactivityTargetRoleId ?? "");
+    setInactivityTargetRoleIds(
+      config.data.inactivityTargetRoleIds.length > 0
+        ? config.data.inactivityTargetRoleIds
+        : [""],
+    );
     setInactivityRoleId(config.data.inactivityRoleId ?? "");
     setRules(
       config.data.rules.map((r) => ({
@@ -496,10 +500,10 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
       <div className="flex flex-col gap-2 rounded-xl bg-discord-elevated p-6">
         <h3 className="font-bold">Inactivity filter</h3>
         <p className="text-sm text-discord-text-muted">
-          Members holding the target role who haven&apos;t sent a message in
-          this many days get their other roles saved and swapped for the
-          inactive role — not kicked. They can restore themselves any time
-          with <code>/reactivate</code>.
+          Members holding any of the tracked roles below who haven&apos;t
+          sent a message in this many days get their other roles saved and
+          swapped for the inactive role — not kicked. They can restore
+          themselves any time with <code>/reactivate</code>.
         </p>
         <label className="flex items-center gap-2 text-sm">
           <input
@@ -509,6 +513,45 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
           />
           Enabled
         </label>
+
+        <div className="flex flex-col gap-2">
+          <span className="text-xs uppercase tracking-wide text-discord-text-muted">
+            Track members with any of these roles
+          </span>
+          {inactivityTargetRoleIds.map((roleId, i) => (
+            <div key={i} className="flex gap-2">
+              <RoleSelect
+                value={roleId}
+                onChange={(v) =>
+                  setInactivityTargetRoleIds((ids) =>
+                    ids.map((id, k) => (k === i ? v : id)),
+                  )
+                }
+                roles={discordRoles.data}
+                placeholder="Select a role to track"
+              />
+              {inactivityTargetRoleIds.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setInactivityTargetRoleIds((ids) => ids.filter((_, k) => k !== i))
+                  }
+                  className="rounded-full bg-discord-base px-3 text-sm hover:bg-discord-elevated-hover"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setInactivityTargetRoleIds((ids) => [...ids, ""])}
+            className="self-start rounded-full bg-discord-base px-3 py-1 text-xs hover:bg-discord-elevated-hover"
+          >
+            + Add role
+          </button>
+        </div>
+
         <div className="flex flex-wrap items-center gap-2">
           <input
             type="number"
@@ -517,12 +560,6 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
             onChange={(e) => setInactivityDays(e.target.value)}
             placeholder="Days"
             className="w-24 rounded-full bg-discord-base px-4 py-2 text-discord-text"
-          />
-          <RoleSelect
-            value={inactivityTargetRoleId}
-            onChange={setInactivityTargetRoleId}
-            roles={discordRoles.data}
-            placeholder="Track members with this role"
           />
           <RoleSelect
             value={inactivityRoleId}
@@ -537,7 +574,7 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
                 guildId,
                 enabled: inactivityEnabled,
                 days: inactivityDays.trim() === "" ? null : Number(inactivityDays),
-                targetRoleId: inactivityTargetRoleId.trim() === "" ? null : inactivityTargetRoleId,
+                targetRoleIds: inactivityTargetRoleIds.filter((id) => id.trim() !== ""),
                 inactiveRoleId: inactivityRoleId.trim() === "" ? null : inactivityRoleId,
               })
             }

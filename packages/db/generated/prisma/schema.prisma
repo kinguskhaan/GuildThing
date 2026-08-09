@@ -97,20 +97,21 @@ model Verification {
 }
 
 model Guild {
-  id                   String                     @id @default(cuid())
-  name                 String
-  discordGuildId       String                     @unique
-  createdById          String
-  createdBy            User                       @relation(fields: [createdById], references: [id])
-  characters           GuildCharacter[]
-  requiredRoles        GuildRequiredRole[]
-  adminRoles           GuildAdminRole[]
-  rosterMembers        GuildRosterMember[]
-  roleRules            GuildRoleRule[]
-  claimConflicts       GuildRosterClaimConflict[]
-  pendingRosterMatches GuildPendingRosterMatch[]
-  memberActivity       GuildMemberActivity[]
-  createdAt            DateTime                   @default(now())
+  id                    String                      @id @default(cuid())
+  name                  String
+  discordGuildId        String                      @unique
+  createdById           String
+  createdBy             User                        @relation(fields: [createdById], references: [id])
+  characters            GuildCharacter[]
+  requiredRoles         GuildRequiredRole[]
+  adminRoles            GuildAdminRole[]
+  rosterMembers         GuildRosterMember[]
+  roleRules             GuildRoleRule[]
+  claimConflicts        GuildRosterClaimConflict[]
+  pendingRosterMatches  GuildPendingRosterMatch[]
+  memberActivity        GuildMemberActivity[]
+  inactivityTargetRoles GuildInactivityTargetRole[]
+  createdAt             DateTime                    @default(now())
 
   // Discord role given to someone who says they're here for a PUG, not as
   // a guild member — set by an admin, bot assigns it directly with no rule
@@ -155,18 +156,31 @@ model Guild {
   forceSyncRequestedAt DateTime?
 
   // Inactivity filter — ported from a proven pattern in another Discord
-  // bot (role-swap, not kick, so it's reversible). Members holding
-  // inactivityTargetRoleId who haven't sent a message in
-  // inactivityDays get their other roles saved and swapped for
+  // bot (role-swap, not kick, so it's reversible). Members holding ANY of
+  // inactivityTargetRoles (see below — a list, not a single role: e.g.
+  // "PUG" OR "Trial Raider" can both be tracked) who haven't sent a
+  // message in inactivityDays get their other roles saved and swapped for
   // inactivityRoleId; they can restore themselves with /reactivate.
-  // Deliberately a configurable target role rather than hardcoded to
-  // "PUG" — same "admin builds their own rule" philosophy as GuildRoleRule.
+  // Deliberately admin-configurable rather than hardcoded to "PUG" — same
+  // "admin builds their own rule" philosophy as GuildRoleRule.
   inactivityFilterEnabled Boolean @default(false)
   inactivityDays          Int?
-  inactivityTargetRoleId  String?
   inactivityRoleId        String?
 
   @@index([discordGuildId])
+}
+
+// One role that counts a member as trackable by the inactivity filter —
+// OR'd together (any one of these roles is enough), kept as its own table
+// rather than a scalar list for the same reason GuildRoleRuleGrantedRole
+// is: SQLite/Prisma has no native array column.
+model GuildInactivityTargetRole {
+  id            String @id @default(cuid())
+  guildId       String
+  guild         Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  discordRoleId String
+
+  @@unique([guildId, discordRoleId])
 }
 
 // A snapshot of the guild's in-game roster (name/rank/level/class/notes),

@@ -1,6 +1,7 @@
 import { GuildPendingMatches } from "~/app/_components/guild-pending-matches";
 import { GuildRosterImportForm } from "~/app/_components/guild-roster-import-form";
 import { GuildRosterTable } from "~/app/_components/guild-roster-table";
+import { GuildUnclaimedMembers } from "~/app/_components/guild-unclaimed-members";
 import { api } from "~/trpc/server";
 
 export default async function RosterPage({
@@ -13,9 +14,12 @@ export default async function RosterPage({
     api.guild.get({ guildId }),
     api.guild.rosterMembers({ guildId }),
   ]);
-  const pendingMatches = guild.isAdmin
-    ? await api.guild.pendingRosterMatches({ guildId })
-    : [];
+  const [pendingMatches, unclaimedMembers] = guild.isAdmin
+    ? await Promise.all([
+        api.guild.pendingRosterMatches({ guildId }),
+        api.guild.unclaimedMembers({ guildId }),
+      ])
+    : [[], []];
 
   return (
     <div className="flex w-full max-w-3xl flex-col gap-4">
@@ -24,6 +28,9 @@ export default async function RosterPage({
       {guild.isAdmin && <GuildRosterImportForm guildId={guildId} />}
       {guild.isAdmin && (
         <GuildPendingMatches guildId={guildId} entries={pendingMatches} />
+      )}
+      {guild.isAdmin && (
+        <GuildUnclaimedMembers guildId={guildId} members={unclaimedMembers} />
       )}
 
       {members.length === 0 ? (

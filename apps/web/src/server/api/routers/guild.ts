@@ -8,16 +8,19 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import type { db as Db } from "~/server/db";
 import { tbcProfessionRecipes, tbcRecipes } from "@guildthing/wowhead-data";
 import {
+  addRoleToMember,
   DiscordRateLimitedError,
   DiscordReauthRequiredError,
   fetchUserGuilds,
   getGuildChannels,
   getGuildChannelsForGrants,
   getGuildIconUrl,
+  getGuildMembers,
   getGuildRoles,
   getMyRoleIds,
   hasGuildRole,
   isGuildMember,
+  sendDirectMessage,
 } from "~/server/discord";
 
 async function safeGuildIconUrl(
@@ -1118,6 +1121,99 @@ export const guildRouter = createTRPCRouter({
       return { ok: true };
     }),
 
+  // Discord server members who haven't claimed a roster character —
+  // everyone except bots, PUGs (they were never meant to claim one), and
+  // whoever already has at least one GuildRosterMember row claimed to
+  // them. Computed live against Discord + the roster each call rather
+  // than tracked, since claim state can change from either side.
+  unclaimedMembers: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const [members, claimedRows] = await Promise.all([
+        getGuildMembers(guild.discordGuildId),
+        ctx.db.guildRosterMember.findMany({
+          where: { guildId: input.guildId, claimedByDiscordUserId: { not: null } },
+          select: { claimedByDiscordUserId: true },
+        }),
+      ]);
+
+      const claimedIds = new Set(claimedRows.map((r) => r.claimedByDiscordUserId));
+      const pugRoleId = guild.pugRoleId;
+
+      return members
+        .filter((m) => !m.bot)
+        .filter((m) => !pugRoleId || !m.roleIds.includes(pugRoleId))
+        .filter((m) => !claimedIds.has(m.id))
+        .map((m) => ({ id: m.id, tag: m.tag }));
+    }),
+
+  // DMs each given member a reminder to onboard, via the bot's own token
+  // (no bot process/gateway involved — see sendDirectMessage). Points at
+  // the onboarding channel if one's configured, otherwise /onboarding.
+  // Failures (DMs closed) are expected and just counted, not treated as
+  // errors.
+  remindUnclaimedMembers: protectedProcedure
+    .input(z.object({ guildId: z.string(), memberIds: z.array(z.string()).min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const hint = guild.onboardingChannelId
+        ? `head to <#${guild.onboardingChannelId}> and click "Start Onboarding"`
+        : "run `/onboarding`";
+      const content = `Friendly reminder from ${guild.name} — you haven't claimed a character yet! To get set up, ${hint}.`;
+
+      const results = await Promise.all(
+        input.memberIds.map((id) => sendDirectMessage(id, content)),
+      );
+      const sent = results.filter(Boolean).length;
+      return { sent, failed: results.length - sent };
+    }),
+
+  // Grants discordRoleId to every given member — e.g. a "Needs Onboarding"
+  // flair role, so they're visible in the member list. Same role-hierarchy
+  // rules as everywhere else the bot grants roles apply; failures are
+  // counted, not thrown, since one bad id in a batch shouldn't lose the
+  // rest.
+  assignRoleToMembers: protectedProcedure
+    .input(
+      z.object({
+        guildId: z.string(),
+        memberIds: z.array(z.string()).min(1),
+        discordRoleId: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const results = await Promise.all(
+        input.memberIds.map((id) =>
+          addRoleToMember(guild.discordGuildId, id, input.discordRoleId),
+        ),
+      );
+      const succeeded = results.filter(Boolean).length;
+      return { succeeded, failed: results.length - succeeded };
+    }),
+
   // Distinct rank/class values already in the roster, so the Discord-roles
   // admin UI can offer a datalist instead of the admin free-typing exact
   // strings that have to match GuildRosterMember rows verbatim.
@@ -1363,16 +1459,18 @@ export const guildRouter = createTRPCRouter({
     }),
 
   // Inactivity filter — see Guild.inactivityFilterEnabled in schema.prisma.
-  // targetRoleId/inactiveRoleId are nullable so the admin can enable the
-  // toggle and fill the role pickers in afterward; the bot's daily job
-  // just skips guilds that aren't fully configured yet.
+  // targetRoleIds is OR'd (any one of them counts) and its rows are fully
+  // replaced on save, same convention as a rule's grantedRoles. days/
+  // inactiveRoleId are nullable so the admin can enable the toggle and
+  // fill the rest in afterward; the bot's daily job just skips guilds that
+  // aren't fully configured yet.
   setInactivitySettings: protectedProcedure
     .input(
       z.object({
         guildId: z.string(),
         enabled: z.boolean(),
         days: z.number().int().min(1).nullable(),
-        targetRoleId: z.string().nullable(),
+        targetRoleIds: z.array(z.string().min(1)),
         inactiveRoleId: z.string().nullable(),
       }),
     )
@@ -1388,15 +1486,25 @@ export const guildRouter = createTRPCRouter({
           : forbiddenOrRateLimited(retryAfterSeconds);
       }
 
-      await ctx.db.guild.update({
-        where: { id: input.guildId },
-        data: {
-          inactivityFilterEnabled: input.enabled,
-          inactivityDays: input.days,
-          inactivityTargetRoleId: input.targetRoleId,
-          inactivityRoleId: input.inactiveRoleId,
-        },
-      });
+      await ctx.db.$transaction([
+        ctx.db.guildInactivityTargetRole.deleteMany({
+          where: { guildId: input.guildId },
+        }),
+        ctx.db.guildInactivityTargetRole.createMany({
+          data: input.targetRoleIds.map((discordRoleId) => ({
+            guildId: input.guildId,
+            discordRoleId,
+          })),
+        }),
+        ctx.db.guild.update({
+          where: { id: input.guildId },
+          data: {
+            inactivityFilterEnabled: input.enabled,
+            inactivityDays: input.days,
+            inactivityRoleId: input.inactiveRoleId,
+          },
+        }),
+      ]);
       return { ok: true };
     }),
 
@@ -1428,8 +1536,8 @@ export const guildRouter = createTRPCRouter({
             onboardingMessageText: true,
             inactivityFilterEnabled: true,
             inactivityDays: true,
-            inactivityTargetRoleId: true,
             inactivityRoleId: true,
+            inactivityTargetRoles: { select: { discordRoleId: true } },
           },
         }),
         ctx.db.guildRoleRule.findMany({
@@ -1447,7 +1555,7 @@ export const guildRouter = createTRPCRouter({
         onboardingMessageText: guild.onboardingMessageText,
         inactivityFilterEnabled: guild.inactivityFilterEnabled,
         inactivityDays: guild.inactivityDays,
-        inactivityTargetRoleId: guild.inactivityTargetRoleId,
+        inactivityTargetRoleIds: guild.inactivityTargetRoles.map((r) => r.discordRoleId),
         inactivityRoleId: guild.inactivityRoleId,
         rules,
       };

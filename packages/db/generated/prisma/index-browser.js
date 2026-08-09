@@ -191,8 +191,13 @@ exports.Prisma.GuildScalarFieldEnum = {
   forceSyncRequestedAt: 'forceSyncRequestedAt',
   inactivityFilterEnabled: 'inactivityFilterEnabled',
   inactivityDays: 'inactivityDays',
-  inactivityTargetRoleId: 'inactivityTargetRoleId',
   inactivityRoleId: 'inactivityRoleId'
+};
+
+exports.Prisma.GuildInactivityTargetRoleScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  discordRoleId: 'discordRoleId'
 };
 
 exports.Prisma.GuildRosterMemberScalarFieldEnum = {
@@ -337,6 +342,7 @@ exports.Prisma.ModelName = {
   Account: 'Account',
   Verification: 'Verification',
   Guild: 'Guild',
+  GuildInactivityTargetRole: 'GuildInactivityTargetRole',
   GuildRosterMember: 'GuildRosterMember',
   GuildRosterClaimConflict: 'GuildRosterClaimConflict',
   GuildPendingRosterMatch: 'GuildPendingRosterMatch',

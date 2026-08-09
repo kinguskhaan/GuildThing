@@ -449,3 +449,127 @@ export async function getGuildChannelsForGrants(
       type: c.type === GUILD_VOICE_CHANNEL_TYPE ? ("voice" as const) : ("text" as const),
     }));
 }
+
+export interface DiscordMemberSummary {
+  id: string;
+  tag: string;
+  roleIds: string[];
+  bot: boolean;
+}
+
+interface RawDiscordMember {
+  user: { id: string; username: string; discriminator: string; bot?: boolean };
+  roles: string[];
+}
+
+// Discord's own tag format: "name" for the new (discriminator "0")
+// username system, "name#1234" for the legacy one.
+function memberTag(user: RawDiscordMember["user"]): string {
+  return user.discriminator === "0" || !user.discriminator
+    ? user.username
+    : `${user.username}#${user.discriminator}`;
+}
+
+/**
+ * Every member of a Discord server, via the bot's own token — paginated
+ * (Discord caps a single page at 1000). Requires the Server Members Intent
+ * enabled for the bot (same one onboarding's join event needs) and the bot
+ * to actually be in the server; returns an empty list rather than
+ * throwing if it isn't, matching getGuildRoles/getGuildChannels above.
+ */
+export async function getGuildMembers(
+  discordGuildId: string,
+): Promise<DiscordMemberSummary[]> {
+  const members: DiscordMemberSummary[] = [];
+  let after = "0";
+
+  for (;;) {
+    const res = await fetch(
+      `https://discord.com/api/v10/guilds/${discordGuildId}/members?limit=1000&after=${after}`,
+      { headers: { Authorization: `Bot ${env.DISCORD_BOT_TOKEN}` } },
+    );
+
+    if (res.status === 403 || res.status === 404) {
+      return members.length > 0 ? members : [];
+    }
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.error(`[discord] member list lookup failed: ${res.status} ${body}`);
+      throw new Error(`Discord API error ${res.status}`);
+    }
+
+    const page = (await res.json()) as RawDiscordMember[];
+    for (const m of page) {
+      members.push({
+        id: m.user.id,
+        tag: memberTag(m.user),
+        roleIds: m.roles,
+        bot: m.user.bot ?? false,
+      });
+    }
+
+    if (page.length < 1000) break;
+    after = page[page.length - 1]!.user.id;
+  }
+
+  return members;
+}
+
+/**
+ * DMs a Discord user directly via the bot's own token (open-DM-channel +
+ * send, the same two REST calls discord.js does internally for
+ * member.send()) — no gateway connection needed, so this works from the
+ * web server without the separate bot process being involved at all.
+ * Returns false (never throws) on failure — most commonly the recipient
+ * has DMs from server members turned off, which is an expected outcome
+ * here, not an error worth surfacing as one.
+ */
+export async function sendDirectMessage(
+  discordUserId: string,
+  content: string,
+): Promise<boolean> {
+  const openRes = await fetch("https://discord.com/api/v10/users/@me/channels", {
+    method: "POST",
+    headers: {
+      Authorization: `Bot ${env.DISCORD_BOT_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ recipient_id: discordUserId }),
+  });
+  if (!openRes.ok) return false;
+  const channel = (await openRes.json()) as { id: string };
+
+  const sendRes = await fetch(
+    `https://discord.com/api/v10/channels/${channel.id}/messages`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bot ${env.DISCORD_BOT_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ content }),
+    },
+  );
+  return sendRes.ok;
+}
+
+/**
+ * Grants a Discord role to a member via the bot's own token. Same
+ * hierarchy rules as everywhere else the bot assigns roles apply: the
+ * bot's own role must sit above discordRoleId, or this fails (returns
+ * false rather than throwing — the caller reports failures in bulk).
+ */
+export async function addRoleToMember(
+  discordGuildId: string,
+  discordUserId: string,
+  discordRoleId: string,
+): Promise<boolean> {
+  const res = await fetch(
+    `https://discord.com/api/v10/guilds/${discordGuildId}/members/${discordUserId}/roles/${discordRoleId}`,
+    {
+      method: "PUT",
+      headers: { Authorization: `Bot ${env.DISCORD_BOT_TOKEN}` },
+    },
+  );
+  return res.ok;
+}

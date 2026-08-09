@@ -115,14 +115,15 @@ export async function runInactivityFilter(client: Client<true>): Promise<void> {
       id: true,
       discordGuildId: true,
       inactivityDays: true,
-      inactivityTargetRoleId: true,
       inactivityRoleId: true,
       adminNotifyChannelId: true,
+      inactivityTargetRoles: { select: { discordRoleId: true } },
     },
   });
 
   for (const guildRow of guilds) {
-    if (!guildRow.inactivityDays || !guildRow.inactivityTargetRoleId || !guildRow.inactivityRoleId) {
+    const targetRoleIds = new Set(guildRow.inactivityTargetRoles.map((r) => r.discordRoleId));
+    if (!guildRow.inactivityDays || targetRoleIds.size === 0 || !guildRow.inactivityRoleId) {
       continue; // filter's on but not fully configured yet
     }
 
@@ -151,7 +152,7 @@ export async function runInactivityFilter(client: Client<true>): Promise<void> {
         continue;
       }
 
-      if (!member.roles.cache.has(guildRow.inactivityTargetRoleId)) continue;
+      if (!member.roles.cache.some((r) => targetRoleIds.has(r.id))) continue;
       if (member.roles.cache.has(guildRow.inactivityRoleId)) continue;
 
       const previousRoleIds = member.roles.cache
