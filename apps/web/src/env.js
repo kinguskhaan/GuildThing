@@ -18,6 +18,9 @@ export const env = createEnv({
     // to create new guilds — everyone else can browse/join guilds they
     // already have Discord access to.
     GUILD_CREATOR_EMAIL: z.string().email(),
+    // Used to fetch a guild's full Discord role list (name + id) for admin
+    // role-picker dropdowns — the same bot apps/bot logs in with.
+    DISCORD_BOT_TOKEN: z.string(),
     DATABASE_URL: z.string().url(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
@@ -44,6 +47,7 @@ export const env = createEnv({
     BETTER_AUTH_DISCORD_CLIENT_SECRET:
       process.env.BETTER_AUTH_DISCORD_CLIENT_SECRET,
     GUILD_CREATOR_EMAIL: process.env.GUILD_CREATOR_EMAIL,
+    DISCORD_BOT_TOKEN: process.env.DISCORD_BOT_TOKEN,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
   },

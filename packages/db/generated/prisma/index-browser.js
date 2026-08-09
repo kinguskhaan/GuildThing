@@ -183,7 +183,12 @@ exports.Prisma.GuildScalarFieldEnum = {
   lastExportedAt: 'lastExportedAt',
   lastExportedById: 'lastExportedById',
   lastRosterImportedAt: 'lastRosterImportedAt',
-  lastRosterImportedById: 'lastRosterImportedById'
+  lastRosterImportedById: 'lastRosterImportedById',
+  adminNotifyChannelId: 'adminNotifyChannelId',
+  onboardingChannelId: 'onboardingChannelId',
+  onboardingMessageId: 'onboardingMessageId',
+  onboardingMessageText: 'onboardingMessageText',
+  forceSyncRequestedAt: 'forceSyncRequestedAt'
 };
 
 exports.Prisma.GuildRosterMemberScalarFieldEnum = {
@@ -194,14 +199,47 @@ exports.Prisma.GuildRosterMemberScalarFieldEnum = {
   level: 'level',
   class: 'class',
   note: 'note',
-  officerNote: 'officerNote'
+  officerNote: 'officerNote',
+  claimedByDiscordUserId: 'claimedByDiscordUserId',
+  claimedByDiscordTag: 'claimedByDiscordTag'
+};
+
+exports.Prisma.GuildRosterClaimConflictScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  rosterMemberId: 'rosterMemberId',
+  attemptedByDiscordId: 'attemptedByDiscordId',
+  attemptedByDiscordTag: 'attemptedByDiscordTag',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.GuildPendingRosterMatchScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  discordUserId: 'discordUserId',
+  discordUserTag: 'discordUserTag',
+  names: 'names',
+  includeAltsInNickname: 'includeAltsInNickname',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.GuildRoleRuleScalarFieldEnum = {
   id: 'id',
   guildId: 'guildId',
-  label: 'label',
+  label: 'label'
+};
+
+exports.Prisma.GuildRoleRuleGrantedRoleScalarFieldEnum = {
+  id: 'id',
+  ruleId: 'ruleId',
   discordRoleId: 'discordRoleId'
+};
+
+exports.Prisma.GuildRoleRuleGrantedChannelScalarFieldEnum = {
+  id: 'id',
+  ruleId: 'ruleId',
+  discordChannelId: 'discordChannelId',
+  channelType: 'channelType'
 };
 
 exports.Prisma.GuildRoleRuleConditionScalarFieldEnum = {
@@ -285,7 +323,11 @@ exports.Prisma.ModelName = {
   Verification: 'Verification',
   Guild: 'Guild',
   GuildRosterMember: 'GuildRosterMember',
+  GuildRosterClaimConflict: 'GuildRosterClaimConflict',
+  GuildPendingRosterMatch: 'GuildPendingRosterMatch',
   GuildRoleRule: 'GuildRoleRule',
+  GuildRoleRuleGrantedRole: 'GuildRoleRuleGrantedRole',
+  GuildRoleRuleGrantedChannel: 'GuildRoleRuleGrantedChannel',
   GuildRoleRuleCondition: 'GuildRoleRuleCondition',
   GuildRequiredRole: 'GuildRequiredRole',
   GuildAdminRole: 'GuildAdminRole',

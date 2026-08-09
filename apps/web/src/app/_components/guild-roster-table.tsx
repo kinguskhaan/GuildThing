@@ -1,8 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { classColor } from "~/lib/format";
+import { api } from "~/trpc/react";
 import type { RouterOutputs } from "~/trpc/react";
 
 type Member = RouterOutputs["guild"]["rosterMembers"][number];
@@ -16,16 +18,24 @@ function sortIndicator(sortKey: SortKey, key: SortKey, sortDesc: boolean) {
 }
 
 export function GuildRosterTable({
+  guildId,
   members,
   isAdmin,
 }: {
+  guildId: string;
   members: Member[];
   isAdmin: boolean;
 }) {
+  const router = useRouter();
+  const [search, setSearch] = useState("");
   const [classFilter, setClassFilter] = useState(ALL);
   const [rankFilter, setRankFilter] = useState(ALL);
   const [sortKey, setSortKey] = useState<SortKey>("level");
   const [sortDesc, setSortDesc] = useState(true);
+
+  const clearClaim = api.guild.clearRosterClaim.useMutation({
+    onSuccess: () => router.refresh(),
+  });
 
   const classes = useMemo(
     () =>
@@ -37,14 +47,41 @@ export function GuildRosterTable({
     [members],
   );
 
+  // Searching a name also pulls in every other character claimed by the
+  // same Discord account (their alts) — not just an exact/substring name
+  // match — so e.g. searching "Bubblekingen" surfaces their whole roster
+  // footprint, not just that one row. Only meaningful for admins, since
+  // claimedByDiscordUserId is stripped for everyone else.
+  const { searchResults, altIds } = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return { searchResults: members, altIds: new Set<string>() };
+
+    const nameMatches = members.filter((m) => m.name.toLowerCase().includes(query));
+    if (!isAdmin) return { searchResults: nameMatches, altIds: new Set<string>() };
+
+    const claimIds = new Set(
+      nameMatches
+        .map((m) => m.claimedByDiscordUserId)
+        .filter((id): id is string => id != null),
+    );
+    const nameMatchIds = new Set(nameMatches.map((m) => m.id));
+    const alts = members.filter(
+      (m) =>
+        m.claimedByDiscordUserId != null &&
+        claimIds.has(m.claimedByDiscordUserId) &&
+        !nameMatchIds.has(m.id),
+    );
+    return { searchResults: [...nameMatches, ...alts], altIds: new Set(alts.map((m) => m.id)) };
+  }, [members, search, isAdmin]);
+
   const filtered = useMemo(
     () =>
-      members.filter(
+      searchResults.filter(
         (m) =>
           (classFilter === ALL || m.class === classFilter) &&
           (rankFilter === ALL || m.rank === rankFilter),
       ),
-    [members, classFilter, rankFilter],
+    [searchResults, classFilter, rankFilter],
   );
 
   const sorted = useMemo(() => {
@@ -70,11 +107,20 @@ export function GuildRosterTable({
     }
   }
 
-  const hasActiveFilters = classFilter !== ALL || rankFilter !== ALL;
+  const hasActiveFilters = search.trim() !== "" || classFilter !== ALL || rankFilter !== ALL;
 
   return (
     <div className="flex w-full flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={
+            isAdmin ? "Search name (shows their claimed alts too)" : "Search name"
+          }
+          className="rounded-full bg-discord-elevated px-3 py-1.5 text-sm text-discord-text placeholder:text-discord-text-muted"
+        />
         <select
           className="rounded-full bg-discord-elevated px-3 py-1.5 text-sm text-discord-text"
           value={classFilter}
@@ -103,6 +149,7 @@ export function GuildRosterTable({
           <button
             type="button"
             onClick={() => {
+              setSearch("");
               setClassFilter(ALL);
               setRankFilter(ALL);
             }}
@@ -145,7 +192,10 @@ export function GuildRosterTable({
                 </th>
                 <th className="px-4 py-2 font-semibold">Note</th>
                 {isAdmin && (
-                  <th className="px-4 py-2 font-semibold">Officer note</th>
+                  <>
+                    <th className="px-4 py-2 font-semibold">Officer note</th>
+                    <th className="px-4 py-2 font-semibold">Claimed by</th>
+                  </>
                 )}
               </tr>
             </thead>
@@ -160,6 +210,22 @@ export function GuildRosterTable({
                     style={{ color: classColor(member.class) }}
                   >
                     {member.name}
+                    {altIds.has(member.id) && (
+                      <span
+                        title="Claimed by the same Discord account as one of your search matches."
+                        className="ml-2 rounded-full bg-discord-elevated-hover px-2 py-0.5 text-xs font-normal text-discord-text-muted"
+                      >
+                        🔗 alt match
+                      </span>
+                    )}
+                    {member.hasClaimConflict && (
+                      <span
+                        title="More than one Discord account has claimed to be this character during onboarding — only the first claim was granted roles."
+                        className="ml-2 rounded-full bg-discord-red/20 px-2 py-0.5 text-xs font-normal text-discord-red"
+                      >
+                        ⚠ claim conflict
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-2 text-discord-text-muted">
                     {member.rank}
@@ -171,9 +237,34 @@ export function GuildRosterTable({
                     {member.note}
                   </td>
                   {isAdmin && (
-                    <td className="px-4 py-2 text-discord-text-muted">
-                      {member.officerNote}
-                    </td>
+                    <>
+                      <td className="px-4 py-2 text-discord-text-muted">
+                        {member.officerNote}
+                      </td>
+                      <td className="px-4 py-2 text-discord-text-muted">
+                        {member.claimedByDiscordTag ? (
+                          <div className="flex items-center gap-2">
+                            <span>{member.claimedByDiscordTag}</span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                clearClaim.mutate({ guildId, rosterMemberId: member.id })
+                              }
+                              disabled={
+                                clearClaim.isPending &&
+                                clearClaim.variables?.rosterMemberId === member.id
+                              }
+                              className="rounded-full bg-discord-base px-2 py-0.5 text-xs hover:bg-discord-elevated-hover"
+                              title="Un-claim this character so someone can claim it correctly via /onboarding"
+                            >
+                              Clear
+                            </button>
+                          </div>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                    </>
                   )}
                 </tr>
               ))}

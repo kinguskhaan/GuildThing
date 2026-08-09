@@ -1,3 +1,4 @@
+import { env } from "~/env";
 import { auth } from "~/server/better-auth";
 import { db } from "~/server/db";
 
@@ -315,4 +316,136 @@ export async function getGuildIconUrl(
 
   const match = guilds.find((g) => g.id === discordGuildId);
   return match ? guildIconUrl(discordGuildId, match.icon) : null;
+}
+
+export interface DiscordRoleSummary {
+  id: string;
+  name: string;
+  color: number;
+  position: number;
+}
+
+/**
+ * Full role list (id + name) for a Discord server, using the GuildThing
+ * Roster bot's own token — the one thing user OAuth can't give us (see
+ * getMyRoleIds above, which exists only because this wasn't available
+ * before the bot did). Requires the bot to actually be a member of
+ * discordGuildId; returns an empty list rather than throwing if it isn't,
+ * since "not invited yet" isn't really an error condition for the admin
+ * forms that call this — they just fall back to nothing to pick from.
+ */
+export async function getGuildRoles(
+  discordGuildId: string,
+): Promise<DiscordRoleSummary[]> {
+  const res = await fetch(
+    `https://discord.com/api/v10/guilds/${discordGuildId}/roles`,
+    { headers: { Authorization: `Bot ${env.DISCORD_BOT_TOKEN}` } },
+  );
+
+  if (res.status === 403 || res.status === 404) {
+    return [];
+  }
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    console.error(`[discord] role list lookup failed: ${res.status} ${body}`);
+    throw new Error(`Discord API error ${res.status}`);
+  }
+
+  const roles = (await res.json()) as {
+    id: string;
+    name: string;
+    color: number;
+    position: number;
+    managed: boolean;
+  }[];
+
+  return roles
+    .filter((r) => r.name !== "@everyone" && !r.managed)
+    .sort((a, b) => b.position - a.position)
+    .map((r) => ({
+      id: r.id,
+      name: r.name,
+      color: r.color,
+      position: r.position,
+    }));
+}
+
+export interface DiscordChannelSummary {
+  id: string;
+  name: string;
+}
+
+// Discord channel types that matter here — GUILD_TEXT for the bot's own
+// notice/onboarding-button posts, both for the channel-grant picker (a rule
+// can grant direct access to either kind, see GuildRoleRuleGrantedChannel).
+const GUILD_TEXT_CHANNEL_TYPE = 0;
+const GUILD_VOICE_CHANNEL_TYPE = 2;
+
+interface RawDiscordChannel {
+  id: string;
+  name: string;
+  type: number;
+  position: number;
+}
+
+async function fetchGuildChannels(discordGuildId: string): Promise<RawDiscordChannel[]> {
+  const res = await fetch(
+    `https://discord.com/api/v10/guilds/${discordGuildId}/channels`,
+    { headers: { Authorization: `Bot ${env.DISCORD_BOT_TOKEN}` } },
+  );
+
+  if (res.status === 403 || res.status === 404) {
+    return [];
+  }
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    console.error(`[discord] channel list lookup failed: ${res.status} ${body}`);
+    throw new Error(`Discord API error ${res.status}`);
+  }
+
+  return (await res.json()) as RawDiscordChannel[];
+}
+
+/**
+ * Text-channel list for a Discord server, using the bot's own token — same
+ * pattern and same "empty list, not an error, if the bot isn't in the
+ * server yet" behavior as getGuildRoles above. Used to let an admin pick
+ * where the bot should post notices (e.g. roster-claim conflicts) or the
+ * standing onboarding button.
+ */
+export async function getGuildChannels(
+  discordGuildId: string,
+): Promise<DiscordChannelSummary[]> {
+  const channels = await fetchGuildChannels(discordGuildId);
+  return channels
+    .filter((c) => c.type === GUILD_TEXT_CHANNEL_TYPE)
+    .sort((a, b) => a.position - b.position)
+    .map((c) => ({ id: c.id, name: c.name }));
+}
+
+export interface DiscordChannelGrantOption {
+  id: string;
+  name: string;
+  type: "text" | "voice";
+}
+
+/**
+ * Text AND voice channels for a Discord server, used by the role-rule
+ * admin UI to let an admin grant direct per-member access to a specific
+ * channel (rather than only via a role) — see GuildRoleRuleGrantedChannel.
+ */
+export async function getGuildChannelsForGrants(
+  discordGuildId: string,
+): Promise<DiscordChannelGrantOption[]> {
+  const channels = await fetchGuildChannels(discordGuildId);
+  return channels
+    .filter(
+      (c) => c.type === GUILD_TEXT_CHANNEL_TYPE || c.type === GUILD_VOICE_CHANNEL_TYPE,
+    )
+    .sort((a, b) => a.position - b.position)
+    .map((c) => ({
+      id: c.id,
+      name: c.name,
+      type: c.type === GUILD_VOICE_CHANNEL_TYPE ? ("voice" as const) : ("text" as const),
+    }));
 }

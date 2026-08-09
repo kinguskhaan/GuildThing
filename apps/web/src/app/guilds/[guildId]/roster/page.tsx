@@ -24,7 +24,7 @@ export default async function RosterPage({
           No roster imported yet.
         </div>
       ) : (
-        <GuildRosterTable members={members} isAdmin={guild.isAdmin} />
+        <GuildRosterTable guildId={guildId} members={members} isAdmin={guild.isAdmin} />
       )}
     </div>
   );

@@ -11,7 +11,10 @@ import {
   DiscordRateLimitedError,
   DiscordReauthRequiredError,
   fetchUserGuilds,
+  getGuildChannels,
+  getGuildChannelsForGrants,
   getGuildIconUrl,
+  getGuildRoles,
   getMyRoleIds,
   hasGuildRole,
   isGuildMember,
@@ -93,6 +96,19 @@ async function checkGuildRole(db: typeof Db, guildId: string, userId: string) {
     include: { requiredRoles: true },
   });
   if (!guild) throw new TRPCError({ code: "NOT_FOUND" });
+
+  // Same "creator can never lock themselves out" bypass checkGuildAdmin
+  // has — without it, an owner who hasn't (yet, or currently) held one of
+  // their own configured required roles in Discord would fail this check
+  // despite being able to edit those very requirements via EditGuildForm.
+  if (guild.createdById === userId) {
+    return {
+      guild,
+      hasAccess: true,
+      needsReauth: false as const,
+      retryAfterSeconds: null,
+    };
+  }
 
   try {
     const ok = await hasGuildRole(
@@ -876,10 +892,12 @@ export const guildRouter = createTRPCRouter({
         }));
     }),
 
-  // Full replace, not merge — a GuildThing Roster addon scan is a complete
-  // point-in-time snapshot of everyone in the guild, so stale rows (people
-  // who've since left) should disappear on the next import rather than
-  // linger forever.
+  // A GuildThing Roster addon scan is a complete point-in-time snapshot of
+  // everyone in the guild, so rows for people who've since left still get
+  // deleted on the next import — but existing rows are upserted by name,
+  // not deleted and recreated, so claimedByDiscordUserId/Tag (set during
+  // Discord onboarding) survives a re-import instead of being wiped every
+  // time an admin refreshes the roster.
   importRosterMembers: protectedProcedure
     .input(z.object({ guildId: z.string(), exportString: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
@@ -914,22 +932,33 @@ export const guildRouter = createTRPCRouter({
       }
 
       const { members } = result.data;
+      const importedNames = members.map((m) => m.name);
 
       await ctx.db.$transaction([
         ctx.db.guildRosterMember.deleteMany({
-          where: { guildId: input.guildId },
+          where: { guildId: input.guildId, name: { notIn: importedNames } },
         }),
-        ctx.db.guildRosterMember.createMany({
-          data: members.map((m) => ({
-            guildId: input.guildId,
-            name: m.name,
-            rank: m.rank,
-            level: m.level,
-            class: m.class ?? null,
-            note: m.note ?? null,
-            officerNote: m.officernote ?? null,
-          })),
-        }),
+        ...members.map((m) =>
+          ctx.db.guildRosterMember.upsert({
+            where: { guildId_name: { guildId: input.guildId, name: m.name } },
+            create: {
+              guildId: input.guildId,
+              name: m.name,
+              rank: m.rank,
+              level: m.level,
+              class: m.class ?? null,
+              note: m.note ?? null,
+              officerNote: m.officernote ?? null,
+            },
+            update: {
+              rank: m.rank,
+              level: m.level,
+              class: m.class ?? null,
+              note: m.note ?? null,
+              officerNote: m.officernote ?? null,
+            },
+          }),
+        ),
         ctx.db.guild.update({
           where: { id: input.guildId },
           data: {
@@ -958,11 +987,62 @@ export const guildRouter = createTRPCRouter({
 
       const members = await ctx.db.guildRosterMember.findMany({
         where: { guildId: input.guildId },
+        include: { claimConflicts: { select: { id: true } } },
         orderBy: [{ level: "desc" }, { name: "asc" }],
       });
 
-      if (isAdmin) return members;
-      return members.map((m) => ({ ...m, officerNote: null }));
+      const withConflictFlag = members.map(({ claimConflicts, ...m }) => ({
+        ...m,
+        hasClaimConflict: claimConflicts.length > 0,
+      }));
+
+      if (isAdmin) return withConflictFlag;
+      return withConflictFlag.map((m) => ({
+        ...m,
+        officerNote: null,
+        claimedByDiscordUserId: null,
+        claimedByDiscordTag: null,
+      }));
+    }),
+
+  // Un-claims a roster character (e.g. someone claimed the wrong name, or
+  // a conflicted claim needs resetting so the right person can re-run
+  // /onboarding and claim it correctly) — clears claimedBy* and drops any
+  // logged conflicts for it, since those no longer describe anything
+  // current once the claim itself is gone.
+  clearRosterClaim: protectedProcedure
+    .input(z.object({ guildId: z.string(), rosterMemberId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const member = await ctx.db.guildRosterMember.findUnique({
+        where: { id: input.rosterMemberId },
+        select: { guildId: true },
+      });
+      if (member?.guildId !== input.guildId) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      await ctx.db.$transaction([
+        ctx.db.guildRosterClaimConflict.deleteMany({
+          where: { rosterMemberId: input.rosterMemberId },
+        }),
+        ctx.db.guildRosterMember.update({
+          where: { id: input.rosterMemberId },
+          data: { claimedByDiscordUserId: null, claimedByDiscordTag: null },
+        }),
+      ]);
+
+      return { ok: true };
     }),
 
   rosterImportStatus: protectedProcedure
@@ -1057,9 +1137,182 @@ export const guildRouter = createTRPCRouter({
       return { ok: true };
     }),
 
-  // pugRoleId + every role rule (with conditions) for the guild, one call
-  // for the Discord-roles admin page — same "small dedicated query" shape
-  // as exportStatus/rosterImportStatus above.
+  // Full Discord role list (id + name), via the bot's token — lets the
+  // admin UI offer a dropdown of actual role names instead of the admin
+  // having to paste raw role IDs by hand.
+  discordRoles: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      return getGuildRoles(guild.discordGuildId);
+    }),
+
+  // Text-channel list for the guild's Discord server, via the bot's token —
+  // same pattern as discordRoles above, used to pick where the bot posts
+  // admin notices (e.g. roster-claim conflicts).
+  discordChannels: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      return getGuildChannels(guild.discordGuildId);
+    }),
+
+  // Flags the guild for an out-of-band roster/role/channel-grant resync —
+  // the bot polls for this every ~15s (see checkForceSyncRequests) instead
+  // of the admin having to wait for the once-a-day automatic one while
+  // debugging a rule/channel-grant setup.
+  requestSync: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      await ctx.db.guild.update({
+        where: { id: input.guildId },
+        data: { forceSyncRequestedAt: new Date() },
+      });
+      return { ok: true };
+    }),
+
+  // Text AND voice channels, via the bot's token — used by the role-rule
+  // builder to let an admin grant direct per-member access to a specific
+  // channel (see GuildRoleRuleGrantedChannel), separate from discordChannels
+  // above (which is text-only, for the bot's own notice/button posts).
+  discordChannelsForGrants: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      return getGuildChannelsForGrants(guild.discordGuildId);
+    }),
+
+  setAdminNotifyChannel: protectedProcedure
+    .input(z.object({ guildId: z.string(), discordChannelId: z.string().nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      await ctx.db.guild.update({
+        where: { id: input.guildId },
+        data: { adminNotifyChannelId: input.discordChannelId },
+      });
+      return { ok: true };
+    }),
+
+  // Public channel the bot keeps a standing "Start Onboarding" button
+  // message in — see Guild.onboardingChannelId in schema.prisma.
+  setOnboardingChannel: protectedProcedure
+    .input(z.object({ guildId: z.string(), discordChannelId: z.string().nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      await ctx.db.guild.update({
+        where: { id: input.guildId },
+        data: { onboardingChannelId: input.discordChannelId },
+      });
+      return { ok: true };
+    }),
+
+  // Custom text for the standing onboarding button message — null resets
+  // to the bot's built-in default. The bot edits the existing message in
+  // place on its next check (within ~60s), no reposting/repositioning.
+  setOnboardingMessageText: protectedProcedure
+    .input(z.object({ guildId: z.string(), text: z.string().nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      await ctx.db.guild.update({
+        where: { id: input.guildId },
+        data: {
+          onboardingMessageText: input.text?.trim() === "" ? null : input.text,
+        },
+      });
+      return { ok: true };
+    }),
+
+  // Clears the bot's bookkeeping of which message is "the" onboarding
+  // button — its next check (within ~60s) then posts a fresh one, which
+  // lands at the current bottom of the channel. Use this to move the
+  // button below content added to the channel after it was first posted.
+  repostOnboardingButton: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      await ctx.db.guild.update({
+        where: { id: input.guildId },
+        data: { onboardingMessageId: null },
+      });
+      return { ok: true };
+    }),
+
+  // pugRoleId + adminNotifyChannelId + onboardingChannelId/MessageText +
+  // every role rule (with conditions) for the guild, one call for the
+  // Discord-roles admin page — same "small dedicated query" shape as
+  // exportStatus/rosterImportStatus above.
   discordRoleConfig: protectedProcedure
     .input(z.object({ guildId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -1077,30 +1330,49 @@ export const guildRouter = createTRPCRouter({
       const [guild, rules] = await Promise.all([
         ctx.db.guild.findUnique({
           where: { id: input.guildId },
-          select: { pugRoleId: true },
+          select: {
+            pugRoleId: true,
+            adminNotifyChannelId: true,
+            onboardingChannelId: true,
+            onboardingMessageText: true,
+          },
         }),
         ctx.db.guildRoleRule.findMany({
           where: { guildId: input.guildId },
-          include: { conditions: true },
+          include: { conditions: true, grantedRoles: true, grantedChannels: true },
           orderBy: { id: "asc" },
         }),
       ]);
       if (!guild) throw new TRPCError({ code: "NOT_FOUND" });
 
-      return { pugRoleId: guild.pugRoleId, rules };
+      return {
+        pugRoleId: guild.pugRoleId,
+        adminNotifyChannelId: guild.adminNotifyChannelId,
+        onboardingChannelId: guild.onboardingChannelId,
+        onboardingMessageText: guild.onboardingMessageText,
+        rules,
+      };
     }),
 
-  // Full replace of a rule's conditions on update (delete + recreate),
-  // same convention importRosterMembers uses for the roster snapshot —
-  // simplest correct way to handle added/removed/edited condition rows
-  // without diffing them client-side.
+  // Full replace of a rule's conditions AND granted roles on update (delete
+  // + recreate both), same convention importRosterMembers uses for the
+  // roster snapshot — simplest correct way to handle added/removed/edited
+  // rows without diffing them client-side.
   upsertRoleRule: protectedProcedure
     .input(
       z.object({
         id: z.string().optional(),
         guildId: z.string(),
         label: z.string().optional(),
-        discordRoleId: z.string().min(1),
+        discordRoleIds: z.array(z.string().min(1)).default([]),
+        grantedChannels: z
+          .array(
+            z.object({
+              discordChannelId: z.string().min(1),
+              channelType: z.enum(["text", "voice"]),
+            }),
+          )
+          .default([]),
         conditions: z.array(roleRuleConditionSchema).min(1),
       }),
     )
@@ -1116,12 +1388,26 @@ export const guildRouter = createTRPCRouter({
           : forbiddenOrRateLimited(retryAfterSeconds);
       }
 
+      if (input.discordRoleIds.length === 0 && input.grantedChannels.length === 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "A rule needs at least one role or channel to grant.",
+        });
+      }
+
       const conditionsData = input.conditions.map((c) => ({
         field: c.field,
         operator: c.operator,
         textValue: c.textValue ?? null,
         minNumber: c.minNumber ?? null,
         maxNumber: c.maxNumber ?? null,
+      }));
+      const grantedRolesData = input.discordRoleIds.map((discordRoleId) => ({
+        discordRoleId,
+      }));
+      const grantedChannelsData = input.grantedChannels.map((g) => ({
+        discordChannelId: g.discordChannelId,
+        channelType: g.channelType,
       }));
 
       if (input.id) {
@@ -1137,12 +1423,19 @@ export const guildRouter = createTRPCRouter({
           ctx.db.guildRoleRuleCondition.deleteMany({
             where: { ruleId: input.id },
           }),
+          ctx.db.guildRoleRuleGrantedRole.deleteMany({
+            where: { ruleId: input.id },
+          }),
+          ctx.db.guildRoleRuleGrantedChannel.deleteMany({
+            where: { ruleId: input.id },
+          }),
           ctx.db.guildRoleRule.update({
             where: { id: input.id },
             data: {
               label: input.label,
-              discordRoleId: input.discordRoleId,
               conditions: { create: conditionsData },
+              grantedRoles: { create: grantedRolesData },
+              grantedChannels: { create: grantedChannelsData },
             },
           }),
         ]);
@@ -1153,8 +1446,9 @@ export const guildRouter = createTRPCRouter({
         data: {
           guildId: input.guildId,
           label: input.label,
-          discordRoleId: input.discordRoleId,
           conditions: { create: conditionsData },
+          grantedRoles: { create: grantedRolesData },
+          grantedChannels: { create: grantedChannelsData },
         },
       });
       return { id: created.id };

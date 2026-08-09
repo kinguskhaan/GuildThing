@@ -97,17 +97,19 @@ model Verification {
 }
 
 model Guild {
-  id             String              @id @default(cuid())
-  name           String
-  discordGuildId String              @unique
-  createdById    String
-  createdBy      User                @relation(fields: [createdById], references: [id])
-  characters     GuildCharacter[]
-  requiredRoles  GuildRequiredRole[]
-  adminRoles     GuildAdminRole[]
-  rosterMembers  GuildRosterMember[]
-  roleRules      GuildRoleRule[]
-  createdAt      DateTime            @default(now())
+  id                   String                     @id @default(cuid())
+  name                 String
+  discordGuildId       String                     @unique
+  createdById          String
+  createdBy            User                       @relation(fields: [createdById], references: [id])
+  characters           GuildCharacter[]
+  requiredRoles        GuildRequiredRole[]
+  adminRoles           GuildAdminRole[]
+  rosterMembers        GuildRosterMember[]
+  roleRules            GuildRoleRule[]
+  claimConflicts       GuildRosterClaimConflict[]
+  pendingRosterMatches GuildPendingRosterMatch[]
+  createdAt            DateTime                   @default(now())
 
   // Discord role given to someone who says they're here for a PUG, not as
   // a guild member — set by an admin, bot assigns it directly with no rule
@@ -128,6 +130,29 @@ model Guild {
   lastRosterImportedById String?
   lastRosterImportedBy   User?     @relation("GuildLastRosterImportedBy", fields: [lastRosterImportedById], references: [id])
 
+  // Discord channel (visible to officers + the bot only, by convention —
+  // not enforced here) the bot posts admin notices to, e.g. a roster-name
+  // claim conflict. Optional: if unset, the bot just skips posting.
+  adminNotifyChannelId String?
+
+  // Public channel (e.g. #welcome) the bot keeps a standing "Start
+  // Onboarding" button message in, as an alternative to the /onboarding
+  // slash command — lets anyone (re-)trigger the DM flow with one click.
+  // onboardingMessageId is the bot's own bookkeeping (which message is
+  // "the" button, so it can be reused instead of reposted every check) —
+  // not meant to be read or set from the website.
+  onboardingChannelId   String?
+  onboardingMessageId   String?
+  // Admin-customizable button message text — null means use the bot's
+  // built-in default (see buildButtonMessage in onboardingButton.ts).
+  onboardingMessageText String?
+
+  // Set by the "Sync now" button on the site — the bot's next check
+  // (within ~15s, see checkForceSyncRequests in the bot) runs a full
+  // roster/role/channel-grant resync immediately instead of waiting for
+  // the daily automatic one, then clears this back to null.
+  forceSyncRequestedAt DateTime?
+
   @@index([discordGuildId])
 }
 
@@ -135,9 +160,9 @@ model Guild {
 // pasted in from the GuildThing Roster addon's /gtr export by an admin.
 // Deliberately NOT tied to userId like GuildCharacter is — a roster scan
 // covers every member at once, reported by whoever ran the addon, not
-// self-reported per account. Each import fully replaces the previous
-// snapshot (see guild.importRoster) rather than merging, since a roster
-// scan is a complete point-in-time picture, not incremental data.
+// self-reported per account. Re-imports upsert by (guildId, name) rather
+// than delete+recreate, since a full replace would wipe claimedBy* below
+// on every re-import.
 model GuildRosterMember {
   id          String  @id @default(cuid())
   guildId     String
@@ -149,20 +174,91 @@ model GuildRosterMember {
   note        String?
   officerNote String?
 
+  // Set on first onboarding match: which Discord account claimed this
+  // character. A later claim by a DIFFERENT Discord account still sets
+  // their nickname from this name (cosmetic), but grants no roles for it
+  // and logs a GuildRosterClaimConflict instead of overwriting the claim.
+  claimedByDiscordUserId String?
+  claimedByDiscordTag    String?
+
+  claimConflicts GuildRosterClaimConflict[]
+
   @@unique([guildId, name])
 }
 
-// A Discord-onboarding role grant rule: fires (granting discordRoleId) only
-// when every one of its conditions is satisfied. Admin-built on the site —
-// deliberately not fixed "rank role" / "level role" special cases, so any
-// combination of rank/level/class conditions can gate any role.
+// Logged when a Discord account other than the current claimedBy* tries to
+// claim an already-claimed roster name during onboarding — surfaced on the
+// roster page and (if configured) posted to Guild.adminNotifyChannelId.
+model GuildRosterClaimConflict {
+  id                    String            @id @default(cuid())
+  guildId               String
+  guild                 Guild             @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  rosterMemberId        String
+  rosterMember          GuildRosterMember @relation(fields: [rosterMemberId], references: [id], onDelete: Cascade)
+  attemptedByDiscordId  String
+  attemptedByDiscordTag String
+  createdAt             DateTime          @default(now())
+}
+
+// Someone completed onboarding claiming guild membership, but none of the
+// names they gave matched the roster at the time — most likely because the
+// roster just hasn't been (re-)imported since they joined yet, not a
+// mistake on their part. Held here so the daily role-sync job can retry the
+// match automatically once the roster catches up, instead of the person
+// being permanently stuck with no roles until someone notices and tells
+// them to re-run /onboarding. Expires ~42h after creation if still
+// unmatched (see PENDING_MATCH_RETENTION_MS in the bot).
+model GuildPendingRosterMatch {
+  id                    String   @id @default(cuid())
+  guildId               String
+  guild                 Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  discordUserId         String
+  discordUserTag        String
+  names                 String // JSON array of the names they typed, main first
+  includeAltsInNickname Boolean
+  createdAt             DateTime @default(now())
+
+  @@unique([guildId, discordUserId])
+}
+
+// A Discord-onboarding role grant rule: fires — granting every one of its
+// grantedRoles — only when every one of its conditions is satisfied.
+// Admin-built on the site — deliberately not fixed "rank role" / "level
+// role" special cases, so any combination of rank/level/class conditions
+// can gate any set of roles (e.g. rank "Trial Raider" granting both a
+// generic "Guildie" role and a "Trial Raider" role from the same rule).
 model GuildRoleRule {
-  id            String                   @id @default(cuid())
-  guildId       String
-  guild         Guild                    @relation(fields: [guildId], references: [id], onDelete: Cascade)
-  label         String?
+  id              String                        @id @default(cuid())
+  guildId         String
+  guild           Guild                         @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  label           String?
+  grantedRoles    GuildRoleRuleGrantedRole[]
+  grantedChannels GuildRoleRuleGrantedChannel[]
+  conditions      GuildRoleRuleCondition[]
+}
+
+// One Discord role a GuildRoleRule grants when it fires. A rule can grant
+// several — kept as its own table rather than a scalar list since SQLite/
+// Prisma has no native array column, same reasoning as conditions below.
+model GuildRoleRuleGrantedRole {
+  id            String        @id @default(cuid())
+  ruleId        String
+  rule          GuildRoleRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
   discordRoleId String
-  conditions    GuildRoleRuleCondition[]
+}
+
+// Direct per-member channel access a GuildRoleRule grants when it fires —
+// an alternative/addition to grantedRoles for when access should be scoped
+// to one specific channel rather than going through a role. Applied as a
+// per-member permission overwrite (ViewChannel, plus Connect for voice),
+// not a role, so it works even for a channel an admin doesn't want tied to
+// any existing role.
+model GuildRoleRuleGrantedChannel {
+  id               String        @id @default(cuid())
+  ruleId           String
+  rule             GuildRoleRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  discordChannelId String
+  channelType      String // "text" | "voice" — determines which permissions get granted
 }
 
 // One AND'd condition within a GuildRoleRule. Satisfied if ANY of the

@@ -123,6 +123,13 @@ export function Sidebar() {
         Download
       </Link>
 
+      <span className="mt-3 px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-discord-text-muted">
+        Bot
+      </span>
+      <Link href="/guilds/bot" className={navLinkClass(pathname === "/guilds/bot")}>
+        Add to Discord
+      </Link>
+
       <div className="flex-1" />
 
       <button
