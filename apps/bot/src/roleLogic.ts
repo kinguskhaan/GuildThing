@@ -166,6 +166,18 @@ function channelGrantPermissions(
   return type === "voice" ? { ViewChannel: value, Connect: value } : { ViewChannel: value };
 }
 
+// Default notify implementation — DMs the member directly, swallowing any
+// failure (DMs disabled, etc.). Used whenever a caller doesn't supply its
+// own notify (i.e. every background job — roleSync.ts, pendingMatches.ts —
+// which have no live interaction to reply through instead).
+function dmNotifier(member: GuildMember): (message: string) => Promise<void> {
+  return async (message: string) => {
+    await member.send(message).catch(() => {
+      // Best-effort — if DMs are closed, there's nothing more to do here.
+    });
+  };
+}
+
 // Adds/removes a per-member permission overwrite (not a role) on every
 // "managed" channel (one that's a grantedChannel on at least one of the
 // guild's rules) — ViewChannel for text, ViewChannel+Connect for voice.
@@ -176,8 +188,12 @@ export async function applyChannelGrants(
   member: GuildMember,
   guildId: string,
   desiredGrants: ChannelGrant[],
-  options: { notifyOnFailure?: boolean } = {},
+  options: {
+    notifyOnFailure?: boolean;
+    notify?: (message: string) => Promise<void>;
+  } = {},
 ): Promise<void> {
+  const notify = options.notify ?? dmNotifier(member);
   const managed = await getManagedChannelGrants(guildId);
   if (managed.size === 0) return;
   const desired = new Set(desiredGrants.map((g) => g.channelId));
@@ -207,18 +223,30 @@ export async function applyChannelGrants(
         `⚠️ Couldn't update channel access for ${member.user.tag} on #${channel.name} — most likely missing "Manage Channels" permission there, or a role hierarchy issue. Check the bot's permissions on that channel.`,
       );
       if (options.notifyOnFailure ?? true) {
-        await member
-          .send(
-            notified
-              ? `Heads up — I couldn't update your access to #${channel.name} due to a permissions issue on my end. An officer has been notified.`
-              : `Heads up — I couldn't update your access to #${channel.name}, most likely because I'm missing "Manage Channels" permission there, or my role isn't positioned above the relevant roles. Ask an officer to check.`,
-          )
-          .catch(() => {
-            // Best-effort — if even this DM fails, there's nothing more to do.
-          });
+        await notify(
+          notified
+            ? `Heads up — I couldn't update your access to #${channel.name} due to a permissions issue on my end. An officer has been notified.`
+            : `Heads up — I couldn't update your access to #${channel.name}, most likely because I'm missing "Manage Channels" permission there, or my role isn't positioned above the relevant roles. Ask an officer to check.`,
+        );
       }
     }
   }
+}
+
+interface ApplyNicknameAndRolesOptions {
+  // Only supplied by the live onboarding conversation (see
+  // askNicknameSelectionInteractive in onboarding.ts) — lets the person
+  // pick which alts to drop when the full list won't fit Discord's 32-char
+  // nickname cap, instead of silently cutting at a "/" boundary. Background
+  // callers (roleSync.ts, pendingMatches.ts) have no conversation to ask
+  // in, so they omit this and get the old auto-truncate behavior.
+  chooseNicknameNames?: (names: string[]) => Promise<string[]>;
+  // How to reach the member with a status/failure message. Defaults to a
+  // best-effort DM (see dmNotifier) — the live onboarding conversation
+  // instead supplies a notifier that replies/follows-up on the ongoing
+  // interaction, since DMs are exactly the unreliable thing this is meant
+  // to avoid depending on.
+  notify?: (message: string) => Promise<void>;
 }
 
 export async function applyNicknameAndRoles(
@@ -227,18 +255,14 @@ export async function applyNicknameAndRoles(
   names: string[],
   desiredRoleIds: string[],
   desiredChannelGrants: ChannelGrant[],
-  // Only supplied by the live onboarding conversation (see
-  // askNicknameSelection in onboarding.ts) — lets the person pick which
-  // alts to drop when the full list won't fit Discord's 32-char nickname
-  // cap, instead of silently cutting at a "/" boundary. Background callers
-  // (roleSync.ts, pendingMatches.ts) have no conversation to ask in, so
-  // they omit this and get the old auto-truncate behavior.
-  chooseNicknameNames?: (names: string[]) => Promise<string[]>,
+  options: ApplyNicknameAndRolesOptions = {},
 ): Promise<void> {
+  const notify = options.notify ?? dmNotifier(member);
+
   const fullName = names.join("/");
   let nicknameNames = names;
-  if (fullName.length > MAX_NICKNAME_LENGTH && chooseNicknameNames) {
-    nicknameNames = await chooseNicknameNames(names);
+  if (fullName.length > MAX_NICKNAME_LENGTH && options.chooseNicknameNames) {
+    nicknameNames = await options.chooseNicknameNames(names);
   }
   const chosenFullName = nicknameNames.join("/");
   const nickname = truncateNickname(chosenFullName);
@@ -248,7 +272,7 @@ export async function applyNicknameAndRoles(
       // Either no chooseNicknameNames was supplied (background job), or
       // their chosen selection still didn't fit — either way, say so
       // rather than silently dropping names off the end.
-      await member.send(
+      await notify(
         `Heads up — your name list (\`${chosenFullName}\`) didn't fit Discord's 32-character nickname limit, so I set it to \`${nickname}\`. Ask an officer if you'd like a different combination shown instead.`,
       );
     }
@@ -260,28 +284,20 @@ export async function applyNicknameAndRoles(
     // hierarchy problem — no need to guess or hedge in the message either
     // way.
     if (member.id === member.guild.ownerId) {
-      await member
-        .send(
-          "Heads up — I couldn't set your nickname for you. This is a built-in Discord platform limitation, not a bug: no bot is ever allowed to rename the server owner, regardless of its permissions or role position. You'll need to set your own nickname manually if you want one. Your roles were still processed normally.",
-        )
-        .catch(() => {
-          // Best-effort — if even this DM fails, there's nothing more to do.
-        });
+      await notify(
+        "Heads up — I couldn't set your nickname for you. This is a built-in Discord platform limitation, not a bug: no bot is ever allowed to rename the server owner, regardless of its permissions or role position. You'll need to set your own nickname manually if you want one. Your roles were still processed normally.",
+      );
     } else {
       const notified = await notifyAdmins(
         member,
         guildId,
         `⚠️ Couldn't set nickname for ${member.user.tag} — most likely my role isn't positioned above theirs.`,
       );
-      await member
-        .send(
-          notified
-            ? "Heads up — I couldn't set your nickname due to a permissions issue on my end. An officer has been notified."
-            : "Heads up — I couldn't set your nickname, most likely because my role isn't positioned above yours. Ask an officer to check Server Settings → Roles. Your roles were still processed normally.",
-        )
-        .catch(() => {
-          // Best-effort — if even this DM fails, there's nothing more to do.
-        });
+      await notify(
+        notified
+          ? "Heads up — I couldn't set your nickname due to a permissions issue on my end. An officer has been notified."
+          : "Heads up — I couldn't set your nickname, most likely because my role isn't positioned above yours. Ask an officer to check Server Settings → Roles. Your roles were still processed normally.",
+      );
     }
   }
 
@@ -310,27 +326,17 @@ export async function applyNicknameAndRoles(
         guildId,
         `⚠️ Couldn't update roles for ${member.user.tag} — most likely my role isn't positioned above the role(s) involved. Check Server Settings → Roles.`,
       );
-      await member
-        .send(
-          notified
-            ? "Heads up — I couldn't update your role(s) due to a permissions issue on my end. An officer has been notified."
-            : "Heads up — I couldn't update your role(s), most likely because my own role isn't positioned above them in this server's role list. Ask an officer to check Server Settings → Roles.",
-        )
-        .catch(() => {
-          // Best-effort — if even this DM fails, there's nothing more to do.
-        });
+      await notify(
+        notified
+          ? "Heads up — I couldn't update your role(s) due to a permissions issue on my end. An officer has been notified."
+          : "Heads up — I couldn't update your role(s), most likely because my own role isn't positioned above them in this server's role list. Ask an officer to check Server Settings → Roles.",
+      );
     }
   }
 
-  await applyChannelGrants(member, guildId, desiredChannelGrants);
+  await applyChannelGrants(member, guildId, desiredChannelGrants, { notify });
 
-  try {
-    await member.send(
-      "You're done! If you ever want to redo this, run `/onboarding`.",
-    );
-  } catch (err) {
-    console.error(`[bot] failed to send completion message to ${member.user.tag}:`, err);
-  }
+  await notify("You're done! If you ever want to redo this, run `/onboarding`.");
 }
 
 interface MatchAndApplyOptions {
@@ -341,8 +347,9 @@ interface MatchAndApplyOptions {
   // (the onboarding behavior).
   applyEvenIfNoMatch?: boolean;
   // Passed straight through to applyNicknameAndRoles — see its own doc
-  // comment. Only the live onboarding conversation supplies this.
+  // comments. Only the live onboarding conversation supplies either.
   chooseNicknameNames?: (names: string[]) => Promise<string[]>;
+  notify?: (message: string) => Promise<void>;
 }
 
 // Matches `allNames` against the guild's roster, claims newly-matched
@@ -357,7 +364,7 @@ export async function matchRosterAndApply(
   allNames: string[],
   includeAltsInNickname: boolean,
   options: MatchAndApplyOptions = {},
-): Promise<{ matchedCount: number; conflictCount: number }> {
+): Promise<{ matchedCount: number; conflictCount: number; unmatchedCount: number }> {
   const rosterRows = await db.guildRosterMember.findMany({
     where: { guildId: guild.id },
   });
@@ -373,10 +380,12 @@ export async function matchRosterAndApply(
   const matched: MatchedCharacter[] = [];
   const displayNames: string[] = [];
   const conflictNames: string[] = [];
+  const unmatchedNames: string[] = [];
   for (const name of allNames) {
     const row = rosterByName.get(name.toLowerCase());
     if (!row) {
       displayNames.push(name);
+      unmatchedNames.push(name);
       continue;
     }
     displayNames.push(row.name);
@@ -414,6 +423,15 @@ export async function matchRosterAndApply(
     );
   }
 
+  if (unmatchedNames.length > 0) {
+    const list = unmatchedNames.map((n) => `\`${n}\``).join(", ");
+    await notifyAdmins(
+      member,
+      guild.id,
+      `❓ ${member.user.tag} typed ${list} during onboarding, but ${unmatchedNames.length === 1 ? "it wasn't" : "they weren't"} found in the roster — probably not imported yet. Their nickname was still set as typed; I'll keep retrying automatically for up to 42h.`,
+    );
+  }
+
   let roleIds = new Set<string>();
   let channelGrants: ChannelGrant[] = [];
   if (matched.length > 0) {
@@ -426,15 +444,15 @@ export async function matchRosterAndApply(
 
   if (matched.length > 0 || (options.applyEvenIfNoMatch ?? true)) {
     const nicknameNames = includeAltsInNickname ? displayNames : displayNames.slice(0, 1);
-    await applyNicknameAndRoles(
-      member,
-      guild.id,
-      nicknameNames,
-      [...roleIds],
-      channelGrants,
-      options.chooseNicknameNames,
-    );
+    await applyNicknameAndRoles(member, guild.id, nicknameNames, [...roleIds], channelGrants, {
+      chooseNicknameNames: options.chooseNicknameNames,
+      notify: options.notify,
+    });
   }
 
-  return { matchedCount: matched.length, conflictCount: conflictNames.length };
+  return {
+    matchedCount: matched.length,
+    conflictCount: conflictNames.length,
+    unmatchedCount: unmatchedNames.length,
+  };
 }

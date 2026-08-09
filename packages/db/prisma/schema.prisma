@@ -109,6 +109,7 @@ model Guild {
   roleRules      GuildRoleRule[]
   claimConflicts GuildRosterClaimConflict[]
   pendingRosterMatches GuildPendingRosterMatch[]
+  memberActivity GuildMemberActivity[]
   createdAt      DateTime @default(now())
 
   // Discord role given to someone who says they're here for a PUG, not as
@@ -152,6 +153,18 @@ model Guild {
   // roster/role/channel-grant resync immediately instead of waiting for
   // the daily automatic one, then clears this back to null.
   forceSyncRequestedAt DateTime?
+
+  // Inactivity filter — ported from a proven pattern in another Discord
+  // bot (role-swap, not kick, so it's reversible). Members holding
+  // inactivityTargetRoleId who haven't sent a message in
+  // inactivityDays get their other roles saved and swapped for
+  // inactivityRoleId; they can restore themselves with /reactivate.
+  // Deliberately a configurable target role rather than hardcoded to
+  // "PUG" — same "admin builds their own rule" philosophy as GuildRoleRule.
+  inactivityFilterEnabled Boolean @default(false)
+  inactivityDays          Int?
+  inactivityTargetRoleId  String?
+  inactivityRoleId        String?
 
   @@index([discordGuildId])
 }
@@ -217,6 +230,27 @@ model GuildPendingRosterMatch {
   names                 String   // JSON array of the names they typed, main first
   includeAltsInNickname Boolean
   createdAt             DateTime @default(now())
+
+  @@unique([guildId, discordUserId])
+}
+
+// Last time each Discord member was seen sending a message in the guild's
+// server, plus their join time — feeds the inactivity filter above
+// (Guild.inactivityFilterEnabled etc). Updated at most every 12h per
+// message (see ACTIVITY_UPDATE_THROTTLE_MS in the bot) to avoid writing on
+// every single message. previousRoleIds/markedInactiveAt are set when the
+// daily filter swaps someone to the inactive role, so /reactivate can
+// restore exactly what they had.
+model GuildMemberActivity {
+  id               String    @id @default(cuid())
+  guildId          String
+  guild            Guild     @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  discordUserId    String
+  discordUserTag   String
+  lastActiveAt     DateTime
+  joinedAt         DateTime
+  previousRoleIds  String? // JSON array, snapshotted right before being marked inactive
+  markedInactiveAt DateTime?
 
   @@unique([guildId, discordUserId])
 }

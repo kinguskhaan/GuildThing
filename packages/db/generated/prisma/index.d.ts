@@ -59,6 +59,11 @@ export type GuildRosterClaimConflict = $Result.DefaultSelection<Prisma.$GuildRos
  */
 export type GuildPendingRosterMatch = $Result.DefaultSelection<Prisma.$GuildPendingRosterMatchPayload>
 /**
+ * Model GuildMemberActivity
+ * 
+ */
+export type GuildMemberActivity = $Result.DefaultSelection<Prisma.$GuildMemberActivityPayload>
+/**
  * Model GuildRoleRule
  * 
  */
@@ -321,6 +326,16 @@ export class PrismaClient<
     * ```
     */
   get guildPendingRosterMatch(): Prisma.GuildPendingRosterMatchDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.guildMemberActivity`: Exposes CRUD operations for the **GuildMemberActivity** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GuildMemberActivities
+    * const guildMemberActivities = await prisma.guildMemberActivity.findMany()
+    * ```
+    */
+  get guildMemberActivity(): Prisma.GuildMemberActivityDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.guildRoleRule`: Exposes CRUD operations for the **GuildRoleRule** model.
@@ -881,6 +896,7 @@ export namespace Prisma {
     GuildRosterMember: 'GuildRosterMember',
     GuildRosterClaimConflict: 'GuildRosterClaimConflict',
     GuildPendingRosterMatch: 'GuildPendingRosterMatch',
+    GuildMemberActivity: 'GuildMemberActivity',
     GuildRoleRule: 'GuildRoleRule',
     GuildRoleRuleGrantedRole: 'GuildRoleRuleGrantedRole',
     GuildRoleRuleGrantedChannel: 'GuildRoleRuleGrantedChannel',
@@ -910,7 +926,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "post" | "user" | "session" | "account" | "verification" | "guild" | "guildRosterMember" | "guildRosterClaimConflict" | "guildPendingRosterMatch" | "guildRoleRule" | "guildRoleRuleGrantedRole" | "guildRoleRuleGrantedChannel" | "guildRoleRuleCondition" | "guildRequiredRole" | "guildAdminRole" | "guildCharacter" | "profession" | "recipe" | "discordMemberRoleCache" | "discordGuildInfoCache"
+      modelProps: "post" | "user" | "session" | "account" | "verification" | "guild" | "guildRosterMember" | "guildRosterClaimConflict" | "guildPendingRosterMatch" | "guildMemberActivity" | "guildRoleRule" | "guildRoleRuleGrantedRole" | "guildRoleRuleGrantedChannel" | "guildRoleRuleCondition" | "guildRequiredRole" | "guildAdminRole" | "guildCharacter" | "profession" | "recipe" | "discordMemberRoleCache" | "discordGuildInfoCache"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1577,6 +1593,80 @@ export namespace Prisma {
           count: {
             args: Prisma.GuildPendingRosterMatchCountArgs<ExtArgs>
             result: $Utils.Optional<GuildPendingRosterMatchCountAggregateOutputType> | number
+          }
+        }
+      }
+      GuildMemberActivity: {
+        payload: Prisma.$GuildMemberActivityPayload<ExtArgs>
+        fields: Prisma.GuildMemberActivityFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GuildMemberActivityFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildMemberActivityPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GuildMemberActivityFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildMemberActivityPayload>
+          }
+          findFirst: {
+            args: Prisma.GuildMemberActivityFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildMemberActivityPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GuildMemberActivityFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildMemberActivityPayload>
+          }
+          findMany: {
+            args: Prisma.GuildMemberActivityFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildMemberActivityPayload>[]
+          }
+          create: {
+            args: Prisma.GuildMemberActivityCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildMemberActivityPayload>
+          }
+          createMany: {
+            args: Prisma.GuildMemberActivityCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GuildMemberActivityCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildMemberActivityPayload>[]
+          }
+          delete: {
+            args: Prisma.GuildMemberActivityDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildMemberActivityPayload>
+          }
+          update: {
+            args: Prisma.GuildMemberActivityUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildMemberActivityPayload>
+          }
+          deleteMany: {
+            args: Prisma.GuildMemberActivityDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GuildMemberActivityUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.GuildMemberActivityUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildMemberActivityPayload>[]
+          }
+          upsert: {
+            args: Prisma.GuildMemberActivityUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildMemberActivityPayload>
+          }
+          aggregate: {
+            args: Prisma.GuildMemberActivityAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGuildMemberActivity>
+          }
+          groupBy: {
+            args: Prisma.GuildMemberActivityGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GuildMemberActivityGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GuildMemberActivityCountArgs<ExtArgs>
+            result: $Utils.Optional<GuildMemberActivityCountAggregateOutputType> | number
           }
         }
       }
@@ -2499,6 +2589,7 @@ export namespace Prisma {
     guildRosterMember?: GuildRosterMemberOmit
     guildRosterClaimConflict?: GuildRosterClaimConflictOmit
     guildPendingRosterMatch?: GuildPendingRosterMatchOmit
+    guildMemberActivity?: GuildMemberActivityOmit
     guildRoleRule?: GuildRoleRuleOmit
     guildRoleRuleGrantedRole?: GuildRoleRuleGrantedRoleOmit
     guildRoleRuleGrantedChannel?: GuildRoleRuleGrantedChannelOmit
@@ -2682,6 +2773,7 @@ export namespace Prisma {
     roleRules: number
     claimConflicts: number
     pendingRosterMatches: number
+    memberActivity: number
   }
 
   export type GuildCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2692,6 +2784,7 @@ export namespace Prisma {
     roleRules?: boolean | GuildCountOutputTypeCountRoleRulesArgs
     claimConflicts?: boolean | GuildCountOutputTypeCountClaimConflictsArgs
     pendingRosterMatches?: boolean | GuildCountOutputTypeCountPendingRosterMatchesArgs
+    memberActivity?: boolean | GuildCountOutputTypeCountMemberActivityArgs
   }
 
   // Custom InputTypes
@@ -2752,6 +2845,13 @@ export namespace Prisma {
    */
   export type GuildCountOutputTypeCountPendingRosterMatchesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: GuildPendingRosterMatchWhereInput
+  }
+
+  /**
+   * GuildCountOutputType without action
+   */
+  export type GuildCountOutputTypeCountMemberActivityArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GuildMemberActivityWhereInput
   }
 
 
@@ -8499,8 +8599,18 @@ export namespace Prisma {
 
   export type AggregateGuild = {
     _count: GuildCountAggregateOutputType | null
+    _avg: GuildAvgAggregateOutputType | null
+    _sum: GuildSumAggregateOutputType | null
     _min: GuildMinAggregateOutputType | null
     _max: GuildMaxAggregateOutputType | null
+  }
+
+  export type GuildAvgAggregateOutputType = {
+    inactivityDays: number | null
+  }
+
+  export type GuildSumAggregateOutputType = {
+    inactivityDays: number | null
   }
 
   export type GuildMinAggregateOutputType = {
@@ -8519,6 +8629,10 @@ export namespace Prisma {
     onboardingMessageId: string | null
     onboardingMessageText: string | null
     forceSyncRequestedAt: Date | null
+    inactivityFilterEnabled: boolean | null
+    inactivityDays: number | null
+    inactivityTargetRoleId: string | null
+    inactivityRoleId: string | null
   }
 
   export type GuildMaxAggregateOutputType = {
@@ -8537,6 +8651,10 @@ export namespace Prisma {
     onboardingMessageId: string | null
     onboardingMessageText: string | null
     forceSyncRequestedAt: Date | null
+    inactivityFilterEnabled: boolean | null
+    inactivityDays: number | null
+    inactivityTargetRoleId: string | null
+    inactivityRoleId: string | null
   }
 
   export type GuildCountAggregateOutputType = {
@@ -8555,9 +8673,21 @@ export namespace Prisma {
     onboardingMessageId: number
     onboardingMessageText: number
     forceSyncRequestedAt: number
+    inactivityFilterEnabled: number
+    inactivityDays: number
+    inactivityTargetRoleId: number
+    inactivityRoleId: number
     _all: number
   }
 
+
+  export type GuildAvgAggregateInputType = {
+    inactivityDays?: true
+  }
+
+  export type GuildSumAggregateInputType = {
+    inactivityDays?: true
+  }
 
   export type GuildMinAggregateInputType = {
     id?: true
@@ -8575,6 +8705,10 @@ export namespace Prisma {
     onboardingMessageId?: true
     onboardingMessageText?: true
     forceSyncRequestedAt?: true
+    inactivityFilterEnabled?: true
+    inactivityDays?: true
+    inactivityTargetRoleId?: true
+    inactivityRoleId?: true
   }
 
   export type GuildMaxAggregateInputType = {
@@ -8593,6 +8727,10 @@ export namespace Prisma {
     onboardingMessageId?: true
     onboardingMessageText?: true
     forceSyncRequestedAt?: true
+    inactivityFilterEnabled?: true
+    inactivityDays?: true
+    inactivityTargetRoleId?: true
+    inactivityRoleId?: true
   }
 
   export type GuildCountAggregateInputType = {
@@ -8611,6 +8749,10 @@ export namespace Prisma {
     onboardingMessageId?: true
     onboardingMessageText?: true
     forceSyncRequestedAt?: true
+    inactivityFilterEnabled?: true
+    inactivityDays?: true
+    inactivityTargetRoleId?: true
+    inactivityRoleId?: true
     _all?: true
   }
 
@@ -8652,6 +8794,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: GuildAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: GuildSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: GuildMinAggregateInputType
@@ -8682,6 +8836,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: GuildCountAggregateInputType | true
+    _avg?: GuildAvgAggregateInputType
+    _sum?: GuildSumAggregateInputType
     _min?: GuildMinAggregateInputType
     _max?: GuildMaxAggregateInputType
   }
@@ -8702,7 +8858,13 @@ export namespace Prisma {
     onboardingMessageId: string | null
     onboardingMessageText: string | null
     forceSyncRequestedAt: Date | null
+    inactivityFilterEnabled: boolean
+    inactivityDays: number | null
+    inactivityTargetRoleId: string | null
+    inactivityRoleId: string | null
     _count: GuildCountAggregateOutputType | null
+    _avg: GuildAvgAggregateOutputType | null
+    _sum: GuildSumAggregateOutputType | null
     _min: GuildMinAggregateOutputType | null
     _max: GuildMaxAggregateOutputType | null
   }
@@ -8737,6 +8899,10 @@ export namespace Prisma {
     onboardingMessageId?: boolean
     onboardingMessageText?: boolean
     forceSyncRequestedAt?: boolean
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: boolean
+    inactivityTargetRoleId?: boolean
+    inactivityRoleId?: boolean
     createdBy?: boolean | UserDefaultArgs<ExtArgs>
     characters?: boolean | Guild$charactersArgs<ExtArgs>
     requiredRoles?: boolean | Guild$requiredRolesArgs<ExtArgs>
@@ -8745,6 +8911,7 @@ export namespace Prisma {
     roleRules?: boolean | Guild$roleRulesArgs<ExtArgs>
     claimConflicts?: boolean | Guild$claimConflictsArgs<ExtArgs>
     pendingRosterMatches?: boolean | Guild$pendingRosterMatchesArgs<ExtArgs>
+    memberActivity?: boolean | Guild$memberActivityArgs<ExtArgs>
     lastExportedBy?: boolean | Guild$lastExportedByArgs<ExtArgs>
     lastRosterImportedBy?: boolean | Guild$lastRosterImportedByArgs<ExtArgs>
     _count?: boolean | GuildCountOutputTypeDefaultArgs<ExtArgs>
@@ -8766,6 +8933,10 @@ export namespace Prisma {
     onboardingMessageId?: boolean
     onboardingMessageText?: boolean
     forceSyncRequestedAt?: boolean
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: boolean
+    inactivityTargetRoleId?: boolean
+    inactivityRoleId?: boolean
     createdBy?: boolean | UserDefaultArgs<ExtArgs>
     lastExportedBy?: boolean | Guild$lastExportedByArgs<ExtArgs>
     lastRosterImportedBy?: boolean | Guild$lastRosterImportedByArgs<ExtArgs>
@@ -8787,6 +8958,10 @@ export namespace Prisma {
     onboardingMessageId?: boolean
     onboardingMessageText?: boolean
     forceSyncRequestedAt?: boolean
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: boolean
+    inactivityTargetRoleId?: boolean
+    inactivityRoleId?: boolean
     createdBy?: boolean | UserDefaultArgs<ExtArgs>
     lastExportedBy?: boolean | Guild$lastExportedByArgs<ExtArgs>
     lastRosterImportedBy?: boolean | Guild$lastRosterImportedByArgs<ExtArgs>
@@ -8808,9 +8983,13 @@ export namespace Prisma {
     onboardingMessageId?: boolean
     onboardingMessageText?: boolean
     forceSyncRequestedAt?: boolean
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: boolean
+    inactivityTargetRoleId?: boolean
+    inactivityRoleId?: boolean
   }
 
-  export type GuildOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "discordGuildId" | "createdById" | "createdAt" | "pugRoleId" | "lastExportedAt" | "lastExportedById" | "lastRosterImportedAt" | "lastRosterImportedById" | "adminNotifyChannelId" | "onboardingChannelId" | "onboardingMessageId" | "onboardingMessageText" | "forceSyncRequestedAt", ExtArgs["result"]["guild"]>
+  export type GuildOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "discordGuildId" | "createdById" | "createdAt" | "pugRoleId" | "lastExportedAt" | "lastExportedById" | "lastRosterImportedAt" | "lastRosterImportedById" | "adminNotifyChannelId" | "onboardingChannelId" | "onboardingMessageId" | "onboardingMessageText" | "forceSyncRequestedAt" | "inactivityFilterEnabled" | "inactivityDays" | "inactivityTargetRoleId" | "inactivityRoleId", ExtArgs["result"]["guild"]>
   export type GuildInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     createdBy?: boolean | UserDefaultArgs<ExtArgs>
     characters?: boolean | Guild$charactersArgs<ExtArgs>
@@ -8820,6 +8999,7 @@ export namespace Prisma {
     roleRules?: boolean | Guild$roleRulesArgs<ExtArgs>
     claimConflicts?: boolean | Guild$claimConflictsArgs<ExtArgs>
     pendingRosterMatches?: boolean | Guild$pendingRosterMatchesArgs<ExtArgs>
+    memberActivity?: boolean | Guild$memberActivityArgs<ExtArgs>
     lastExportedBy?: boolean | Guild$lastExportedByArgs<ExtArgs>
     lastRosterImportedBy?: boolean | Guild$lastRosterImportedByArgs<ExtArgs>
     _count?: boolean | GuildCountOutputTypeDefaultArgs<ExtArgs>
@@ -8846,6 +9026,7 @@ export namespace Prisma {
       roleRules: Prisma.$GuildRoleRulePayload<ExtArgs>[]
       claimConflicts: Prisma.$GuildRosterClaimConflictPayload<ExtArgs>[]
       pendingRosterMatches: Prisma.$GuildPendingRosterMatchPayload<ExtArgs>[]
+      memberActivity: Prisma.$GuildMemberActivityPayload<ExtArgs>[]
       lastExportedBy: Prisma.$UserPayload<ExtArgs> | null
       lastRosterImportedBy: Prisma.$UserPayload<ExtArgs> | null
     }
@@ -8865,6 +9046,10 @@ export namespace Prisma {
       onboardingMessageId: string | null
       onboardingMessageText: string | null
       forceSyncRequestedAt: Date | null
+      inactivityFilterEnabled: boolean
+      inactivityDays: number | null
+      inactivityTargetRoleId: string | null
+      inactivityRoleId: string | null
     }, ExtArgs["result"]["guild"]>
     composites: {}
   }
@@ -9267,6 +9452,7 @@ export namespace Prisma {
     roleRules<T extends Guild$roleRulesArgs<ExtArgs> = {}>(args?: Subset<T, Guild$roleRulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildRoleRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     claimConflicts<T extends Guild$claimConflictsArgs<ExtArgs> = {}>(args?: Subset<T, Guild$claimConflictsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildRosterClaimConflictPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     pendingRosterMatches<T extends Guild$pendingRosterMatchesArgs<ExtArgs> = {}>(args?: Subset<T, Guild$pendingRosterMatchesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildPendingRosterMatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    memberActivity<T extends Guild$memberActivityArgs<ExtArgs> = {}>(args?: Subset<T, Guild$memberActivityArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildMemberActivityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     lastExportedBy<T extends Guild$lastExportedByArgs<ExtArgs> = {}>(args?: Subset<T, Guild$lastExportedByArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     lastRosterImportedBy<T extends Guild$lastRosterImportedByArgs<ExtArgs> = {}>(args?: Subset<T, Guild$lastRosterImportedByArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
@@ -9313,6 +9499,10 @@ export namespace Prisma {
     readonly onboardingMessageId: FieldRef<"Guild", 'String'>
     readonly onboardingMessageText: FieldRef<"Guild", 'String'>
     readonly forceSyncRequestedAt: FieldRef<"Guild", 'DateTime'>
+    readonly inactivityFilterEnabled: FieldRef<"Guild", 'Boolean'>
+    readonly inactivityDays: FieldRef<"Guild", 'Int'>
+    readonly inactivityTargetRoleId: FieldRef<"Guild", 'String'>
+    readonly inactivityRoleId: FieldRef<"Guild", 'String'>
   }
     
 
@@ -9872,6 +10062,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: GuildPendingRosterMatchScalarFieldEnum | GuildPendingRosterMatchScalarFieldEnum[]
+  }
+
+  /**
+   * Guild.memberActivity
+   */
+  export type Guild$memberActivityArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildMemberActivity
+     */
+    select?: GuildMemberActivitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildMemberActivity
+     */
+    omit?: GuildMemberActivityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildMemberActivityInclude<ExtArgs> | null
+    where?: GuildMemberActivityWhereInput
+    orderBy?: GuildMemberActivityOrderByWithRelationInput | GuildMemberActivityOrderByWithRelationInput[]
+    cursor?: GuildMemberActivityWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GuildMemberActivityScalarFieldEnum | GuildMemberActivityScalarFieldEnum[]
   }
 
   /**
@@ -13272,6 +13486,1101 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: GuildPendingRosterMatchInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model GuildMemberActivity
+   */
+
+  export type AggregateGuildMemberActivity = {
+    _count: GuildMemberActivityCountAggregateOutputType | null
+    _min: GuildMemberActivityMinAggregateOutputType | null
+    _max: GuildMemberActivityMaxAggregateOutputType | null
+  }
+
+  export type GuildMemberActivityMinAggregateOutputType = {
+    id: string | null
+    guildId: string | null
+    discordUserId: string | null
+    discordUserTag: string | null
+    lastActiveAt: Date | null
+    joinedAt: Date | null
+    previousRoleIds: string | null
+    markedInactiveAt: Date | null
+  }
+
+  export type GuildMemberActivityMaxAggregateOutputType = {
+    id: string | null
+    guildId: string | null
+    discordUserId: string | null
+    discordUserTag: string | null
+    lastActiveAt: Date | null
+    joinedAt: Date | null
+    previousRoleIds: string | null
+    markedInactiveAt: Date | null
+  }
+
+  export type GuildMemberActivityCountAggregateOutputType = {
+    id: number
+    guildId: number
+    discordUserId: number
+    discordUserTag: number
+    lastActiveAt: number
+    joinedAt: number
+    previousRoleIds: number
+    markedInactiveAt: number
+    _all: number
+  }
+
+
+  export type GuildMemberActivityMinAggregateInputType = {
+    id?: true
+    guildId?: true
+    discordUserId?: true
+    discordUserTag?: true
+    lastActiveAt?: true
+    joinedAt?: true
+    previousRoleIds?: true
+    markedInactiveAt?: true
+  }
+
+  export type GuildMemberActivityMaxAggregateInputType = {
+    id?: true
+    guildId?: true
+    discordUserId?: true
+    discordUserTag?: true
+    lastActiveAt?: true
+    joinedAt?: true
+    previousRoleIds?: true
+    markedInactiveAt?: true
+  }
+
+  export type GuildMemberActivityCountAggregateInputType = {
+    id?: true
+    guildId?: true
+    discordUserId?: true
+    discordUserTag?: true
+    lastActiveAt?: true
+    joinedAt?: true
+    previousRoleIds?: true
+    markedInactiveAt?: true
+    _all?: true
+  }
+
+  export type GuildMemberActivityAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GuildMemberActivity to aggregate.
+     */
+    where?: GuildMemberActivityWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuildMemberActivities to fetch.
+     */
+    orderBy?: GuildMemberActivityOrderByWithRelationInput | GuildMemberActivityOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GuildMemberActivityWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuildMemberActivities from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuildMemberActivities.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GuildMemberActivities
+    **/
+    _count?: true | GuildMemberActivityCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GuildMemberActivityMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GuildMemberActivityMaxAggregateInputType
+  }
+
+  export type GetGuildMemberActivityAggregateType<T extends GuildMemberActivityAggregateArgs> = {
+        [P in keyof T & keyof AggregateGuildMemberActivity]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGuildMemberActivity[P]>
+      : GetScalarType<T[P], AggregateGuildMemberActivity[P]>
+  }
+
+
+
+
+  export type GuildMemberActivityGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GuildMemberActivityWhereInput
+    orderBy?: GuildMemberActivityOrderByWithAggregationInput | GuildMemberActivityOrderByWithAggregationInput[]
+    by: GuildMemberActivityScalarFieldEnum[] | GuildMemberActivityScalarFieldEnum
+    having?: GuildMemberActivityScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GuildMemberActivityCountAggregateInputType | true
+    _min?: GuildMemberActivityMinAggregateInputType
+    _max?: GuildMemberActivityMaxAggregateInputType
+  }
+
+  export type GuildMemberActivityGroupByOutputType = {
+    id: string
+    guildId: string
+    discordUserId: string
+    discordUserTag: string
+    lastActiveAt: Date
+    joinedAt: Date
+    previousRoleIds: string | null
+    markedInactiveAt: Date | null
+    _count: GuildMemberActivityCountAggregateOutputType | null
+    _min: GuildMemberActivityMinAggregateOutputType | null
+    _max: GuildMemberActivityMaxAggregateOutputType | null
+  }
+
+  type GetGuildMemberActivityGroupByPayload<T extends GuildMemberActivityGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GuildMemberActivityGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GuildMemberActivityGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GuildMemberActivityGroupByOutputType[P]>
+            : GetScalarType<T[P], GuildMemberActivityGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GuildMemberActivitySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    guildId?: boolean
+    discordUserId?: boolean
+    discordUserTag?: boolean
+    lastActiveAt?: boolean
+    joinedAt?: boolean
+    previousRoleIds?: boolean
+    markedInactiveAt?: boolean
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guildMemberActivity"]>
+
+  export type GuildMemberActivitySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    guildId?: boolean
+    discordUserId?: boolean
+    discordUserTag?: boolean
+    lastActiveAt?: boolean
+    joinedAt?: boolean
+    previousRoleIds?: boolean
+    markedInactiveAt?: boolean
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guildMemberActivity"]>
+
+  export type GuildMemberActivitySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    guildId?: boolean
+    discordUserId?: boolean
+    discordUserTag?: boolean
+    lastActiveAt?: boolean
+    joinedAt?: boolean
+    previousRoleIds?: boolean
+    markedInactiveAt?: boolean
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guildMemberActivity"]>
+
+  export type GuildMemberActivitySelectScalar = {
+    id?: boolean
+    guildId?: boolean
+    discordUserId?: boolean
+    discordUserTag?: boolean
+    lastActiveAt?: boolean
+    joinedAt?: boolean
+    previousRoleIds?: boolean
+    markedInactiveAt?: boolean
+  }
+
+  export type GuildMemberActivityOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "discordUserId" | "discordUserTag" | "lastActiveAt" | "joinedAt" | "previousRoleIds" | "markedInactiveAt", ExtArgs["result"]["guildMemberActivity"]>
+  export type GuildMemberActivityInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+  }
+  export type GuildMemberActivityIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+  }
+  export type GuildMemberActivityIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+  }
+
+  export type $GuildMemberActivityPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GuildMemberActivity"
+    objects: {
+      guild: Prisma.$GuildPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      guildId: string
+      discordUserId: string
+      discordUserTag: string
+      lastActiveAt: Date
+      joinedAt: Date
+      previousRoleIds: string | null
+      markedInactiveAt: Date | null
+    }, ExtArgs["result"]["guildMemberActivity"]>
+    composites: {}
+  }
+
+  type GuildMemberActivityGetPayload<S extends boolean | null | undefined | GuildMemberActivityDefaultArgs> = $Result.GetResult<Prisma.$GuildMemberActivityPayload, S>
+
+  type GuildMemberActivityCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<GuildMemberActivityFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: GuildMemberActivityCountAggregateInputType | true
+    }
+
+  export interface GuildMemberActivityDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GuildMemberActivity'], meta: { name: 'GuildMemberActivity' } }
+    /**
+     * Find zero or one GuildMemberActivity that matches the filter.
+     * @param {GuildMemberActivityFindUniqueArgs} args - Arguments to find a GuildMemberActivity
+     * @example
+     * // Get one GuildMemberActivity
+     * const guildMemberActivity = await prisma.guildMemberActivity.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GuildMemberActivityFindUniqueArgs>(args: SelectSubset<T, GuildMemberActivityFindUniqueArgs<ExtArgs>>): Prisma__GuildMemberActivityClient<$Result.GetResult<Prisma.$GuildMemberActivityPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one GuildMemberActivity that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {GuildMemberActivityFindUniqueOrThrowArgs} args - Arguments to find a GuildMemberActivity
+     * @example
+     * // Get one GuildMemberActivity
+     * const guildMemberActivity = await prisma.guildMemberActivity.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GuildMemberActivityFindUniqueOrThrowArgs>(args: SelectSubset<T, GuildMemberActivityFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GuildMemberActivityClient<$Result.GetResult<Prisma.$GuildMemberActivityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GuildMemberActivity that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildMemberActivityFindFirstArgs} args - Arguments to find a GuildMemberActivity
+     * @example
+     * // Get one GuildMemberActivity
+     * const guildMemberActivity = await prisma.guildMemberActivity.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GuildMemberActivityFindFirstArgs>(args?: SelectSubset<T, GuildMemberActivityFindFirstArgs<ExtArgs>>): Prisma__GuildMemberActivityClient<$Result.GetResult<Prisma.$GuildMemberActivityPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GuildMemberActivity that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildMemberActivityFindFirstOrThrowArgs} args - Arguments to find a GuildMemberActivity
+     * @example
+     * // Get one GuildMemberActivity
+     * const guildMemberActivity = await prisma.guildMemberActivity.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GuildMemberActivityFindFirstOrThrowArgs>(args?: SelectSubset<T, GuildMemberActivityFindFirstOrThrowArgs<ExtArgs>>): Prisma__GuildMemberActivityClient<$Result.GetResult<Prisma.$GuildMemberActivityPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more GuildMemberActivities that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildMemberActivityFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GuildMemberActivities
+     * const guildMemberActivities = await prisma.guildMemberActivity.findMany()
+     * 
+     * // Get first 10 GuildMemberActivities
+     * const guildMemberActivities = await prisma.guildMemberActivity.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const guildMemberActivityWithIdOnly = await prisma.guildMemberActivity.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GuildMemberActivityFindManyArgs>(args?: SelectSubset<T, GuildMemberActivityFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildMemberActivityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a GuildMemberActivity.
+     * @param {GuildMemberActivityCreateArgs} args - Arguments to create a GuildMemberActivity.
+     * @example
+     * // Create one GuildMemberActivity
+     * const GuildMemberActivity = await prisma.guildMemberActivity.create({
+     *   data: {
+     *     // ... data to create a GuildMemberActivity
+     *   }
+     * })
+     * 
+     */
+    create<T extends GuildMemberActivityCreateArgs>(args: SelectSubset<T, GuildMemberActivityCreateArgs<ExtArgs>>): Prisma__GuildMemberActivityClient<$Result.GetResult<Prisma.$GuildMemberActivityPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many GuildMemberActivities.
+     * @param {GuildMemberActivityCreateManyArgs} args - Arguments to create many GuildMemberActivities.
+     * @example
+     * // Create many GuildMemberActivities
+     * const guildMemberActivity = await prisma.guildMemberActivity.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GuildMemberActivityCreateManyArgs>(args?: SelectSubset<T, GuildMemberActivityCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GuildMemberActivities and returns the data saved in the database.
+     * @param {GuildMemberActivityCreateManyAndReturnArgs} args - Arguments to create many GuildMemberActivities.
+     * @example
+     * // Create many GuildMemberActivities
+     * const guildMemberActivity = await prisma.guildMemberActivity.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GuildMemberActivities and only return the `id`
+     * const guildMemberActivityWithIdOnly = await prisma.guildMemberActivity.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GuildMemberActivityCreateManyAndReturnArgs>(args?: SelectSubset<T, GuildMemberActivityCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildMemberActivityPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a GuildMemberActivity.
+     * @param {GuildMemberActivityDeleteArgs} args - Arguments to delete one GuildMemberActivity.
+     * @example
+     * // Delete one GuildMemberActivity
+     * const GuildMemberActivity = await prisma.guildMemberActivity.delete({
+     *   where: {
+     *     // ... filter to delete one GuildMemberActivity
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GuildMemberActivityDeleteArgs>(args: SelectSubset<T, GuildMemberActivityDeleteArgs<ExtArgs>>): Prisma__GuildMemberActivityClient<$Result.GetResult<Prisma.$GuildMemberActivityPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one GuildMemberActivity.
+     * @param {GuildMemberActivityUpdateArgs} args - Arguments to update one GuildMemberActivity.
+     * @example
+     * // Update one GuildMemberActivity
+     * const guildMemberActivity = await prisma.guildMemberActivity.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GuildMemberActivityUpdateArgs>(args: SelectSubset<T, GuildMemberActivityUpdateArgs<ExtArgs>>): Prisma__GuildMemberActivityClient<$Result.GetResult<Prisma.$GuildMemberActivityPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more GuildMemberActivities.
+     * @param {GuildMemberActivityDeleteManyArgs} args - Arguments to filter GuildMemberActivities to delete.
+     * @example
+     * // Delete a few GuildMemberActivities
+     * const { count } = await prisma.guildMemberActivity.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GuildMemberActivityDeleteManyArgs>(args?: SelectSubset<T, GuildMemberActivityDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GuildMemberActivities.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildMemberActivityUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GuildMemberActivities
+     * const guildMemberActivity = await prisma.guildMemberActivity.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GuildMemberActivityUpdateManyArgs>(args: SelectSubset<T, GuildMemberActivityUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GuildMemberActivities and returns the data updated in the database.
+     * @param {GuildMemberActivityUpdateManyAndReturnArgs} args - Arguments to update many GuildMemberActivities.
+     * @example
+     * // Update many GuildMemberActivities
+     * const guildMemberActivity = await prisma.guildMemberActivity.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more GuildMemberActivities and only return the `id`
+     * const guildMemberActivityWithIdOnly = await prisma.guildMemberActivity.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends GuildMemberActivityUpdateManyAndReturnArgs>(args: SelectSubset<T, GuildMemberActivityUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildMemberActivityPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one GuildMemberActivity.
+     * @param {GuildMemberActivityUpsertArgs} args - Arguments to update or create a GuildMemberActivity.
+     * @example
+     * // Update or create a GuildMemberActivity
+     * const guildMemberActivity = await prisma.guildMemberActivity.upsert({
+     *   create: {
+     *     // ... data to create a GuildMemberActivity
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GuildMemberActivity we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GuildMemberActivityUpsertArgs>(args: SelectSubset<T, GuildMemberActivityUpsertArgs<ExtArgs>>): Prisma__GuildMemberActivityClient<$Result.GetResult<Prisma.$GuildMemberActivityPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of GuildMemberActivities.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildMemberActivityCountArgs} args - Arguments to filter GuildMemberActivities to count.
+     * @example
+     * // Count the number of GuildMemberActivities
+     * const count = await prisma.guildMemberActivity.count({
+     *   where: {
+     *     // ... the filter for the GuildMemberActivities we want to count
+     *   }
+     * })
+    **/
+    count<T extends GuildMemberActivityCountArgs>(
+      args?: Subset<T, GuildMemberActivityCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GuildMemberActivityCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GuildMemberActivity.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildMemberActivityAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GuildMemberActivityAggregateArgs>(args: Subset<T, GuildMemberActivityAggregateArgs>): Prisma.PrismaPromise<GetGuildMemberActivityAggregateType<T>>
+
+    /**
+     * Group by GuildMemberActivity.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildMemberActivityGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GuildMemberActivityGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GuildMemberActivityGroupByArgs['orderBy'] }
+        : { orderBy?: GuildMemberActivityGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GuildMemberActivityGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGuildMemberActivityGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GuildMemberActivity model
+   */
+  readonly fields: GuildMemberActivityFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GuildMemberActivity.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GuildMemberActivityClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    guild<T extends GuildDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GuildDefaultArgs<ExtArgs>>): Prisma__GuildClient<$Result.GetResult<Prisma.$GuildPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GuildMemberActivity model
+   */
+  interface GuildMemberActivityFieldRefs {
+    readonly id: FieldRef<"GuildMemberActivity", 'String'>
+    readonly guildId: FieldRef<"GuildMemberActivity", 'String'>
+    readonly discordUserId: FieldRef<"GuildMemberActivity", 'String'>
+    readonly discordUserTag: FieldRef<"GuildMemberActivity", 'String'>
+    readonly lastActiveAt: FieldRef<"GuildMemberActivity", 'DateTime'>
+    readonly joinedAt: FieldRef<"GuildMemberActivity", 'DateTime'>
+    readonly previousRoleIds: FieldRef<"GuildMemberActivity", 'String'>
+    readonly markedInactiveAt: FieldRef<"GuildMemberActivity", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GuildMemberActivity findUnique
+   */
+  export type GuildMemberActivityFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildMemberActivity
+     */
+    select?: GuildMemberActivitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildMemberActivity
+     */
+    omit?: GuildMemberActivityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildMemberActivityInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildMemberActivity to fetch.
+     */
+    where: GuildMemberActivityWhereUniqueInput
+  }
+
+  /**
+   * GuildMemberActivity findUniqueOrThrow
+   */
+  export type GuildMemberActivityFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildMemberActivity
+     */
+    select?: GuildMemberActivitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildMemberActivity
+     */
+    omit?: GuildMemberActivityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildMemberActivityInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildMemberActivity to fetch.
+     */
+    where: GuildMemberActivityWhereUniqueInput
+  }
+
+  /**
+   * GuildMemberActivity findFirst
+   */
+  export type GuildMemberActivityFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildMemberActivity
+     */
+    select?: GuildMemberActivitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildMemberActivity
+     */
+    omit?: GuildMemberActivityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildMemberActivityInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildMemberActivity to fetch.
+     */
+    where?: GuildMemberActivityWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuildMemberActivities to fetch.
+     */
+    orderBy?: GuildMemberActivityOrderByWithRelationInput | GuildMemberActivityOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GuildMemberActivities.
+     */
+    cursor?: GuildMemberActivityWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuildMemberActivities from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuildMemberActivities.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GuildMemberActivities.
+     */
+    distinct?: GuildMemberActivityScalarFieldEnum | GuildMemberActivityScalarFieldEnum[]
+  }
+
+  /**
+   * GuildMemberActivity findFirstOrThrow
+   */
+  export type GuildMemberActivityFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildMemberActivity
+     */
+    select?: GuildMemberActivitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildMemberActivity
+     */
+    omit?: GuildMemberActivityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildMemberActivityInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildMemberActivity to fetch.
+     */
+    where?: GuildMemberActivityWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuildMemberActivities to fetch.
+     */
+    orderBy?: GuildMemberActivityOrderByWithRelationInput | GuildMemberActivityOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GuildMemberActivities.
+     */
+    cursor?: GuildMemberActivityWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuildMemberActivities from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuildMemberActivities.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GuildMemberActivities.
+     */
+    distinct?: GuildMemberActivityScalarFieldEnum | GuildMemberActivityScalarFieldEnum[]
+  }
+
+  /**
+   * GuildMemberActivity findMany
+   */
+  export type GuildMemberActivityFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildMemberActivity
+     */
+    select?: GuildMemberActivitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildMemberActivity
+     */
+    omit?: GuildMemberActivityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildMemberActivityInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildMemberActivities to fetch.
+     */
+    where?: GuildMemberActivityWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuildMemberActivities to fetch.
+     */
+    orderBy?: GuildMemberActivityOrderByWithRelationInput | GuildMemberActivityOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GuildMemberActivities.
+     */
+    cursor?: GuildMemberActivityWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuildMemberActivities from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuildMemberActivities.
+     */
+    skip?: number
+    distinct?: GuildMemberActivityScalarFieldEnum | GuildMemberActivityScalarFieldEnum[]
+  }
+
+  /**
+   * GuildMemberActivity create
+   */
+  export type GuildMemberActivityCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildMemberActivity
+     */
+    select?: GuildMemberActivitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildMemberActivity
+     */
+    omit?: GuildMemberActivityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildMemberActivityInclude<ExtArgs> | null
+    /**
+     * The data needed to create a GuildMemberActivity.
+     */
+    data: XOR<GuildMemberActivityCreateInput, GuildMemberActivityUncheckedCreateInput>
+  }
+
+  /**
+   * GuildMemberActivity createMany
+   */
+  export type GuildMemberActivityCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GuildMemberActivities.
+     */
+    data: GuildMemberActivityCreateManyInput | GuildMemberActivityCreateManyInput[]
+  }
+
+  /**
+   * GuildMemberActivity createManyAndReturn
+   */
+  export type GuildMemberActivityCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildMemberActivity
+     */
+    select?: GuildMemberActivitySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildMemberActivity
+     */
+    omit?: GuildMemberActivityOmit<ExtArgs> | null
+    /**
+     * The data used to create many GuildMemberActivities.
+     */
+    data: GuildMemberActivityCreateManyInput | GuildMemberActivityCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildMemberActivityIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GuildMemberActivity update
+   */
+  export type GuildMemberActivityUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildMemberActivity
+     */
+    select?: GuildMemberActivitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildMemberActivity
+     */
+    omit?: GuildMemberActivityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildMemberActivityInclude<ExtArgs> | null
+    /**
+     * The data needed to update a GuildMemberActivity.
+     */
+    data: XOR<GuildMemberActivityUpdateInput, GuildMemberActivityUncheckedUpdateInput>
+    /**
+     * Choose, which GuildMemberActivity to update.
+     */
+    where: GuildMemberActivityWhereUniqueInput
+  }
+
+  /**
+   * GuildMemberActivity updateMany
+   */
+  export type GuildMemberActivityUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GuildMemberActivities.
+     */
+    data: XOR<GuildMemberActivityUpdateManyMutationInput, GuildMemberActivityUncheckedUpdateManyInput>
+    /**
+     * Filter which GuildMemberActivities to update
+     */
+    where?: GuildMemberActivityWhereInput
+    /**
+     * Limit how many GuildMemberActivities to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * GuildMemberActivity updateManyAndReturn
+   */
+  export type GuildMemberActivityUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildMemberActivity
+     */
+    select?: GuildMemberActivitySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildMemberActivity
+     */
+    omit?: GuildMemberActivityOmit<ExtArgs> | null
+    /**
+     * The data used to update GuildMemberActivities.
+     */
+    data: XOR<GuildMemberActivityUpdateManyMutationInput, GuildMemberActivityUncheckedUpdateManyInput>
+    /**
+     * Filter which GuildMemberActivities to update
+     */
+    where?: GuildMemberActivityWhereInput
+    /**
+     * Limit how many GuildMemberActivities to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildMemberActivityIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GuildMemberActivity upsert
+   */
+  export type GuildMemberActivityUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildMemberActivity
+     */
+    select?: GuildMemberActivitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildMemberActivity
+     */
+    omit?: GuildMemberActivityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildMemberActivityInclude<ExtArgs> | null
+    /**
+     * The filter to search for the GuildMemberActivity to update in case it exists.
+     */
+    where: GuildMemberActivityWhereUniqueInput
+    /**
+     * In case the GuildMemberActivity found by the `where` argument doesn't exist, create a new GuildMemberActivity with this data.
+     */
+    create: XOR<GuildMemberActivityCreateInput, GuildMemberActivityUncheckedCreateInput>
+    /**
+     * In case the GuildMemberActivity was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GuildMemberActivityUpdateInput, GuildMemberActivityUncheckedUpdateInput>
+  }
+
+  /**
+   * GuildMemberActivity delete
+   */
+  export type GuildMemberActivityDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildMemberActivity
+     */
+    select?: GuildMemberActivitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildMemberActivity
+     */
+    omit?: GuildMemberActivityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildMemberActivityInclude<ExtArgs> | null
+    /**
+     * Filter which GuildMemberActivity to delete.
+     */
+    where: GuildMemberActivityWhereUniqueInput
+  }
+
+  /**
+   * GuildMemberActivity deleteMany
+   */
+  export type GuildMemberActivityDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GuildMemberActivities to delete
+     */
+    where?: GuildMemberActivityWhereInput
+    /**
+     * Limit how many GuildMemberActivities to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * GuildMemberActivity without action
+   */
+  export type GuildMemberActivityDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildMemberActivity
+     */
+    select?: GuildMemberActivitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildMemberActivity
+     */
+    omit?: GuildMemberActivityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildMemberActivityInclude<ExtArgs> | null
   }
 
 
@@ -25000,7 +26309,11 @@ export namespace Prisma {
     onboardingChannelId: 'onboardingChannelId',
     onboardingMessageId: 'onboardingMessageId',
     onboardingMessageText: 'onboardingMessageText',
-    forceSyncRequestedAt: 'forceSyncRequestedAt'
+    forceSyncRequestedAt: 'forceSyncRequestedAt',
+    inactivityFilterEnabled: 'inactivityFilterEnabled',
+    inactivityDays: 'inactivityDays',
+    inactivityTargetRoleId: 'inactivityTargetRoleId',
+    inactivityRoleId: 'inactivityRoleId'
   };
 
   export type GuildScalarFieldEnum = (typeof GuildScalarFieldEnum)[keyof typeof GuildScalarFieldEnum]
@@ -25045,6 +26358,20 @@ export namespace Prisma {
   };
 
   export type GuildPendingRosterMatchScalarFieldEnum = (typeof GuildPendingRosterMatchScalarFieldEnum)[keyof typeof GuildPendingRosterMatchScalarFieldEnum]
+
+
+  export const GuildMemberActivityScalarFieldEnum: {
+    id: 'id',
+    guildId: 'guildId',
+    discordUserId: 'discordUserId',
+    discordUserTag: 'discordUserTag',
+    lastActiveAt: 'lastActiveAt',
+    joinedAt: 'joinedAt',
+    previousRoleIds: 'previousRoleIds',
+    markedInactiveAt: 'markedInactiveAt'
+  };
+
+  export type GuildMemberActivityScalarFieldEnum = (typeof GuildMemberActivityScalarFieldEnum)[keyof typeof GuildMemberActivityScalarFieldEnum]
 
 
   export const GuildRoleRuleScalarFieldEnum: {
@@ -25604,6 +26931,10 @@ export namespace Prisma {
     onboardingMessageId?: StringNullableFilter<"Guild"> | string | null
     onboardingMessageText?: StringNullableFilter<"Guild"> | string | null
     forceSyncRequestedAt?: DateTimeNullableFilter<"Guild"> | Date | string | null
+    inactivityFilterEnabled?: BoolFilter<"Guild"> | boolean
+    inactivityDays?: IntNullableFilter<"Guild"> | number | null
+    inactivityTargetRoleId?: StringNullableFilter<"Guild"> | string | null
+    inactivityRoleId?: StringNullableFilter<"Guild"> | string | null
     createdBy?: XOR<UserScalarRelationFilter, UserWhereInput>
     characters?: GuildCharacterListRelationFilter
     requiredRoles?: GuildRequiredRoleListRelationFilter
@@ -25612,6 +26943,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleListRelationFilter
     claimConflicts?: GuildRosterClaimConflictListRelationFilter
     pendingRosterMatches?: GuildPendingRosterMatchListRelationFilter
+    memberActivity?: GuildMemberActivityListRelationFilter
     lastExportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     lastRosterImportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }
@@ -25632,6 +26964,10 @@ export namespace Prisma {
     onboardingMessageId?: SortOrderInput | SortOrder
     onboardingMessageText?: SortOrderInput | SortOrder
     forceSyncRequestedAt?: SortOrderInput | SortOrder
+    inactivityFilterEnabled?: SortOrder
+    inactivityDays?: SortOrderInput | SortOrder
+    inactivityTargetRoleId?: SortOrderInput | SortOrder
+    inactivityRoleId?: SortOrderInput | SortOrder
     createdBy?: UserOrderByWithRelationInput
     characters?: GuildCharacterOrderByRelationAggregateInput
     requiredRoles?: GuildRequiredRoleOrderByRelationAggregateInput
@@ -25640,6 +26976,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleOrderByRelationAggregateInput
     claimConflicts?: GuildRosterClaimConflictOrderByRelationAggregateInput
     pendingRosterMatches?: GuildPendingRosterMatchOrderByRelationAggregateInput
+    memberActivity?: GuildMemberActivityOrderByRelationAggregateInput
     lastExportedBy?: UserOrderByWithRelationInput
     lastRosterImportedBy?: UserOrderByWithRelationInput
   }
@@ -25663,6 +27000,10 @@ export namespace Prisma {
     onboardingMessageId?: StringNullableFilter<"Guild"> | string | null
     onboardingMessageText?: StringNullableFilter<"Guild"> | string | null
     forceSyncRequestedAt?: DateTimeNullableFilter<"Guild"> | Date | string | null
+    inactivityFilterEnabled?: BoolFilter<"Guild"> | boolean
+    inactivityDays?: IntNullableFilter<"Guild"> | number | null
+    inactivityTargetRoleId?: StringNullableFilter<"Guild"> | string | null
+    inactivityRoleId?: StringNullableFilter<"Guild"> | string | null
     createdBy?: XOR<UserScalarRelationFilter, UserWhereInput>
     characters?: GuildCharacterListRelationFilter
     requiredRoles?: GuildRequiredRoleListRelationFilter
@@ -25671,6 +27012,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleListRelationFilter
     claimConflicts?: GuildRosterClaimConflictListRelationFilter
     pendingRosterMatches?: GuildPendingRosterMatchListRelationFilter
+    memberActivity?: GuildMemberActivityListRelationFilter
     lastExportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     lastRosterImportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }, "id" | "discordGuildId">
@@ -25691,9 +27033,15 @@ export namespace Prisma {
     onboardingMessageId?: SortOrderInput | SortOrder
     onboardingMessageText?: SortOrderInput | SortOrder
     forceSyncRequestedAt?: SortOrderInput | SortOrder
+    inactivityFilterEnabled?: SortOrder
+    inactivityDays?: SortOrderInput | SortOrder
+    inactivityTargetRoleId?: SortOrderInput | SortOrder
+    inactivityRoleId?: SortOrderInput | SortOrder
     _count?: GuildCountOrderByAggregateInput
+    _avg?: GuildAvgOrderByAggregateInput
     _max?: GuildMaxOrderByAggregateInput
     _min?: GuildMinOrderByAggregateInput
+    _sum?: GuildSumOrderByAggregateInput
   }
 
   export type GuildScalarWhereWithAggregatesInput = {
@@ -25715,6 +27063,10 @@ export namespace Prisma {
     onboardingMessageId?: StringNullableWithAggregatesFilter<"Guild"> | string | null
     onboardingMessageText?: StringNullableWithAggregatesFilter<"Guild"> | string | null
     forceSyncRequestedAt?: DateTimeNullableWithAggregatesFilter<"Guild"> | Date | string | null
+    inactivityFilterEnabled?: BoolWithAggregatesFilter<"Guild"> | boolean
+    inactivityDays?: IntNullableWithAggregatesFilter<"Guild"> | number | null
+    inactivityTargetRoleId?: StringNullableWithAggregatesFilter<"Guild"> | string | null
+    inactivityRoleId?: StringNullableWithAggregatesFilter<"Guild"> | string | null
   }
 
   export type GuildRosterMemberWhereInput = {
@@ -25930,6 +27282,77 @@ export namespace Prisma {
     names?: StringWithAggregatesFilter<"GuildPendingRosterMatch"> | string
     includeAltsInNickname?: BoolWithAggregatesFilter<"GuildPendingRosterMatch"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"GuildPendingRosterMatch"> | Date | string
+  }
+
+  export type GuildMemberActivityWhereInput = {
+    AND?: GuildMemberActivityWhereInput | GuildMemberActivityWhereInput[]
+    OR?: GuildMemberActivityWhereInput[]
+    NOT?: GuildMemberActivityWhereInput | GuildMemberActivityWhereInput[]
+    id?: StringFilter<"GuildMemberActivity"> | string
+    guildId?: StringFilter<"GuildMemberActivity"> | string
+    discordUserId?: StringFilter<"GuildMemberActivity"> | string
+    discordUserTag?: StringFilter<"GuildMemberActivity"> | string
+    lastActiveAt?: DateTimeFilter<"GuildMemberActivity"> | Date | string
+    joinedAt?: DateTimeFilter<"GuildMemberActivity"> | Date | string
+    previousRoleIds?: StringNullableFilter<"GuildMemberActivity"> | string | null
+    markedInactiveAt?: DateTimeNullableFilter<"GuildMemberActivity"> | Date | string | null
+    guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
+  }
+
+  export type GuildMemberActivityOrderByWithRelationInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    discordUserId?: SortOrder
+    discordUserTag?: SortOrder
+    lastActiveAt?: SortOrder
+    joinedAt?: SortOrder
+    previousRoleIds?: SortOrderInput | SortOrder
+    markedInactiveAt?: SortOrderInput | SortOrder
+    guild?: GuildOrderByWithRelationInput
+  }
+
+  export type GuildMemberActivityWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    guildId_discordUserId?: GuildMemberActivityGuildIdDiscordUserIdCompoundUniqueInput
+    AND?: GuildMemberActivityWhereInput | GuildMemberActivityWhereInput[]
+    OR?: GuildMemberActivityWhereInput[]
+    NOT?: GuildMemberActivityWhereInput | GuildMemberActivityWhereInput[]
+    guildId?: StringFilter<"GuildMemberActivity"> | string
+    discordUserId?: StringFilter<"GuildMemberActivity"> | string
+    discordUserTag?: StringFilter<"GuildMemberActivity"> | string
+    lastActiveAt?: DateTimeFilter<"GuildMemberActivity"> | Date | string
+    joinedAt?: DateTimeFilter<"GuildMemberActivity"> | Date | string
+    previousRoleIds?: StringNullableFilter<"GuildMemberActivity"> | string | null
+    markedInactiveAt?: DateTimeNullableFilter<"GuildMemberActivity"> | Date | string | null
+    guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
+  }, "id" | "guildId_discordUserId">
+
+  export type GuildMemberActivityOrderByWithAggregationInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    discordUserId?: SortOrder
+    discordUserTag?: SortOrder
+    lastActiveAt?: SortOrder
+    joinedAt?: SortOrder
+    previousRoleIds?: SortOrderInput | SortOrder
+    markedInactiveAt?: SortOrderInput | SortOrder
+    _count?: GuildMemberActivityCountOrderByAggregateInput
+    _max?: GuildMemberActivityMaxOrderByAggregateInput
+    _min?: GuildMemberActivityMinOrderByAggregateInput
+  }
+
+  export type GuildMemberActivityScalarWhereWithAggregatesInput = {
+    AND?: GuildMemberActivityScalarWhereWithAggregatesInput | GuildMemberActivityScalarWhereWithAggregatesInput[]
+    OR?: GuildMemberActivityScalarWhereWithAggregatesInput[]
+    NOT?: GuildMemberActivityScalarWhereWithAggregatesInput | GuildMemberActivityScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"GuildMemberActivity"> | string
+    guildId?: StringWithAggregatesFilter<"GuildMemberActivity"> | string
+    discordUserId?: StringWithAggregatesFilter<"GuildMemberActivity"> | string
+    discordUserTag?: StringWithAggregatesFilter<"GuildMemberActivity"> | string
+    lastActiveAt?: DateTimeWithAggregatesFilter<"GuildMemberActivity"> | Date | string
+    joinedAt?: DateTimeWithAggregatesFilter<"GuildMemberActivity"> | Date | string
+    previousRoleIds?: StringNullableWithAggregatesFilter<"GuildMemberActivity"> | string | null
+    markedInactiveAt?: DateTimeNullableWithAggregatesFilter<"GuildMemberActivity"> | Date | string | null
   }
 
   export type GuildRoleRuleWhereInput = {
@@ -26946,6 +28369,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
     characters?: GuildCharacterCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
@@ -26954,6 +28381,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -26974,6 +28402,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     characters?: GuildCharacterUncheckedCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
@@ -26981,6 +28413,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictUncheckedCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildUpdateInput = {
@@ -26996,6 +28429,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
     characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
@@ -27004,6 +28441,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -27024,6 +28462,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     characters?: GuildCharacterUncheckedUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
@@ -27031,6 +28473,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUncheckedUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateManyInput = {
@@ -27049,6 +28492,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
   }
 
   export type GuildUpdateManyMutationInput = {
@@ -27064,6 +28511,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type GuildUncheckedUpdateManyInput = {
@@ -27082,6 +28533,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type GuildRosterMemberCreateInput = {
@@ -27306,6 +28761,82 @@ export namespace Prisma {
     names?: StringFieldUpdateOperationsInput | string
     includeAltsInNickname?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GuildMemberActivityCreateInput = {
+    id?: string
+    discordUserId: string
+    discordUserTag: string
+    lastActiveAt: Date | string
+    joinedAt: Date | string
+    previousRoleIds?: string | null
+    markedInactiveAt?: Date | string | null
+    guild: GuildCreateNestedOneWithoutMemberActivityInput
+  }
+
+  export type GuildMemberActivityUncheckedCreateInput = {
+    id?: string
+    guildId: string
+    discordUserId: string
+    discordUserTag: string
+    lastActiveAt: Date | string
+    joinedAt: Date | string
+    previousRoleIds?: string | null
+    markedInactiveAt?: Date | string | null
+  }
+
+  export type GuildMemberActivityUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    discordUserId?: StringFieldUpdateOperationsInput | string
+    discordUserTag?: StringFieldUpdateOperationsInput | string
+    lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    previousRoleIds?: NullableStringFieldUpdateOperationsInput | string | null
+    markedInactiveAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    guild?: GuildUpdateOneRequiredWithoutMemberActivityNestedInput
+  }
+
+  export type GuildMemberActivityUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    guildId?: StringFieldUpdateOperationsInput | string
+    discordUserId?: StringFieldUpdateOperationsInput | string
+    discordUserTag?: StringFieldUpdateOperationsInput | string
+    lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    previousRoleIds?: NullableStringFieldUpdateOperationsInput | string | null
+    markedInactiveAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type GuildMemberActivityCreateManyInput = {
+    id?: string
+    guildId: string
+    discordUserId: string
+    discordUserTag: string
+    lastActiveAt: Date | string
+    joinedAt: Date | string
+    previousRoleIds?: string | null
+    markedInactiveAt?: Date | string | null
+  }
+
+  export type GuildMemberActivityUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    discordUserId?: StringFieldUpdateOperationsInput | string
+    discordUserTag?: StringFieldUpdateOperationsInput | string
+    lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    previousRoleIds?: NullableStringFieldUpdateOperationsInput | string | null
+    markedInactiveAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type GuildMemberActivityUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    guildId?: StringFieldUpdateOperationsInput | string
+    discordUserId?: StringFieldUpdateOperationsInput | string
+    discordUserTag?: StringFieldUpdateOperationsInput | string
+    lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    previousRoleIds?: NullableStringFieldUpdateOperationsInput | string | null
+    markedInactiveAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type GuildRoleRuleCreateInput = {
@@ -28235,6 +29766,17 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type GuildRequiredRoleListRelationFilter = {
     every?: GuildRequiredRoleWhereInput
     some?: GuildRequiredRoleWhereInput
@@ -28271,6 +29813,12 @@ export namespace Prisma {
     none?: GuildPendingRosterMatchWhereInput
   }
 
+  export type GuildMemberActivityListRelationFilter = {
+    every?: GuildMemberActivityWhereInput
+    some?: GuildMemberActivityWhereInput
+    none?: GuildMemberActivityWhereInput
+  }
+
   export type UserNullableScalarRelationFilter = {
     is?: UserWhereInput | null
     isNot?: UserWhereInput | null
@@ -28300,6 +29848,10 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type GuildMemberActivityOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type GuildCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
@@ -28316,6 +29868,14 @@ export namespace Prisma {
     onboardingMessageId?: SortOrder
     onboardingMessageText?: SortOrder
     forceSyncRequestedAt?: SortOrder
+    inactivityFilterEnabled?: SortOrder
+    inactivityDays?: SortOrder
+    inactivityTargetRoleId?: SortOrder
+    inactivityRoleId?: SortOrder
+  }
+
+  export type GuildAvgOrderByAggregateInput = {
+    inactivityDays?: SortOrder
   }
 
   export type GuildMaxOrderByAggregateInput = {
@@ -28334,6 +29894,10 @@ export namespace Prisma {
     onboardingMessageId?: SortOrder
     onboardingMessageText?: SortOrder
     forceSyncRequestedAt?: SortOrder
+    inactivityFilterEnabled?: SortOrder
+    inactivityDays?: SortOrder
+    inactivityTargetRoleId?: SortOrder
+    inactivityRoleId?: SortOrder
   }
 
   export type GuildMinOrderByAggregateInput = {
@@ -28352,6 +29916,30 @@ export namespace Prisma {
     onboardingMessageId?: SortOrder
     onboardingMessageText?: SortOrder
     forceSyncRequestedAt?: SortOrder
+    inactivityFilterEnabled?: SortOrder
+    inactivityDays?: SortOrder
+    inactivityTargetRoleId?: SortOrder
+    inactivityRoleId?: SortOrder
+  }
+
+  export type GuildSumOrderByAggregateInput = {
+    inactivityDays?: SortOrder
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -28505,6 +30093,44 @@ export namespace Prisma {
     createdAt?: SortOrder
   }
 
+  export type GuildMemberActivityGuildIdDiscordUserIdCompoundUniqueInput = {
+    guildId: string
+    discordUserId: string
+  }
+
+  export type GuildMemberActivityCountOrderByAggregateInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    discordUserId?: SortOrder
+    discordUserTag?: SortOrder
+    lastActiveAt?: SortOrder
+    joinedAt?: SortOrder
+    previousRoleIds?: SortOrder
+    markedInactiveAt?: SortOrder
+  }
+
+  export type GuildMemberActivityMaxOrderByAggregateInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    discordUserId?: SortOrder
+    discordUserTag?: SortOrder
+    lastActiveAt?: SortOrder
+    joinedAt?: SortOrder
+    previousRoleIds?: SortOrder
+    markedInactiveAt?: SortOrder
+  }
+
+  export type GuildMemberActivityMinOrderByAggregateInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    discordUserId?: SortOrder
+    discordUserTag?: SortOrder
+    lastActiveAt?: SortOrder
+    joinedAt?: SortOrder
+    previousRoleIds?: SortOrder
+    markedInactiveAt?: SortOrder
+  }
+
   export type GuildRoleRuleGrantedRoleListRelationFilter = {
     every?: GuildRoleRuleGrantedRoleWhereInput
     some?: GuildRoleRuleGrantedRoleWhereInput
@@ -28597,17 +30223,6 @@ export namespace Prisma {
     channelType?: SortOrder
   }
 
-  export type IntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
-  }
-
   export type GuildRoleRuleConditionCountOrderByAggregateInput = {
     id?: SortOrder
     ruleId?: SortOrder
@@ -28646,22 +30261,6 @@ export namespace Prisma {
   export type GuildRoleRuleConditionSumOrderByAggregateInput = {
     minNumber?: SortOrder
     maxNumber?: SortOrder
-  }
-
-  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type GuildRequiredRoleGuildIdDiscordRoleIdCompoundUniqueInput = {
@@ -29298,6 +30897,13 @@ export namespace Prisma {
     connect?: GuildPendingRosterMatchWhereUniqueInput | GuildPendingRosterMatchWhereUniqueInput[]
   }
 
+  export type GuildMemberActivityCreateNestedManyWithoutGuildInput = {
+    create?: XOR<GuildMemberActivityCreateWithoutGuildInput, GuildMemberActivityUncheckedCreateWithoutGuildInput> | GuildMemberActivityCreateWithoutGuildInput[] | GuildMemberActivityUncheckedCreateWithoutGuildInput[]
+    connectOrCreate?: GuildMemberActivityCreateOrConnectWithoutGuildInput | GuildMemberActivityCreateOrConnectWithoutGuildInput[]
+    createMany?: GuildMemberActivityCreateManyGuildInputEnvelope
+    connect?: GuildMemberActivityWhereUniqueInput | GuildMemberActivityWhereUniqueInput[]
+  }
+
   export type UserCreateNestedOneWithoutLastExportedGuildsInput = {
     create?: XOR<UserCreateWithoutLastExportedGuildsInput, UserUncheckedCreateWithoutLastExportedGuildsInput>
     connectOrCreate?: UserCreateOrConnectWithoutLastExportedGuildsInput
@@ -29357,6 +30963,21 @@ export namespace Prisma {
     connectOrCreate?: GuildPendingRosterMatchCreateOrConnectWithoutGuildInput | GuildPendingRosterMatchCreateOrConnectWithoutGuildInput[]
     createMany?: GuildPendingRosterMatchCreateManyGuildInputEnvelope
     connect?: GuildPendingRosterMatchWhereUniqueInput | GuildPendingRosterMatchWhereUniqueInput[]
+  }
+
+  export type GuildMemberActivityUncheckedCreateNestedManyWithoutGuildInput = {
+    create?: XOR<GuildMemberActivityCreateWithoutGuildInput, GuildMemberActivityUncheckedCreateWithoutGuildInput> | GuildMemberActivityCreateWithoutGuildInput[] | GuildMemberActivityUncheckedCreateWithoutGuildInput[]
+    connectOrCreate?: GuildMemberActivityCreateOrConnectWithoutGuildInput | GuildMemberActivityCreateOrConnectWithoutGuildInput[]
+    createMany?: GuildMemberActivityCreateManyGuildInputEnvelope
+    connect?: GuildMemberActivityWhereUniqueInput | GuildMemberActivityWhereUniqueInput[]
+  }
+
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type UserUpdateOneRequiredWithoutCreatedGuildsNestedInput = {
@@ -29463,6 +31084,20 @@ export namespace Prisma {
     update?: GuildPendingRosterMatchUpdateWithWhereUniqueWithoutGuildInput | GuildPendingRosterMatchUpdateWithWhereUniqueWithoutGuildInput[]
     updateMany?: GuildPendingRosterMatchUpdateManyWithWhereWithoutGuildInput | GuildPendingRosterMatchUpdateManyWithWhereWithoutGuildInput[]
     deleteMany?: GuildPendingRosterMatchScalarWhereInput | GuildPendingRosterMatchScalarWhereInput[]
+  }
+
+  export type GuildMemberActivityUpdateManyWithoutGuildNestedInput = {
+    create?: XOR<GuildMemberActivityCreateWithoutGuildInput, GuildMemberActivityUncheckedCreateWithoutGuildInput> | GuildMemberActivityCreateWithoutGuildInput[] | GuildMemberActivityUncheckedCreateWithoutGuildInput[]
+    connectOrCreate?: GuildMemberActivityCreateOrConnectWithoutGuildInput | GuildMemberActivityCreateOrConnectWithoutGuildInput[]
+    upsert?: GuildMemberActivityUpsertWithWhereUniqueWithoutGuildInput | GuildMemberActivityUpsertWithWhereUniqueWithoutGuildInput[]
+    createMany?: GuildMemberActivityCreateManyGuildInputEnvelope
+    set?: GuildMemberActivityWhereUniqueInput | GuildMemberActivityWhereUniqueInput[]
+    disconnect?: GuildMemberActivityWhereUniqueInput | GuildMemberActivityWhereUniqueInput[]
+    delete?: GuildMemberActivityWhereUniqueInput | GuildMemberActivityWhereUniqueInput[]
+    connect?: GuildMemberActivityWhereUniqueInput | GuildMemberActivityWhereUniqueInput[]
+    update?: GuildMemberActivityUpdateWithWhereUniqueWithoutGuildInput | GuildMemberActivityUpdateWithWhereUniqueWithoutGuildInput[]
+    updateMany?: GuildMemberActivityUpdateManyWithWhereWithoutGuildInput | GuildMemberActivityUpdateManyWithWhereWithoutGuildInput[]
+    deleteMany?: GuildMemberActivityScalarWhereInput | GuildMemberActivityScalarWhereInput[]
   }
 
   export type UserUpdateOneWithoutLastExportedGuildsNestedInput = {
@@ -29583,6 +31218,20 @@ export namespace Prisma {
     deleteMany?: GuildPendingRosterMatchScalarWhereInput | GuildPendingRosterMatchScalarWhereInput[]
   }
 
+  export type GuildMemberActivityUncheckedUpdateManyWithoutGuildNestedInput = {
+    create?: XOR<GuildMemberActivityCreateWithoutGuildInput, GuildMemberActivityUncheckedCreateWithoutGuildInput> | GuildMemberActivityCreateWithoutGuildInput[] | GuildMemberActivityUncheckedCreateWithoutGuildInput[]
+    connectOrCreate?: GuildMemberActivityCreateOrConnectWithoutGuildInput | GuildMemberActivityCreateOrConnectWithoutGuildInput[]
+    upsert?: GuildMemberActivityUpsertWithWhereUniqueWithoutGuildInput | GuildMemberActivityUpsertWithWhereUniqueWithoutGuildInput[]
+    createMany?: GuildMemberActivityCreateManyGuildInputEnvelope
+    set?: GuildMemberActivityWhereUniqueInput | GuildMemberActivityWhereUniqueInput[]
+    disconnect?: GuildMemberActivityWhereUniqueInput | GuildMemberActivityWhereUniqueInput[]
+    delete?: GuildMemberActivityWhereUniqueInput | GuildMemberActivityWhereUniqueInput[]
+    connect?: GuildMemberActivityWhereUniqueInput | GuildMemberActivityWhereUniqueInput[]
+    update?: GuildMemberActivityUpdateWithWhereUniqueWithoutGuildInput | GuildMemberActivityUpdateWithWhereUniqueWithoutGuildInput[]
+    updateMany?: GuildMemberActivityUpdateManyWithWhereWithoutGuildInput | GuildMemberActivityUpdateManyWithWhereWithoutGuildInput[]
+    deleteMany?: GuildMemberActivityScalarWhereInput | GuildMemberActivityScalarWhereInput[]
+  }
+
   export type GuildCreateNestedOneWithoutRosterMembersInput = {
     create?: XOR<GuildCreateWithoutRosterMembersInput, GuildUncheckedCreateWithoutRosterMembersInput>
     connectOrCreate?: GuildCreateOrConnectWithoutRosterMembersInput
@@ -29687,6 +31336,20 @@ export namespace Prisma {
     upsert?: GuildUpsertWithoutPendingRosterMatchesInput
     connect?: GuildWhereUniqueInput
     update?: XOR<XOR<GuildUpdateToOneWithWhereWithoutPendingRosterMatchesInput, GuildUpdateWithoutPendingRosterMatchesInput>, GuildUncheckedUpdateWithoutPendingRosterMatchesInput>
+  }
+
+  export type GuildCreateNestedOneWithoutMemberActivityInput = {
+    create?: XOR<GuildCreateWithoutMemberActivityInput, GuildUncheckedCreateWithoutMemberActivityInput>
+    connectOrCreate?: GuildCreateOrConnectWithoutMemberActivityInput
+    connect?: GuildWhereUniqueInput
+  }
+
+  export type GuildUpdateOneRequiredWithoutMemberActivityNestedInput = {
+    create?: XOR<GuildCreateWithoutMemberActivityInput, GuildUncheckedCreateWithoutMemberActivityInput>
+    connectOrCreate?: GuildCreateOrConnectWithoutMemberActivityInput
+    upsert?: GuildUpsertWithoutMemberActivityInput
+    connect?: GuildWhereUniqueInput
+    update?: XOR<XOR<GuildUpdateToOneWithWhereWithoutMemberActivityInput, GuildUpdateWithoutMemberActivityInput>, GuildUncheckedUpdateWithoutMemberActivityInput>
   }
 
   export type GuildCreateNestedOneWithoutRoleRulesInput = {
@@ -29861,14 +31524,6 @@ export namespace Prisma {
     create?: XOR<GuildRoleRuleCreateWithoutConditionsInput, GuildRoleRuleUncheckedCreateWithoutConditionsInput>
     connectOrCreate?: GuildRoleRuleCreateOrConnectWithoutConditionsInput
     connect?: GuildRoleRuleWhereUniqueInput
-  }
-
-  export type NullableIntFieldUpdateOperationsInput = {
-    set?: number | null
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type GuildRoleRuleUpdateOneRequiredWithoutConditionsNestedInput = {
@@ -30194,33 +31849,6 @@ export namespace Prisma {
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
-  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[]
-    notIn?: number[]
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
-  }
-
-  export type NestedFloatFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[]
-    notIn?: number[]
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatFilter<$PrismaModel> | number
-  }
-
   export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
     in?: number[] | null
@@ -30246,6 +31874,33 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[]
+    notIn?: number[]
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type NestedFloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[]
+    notIn?: number[]
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
   }
 
   export type UserCreateWithoutPostsInput = {
@@ -30436,6 +32091,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     characters?: GuildCharacterCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleCreateNestedManyWithoutGuildInput
@@ -30443,6 +32102,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -30462,6 +32122,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     characters?: GuildCharacterUncheckedCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
@@ -30469,6 +32133,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictUncheckedCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutCreatedByInput = {
@@ -30493,6 +32158,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
     characters?: GuildCharacterCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
@@ -30501,6 +32170,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityCreateNestedManyWithoutGuildInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
 
@@ -30519,6 +32189,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     characters?: GuildCharacterUncheckedCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
@@ -30526,6 +32200,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictUncheckedCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutLastExportedByInput = {
@@ -30550,6 +32225,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
     characters?: GuildCharacterCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
@@ -30558,6 +32237,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
   }
 
@@ -30576,6 +32256,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     characters?: GuildCharacterUncheckedCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
@@ -30583,6 +32267,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictUncheckedCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutLastRosterImportedByInput = {
@@ -30752,6 +32437,10 @@ export namespace Prisma {
     onboardingMessageId?: StringNullableFilter<"Guild"> | string | null
     onboardingMessageText?: StringNullableFilter<"Guild"> | string | null
     forceSyncRequestedAt?: DateTimeNullableFilter<"Guild"> | Date | string | null
+    inactivityFilterEnabled?: BoolFilter<"Guild"> | boolean
+    inactivityDays?: IntNullableFilter<"Guild"> | number | null
+    inactivityTargetRoleId?: StringNullableFilter<"Guild"> | string | null
+    inactivityRoleId?: StringNullableFilter<"Guild"> | string | null
   }
 
   export type GuildUpsertWithWhereUniqueWithoutLastExportedByInput = {
@@ -31204,6 +32893,35 @@ export namespace Prisma {
     data: GuildPendingRosterMatchCreateManyGuildInput | GuildPendingRosterMatchCreateManyGuildInput[]
   }
 
+  export type GuildMemberActivityCreateWithoutGuildInput = {
+    id?: string
+    discordUserId: string
+    discordUserTag: string
+    lastActiveAt: Date | string
+    joinedAt: Date | string
+    previousRoleIds?: string | null
+    markedInactiveAt?: Date | string | null
+  }
+
+  export type GuildMemberActivityUncheckedCreateWithoutGuildInput = {
+    id?: string
+    discordUserId: string
+    discordUserTag: string
+    lastActiveAt: Date | string
+    joinedAt: Date | string
+    previousRoleIds?: string | null
+    markedInactiveAt?: Date | string | null
+  }
+
+  export type GuildMemberActivityCreateOrConnectWithoutGuildInput = {
+    where: GuildMemberActivityWhereUniqueInput
+    create: XOR<GuildMemberActivityCreateWithoutGuildInput, GuildMemberActivityUncheckedCreateWithoutGuildInput>
+  }
+
+  export type GuildMemberActivityCreateManyGuildInputEnvelope = {
+    data: GuildMemberActivityCreateManyGuildInput | GuildMemberActivityCreateManyGuildInput[]
+  }
+
   export type UserCreateWithoutLastExportedGuildsInput = {
     id: string
     name: string
@@ -31507,6 +33225,36 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"GuildPendingRosterMatch"> | Date | string
   }
 
+  export type GuildMemberActivityUpsertWithWhereUniqueWithoutGuildInput = {
+    where: GuildMemberActivityWhereUniqueInput
+    update: XOR<GuildMemberActivityUpdateWithoutGuildInput, GuildMemberActivityUncheckedUpdateWithoutGuildInput>
+    create: XOR<GuildMemberActivityCreateWithoutGuildInput, GuildMemberActivityUncheckedCreateWithoutGuildInput>
+  }
+
+  export type GuildMemberActivityUpdateWithWhereUniqueWithoutGuildInput = {
+    where: GuildMemberActivityWhereUniqueInput
+    data: XOR<GuildMemberActivityUpdateWithoutGuildInput, GuildMemberActivityUncheckedUpdateWithoutGuildInput>
+  }
+
+  export type GuildMemberActivityUpdateManyWithWhereWithoutGuildInput = {
+    where: GuildMemberActivityScalarWhereInput
+    data: XOR<GuildMemberActivityUpdateManyMutationInput, GuildMemberActivityUncheckedUpdateManyWithoutGuildInput>
+  }
+
+  export type GuildMemberActivityScalarWhereInput = {
+    AND?: GuildMemberActivityScalarWhereInput | GuildMemberActivityScalarWhereInput[]
+    OR?: GuildMemberActivityScalarWhereInput[]
+    NOT?: GuildMemberActivityScalarWhereInput | GuildMemberActivityScalarWhereInput[]
+    id?: StringFilter<"GuildMemberActivity"> | string
+    guildId?: StringFilter<"GuildMemberActivity"> | string
+    discordUserId?: StringFilter<"GuildMemberActivity"> | string
+    discordUserTag?: StringFilter<"GuildMemberActivity"> | string
+    lastActiveAt?: DateTimeFilter<"GuildMemberActivity"> | Date | string
+    joinedAt?: DateTimeFilter<"GuildMemberActivity"> | Date | string
+    previousRoleIds?: StringNullableFilter<"GuildMemberActivity"> | string | null
+    markedInactiveAt?: DateTimeNullableFilter<"GuildMemberActivity"> | Date | string | null
+  }
+
   export type UserUpsertWithoutLastExportedGuildsInput = {
     update: XOR<UserUpdateWithoutLastExportedGuildsInput, UserUncheckedUpdateWithoutLastExportedGuildsInput>
     create: XOR<UserCreateWithoutLastExportedGuildsInput, UserUncheckedCreateWithoutLastExportedGuildsInput>
@@ -31610,6 +33358,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
     characters?: GuildCharacterCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
@@ -31617,6 +33369,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -31637,12 +33390,17 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     characters?: GuildCharacterUncheckedCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
     roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictUncheckedCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutRosterMembersInput = {
@@ -31699,6 +33457,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
     characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
@@ -31706,6 +33468,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -31726,12 +33489,17 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     characters?: GuildCharacterUncheckedUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
     roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUncheckedUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildRosterClaimConflictUpsertWithWhereUniqueWithoutRosterMemberInput = {
@@ -31763,6 +33531,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
     characters?: GuildCharacterCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
@@ -31770,6 +33542,7 @@ export namespace Prisma {
     rosterMembers?: GuildRosterMemberCreateNestedManyWithoutGuildInput
     roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -31790,12 +33563,17 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     characters?: GuildCharacterUncheckedCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberUncheckedCreateNestedManyWithoutGuildInput
     roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutClaimConflictsInput = {
@@ -31858,6 +33636,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
     characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
@@ -31865,6 +33647,7 @@ export namespace Prisma {
     rosterMembers?: GuildRosterMemberUpdateManyWithoutGuildNestedInput
     roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -31885,12 +33668,17 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     characters?: GuildCharacterUncheckedUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUncheckedUpdateManyWithoutGuildNestedInput
     roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildRosterMemberUpsertWithoutClaimConflictsInput = {
@@ -31943,6 +33731,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
     characters?: GuildCharacterCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
@@ -31950,6 +33742,7 @@ export namespace Prisma {
     rosterMembers?: GuildRosterMemberCreateNestedManyWithoutGuildInput
     roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -31970,12 +33763,17 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     characters?: GuildCharacterUncheckedCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberUncheckedCreateNestedManyWithoutGuildInput
     roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictUncheckedCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutPendingRosterMatchesInput = {
@@ -32007,6 +33805,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
     characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
@@ -32014,6 +33816,7 @@ export namespace Prisma {
     rosterMembers?: GuildRosterMemberUpdateManyWithoutGuildNestedInput
     roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -32034,12 +33837,149 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     characters?: GuildCharacterUncheckedUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUncheckedUpdateManyWithoutGuildNestedInput
     roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUncheckedUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUncheckedUpdateManyWithoutGuildNestedInput
+  }
+
+  export type GuildCreateWithoutMemberActivityInput = {
+    id?: string
+    name: string
+    discordGuildId: string
+    createdAt?: Date | string
+    pugRoleId?: string | null
+    lastExportedAt?: Date | string | null
+    lastRosterImportedAt?: Date | string | null
+    adminNotifyChannelId?: string | null
+    onboardingChannelId?: string | null
+    onboardingMessageId?: string | null
+    onboardingMessageText?: string | null
+    forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
+    createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
+    characters?: GuildCharacterCreateNestedManyWithoutGuildInput
+    requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
+    adminRoles?: GuildAdminRoleCreateNestedManyWithoutGuildInput
+    rosterMembers?: GuildRosterMemberCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
+    claimConflicts?: GuildRosterClaimConflictCreateNestedManyWithoutGuildInput
+    pendingRosterMatches?: GuildPendingRosterMatchCreateNestedManyWithoutGuildInput
+    lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
+    lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
+  }
+
+  export type GuildUncheckedCreateWithoutMemberActivityInput = {
+    id?: string
+    name: string
+    discordGuildId: string
+    createdById: string
+    createdAt?: Date | string
+    pugRoleId?: string | null
+    lastExportedAt?: Date | string | null
+    lastExportedById?: string | null
+    lastRosterImportedAt?: Date | string | null
+    lastRosterImportedById?: string | null
+    adminNotifyChannelId?: string | null
+    onboardingChannelId?: string | null
+    onboardingMessageId?: string | null
+    onboardingMessageText?: string | null
+    forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
+    characters?: GuildCharacterUncheckedCreateNestedManyWithoutGuildInput
+    requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
+    adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
+    rosterMembers?: GuildRosterMemberUncheckedCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
+    claimConflicts?: GuildRosterClaimConflictUncheckedCreateNestedManyWithoutGuildInput
+    pendingRosterMatches?: GuildPendingRosterMatchUncheckedCreateNestedManyWithoutGuildInput
+  }
+
+  export type GuildCreateOrConnectWithoutMemberActivityInput = {
+    where: GuildWhereUniqueInput
+    create: XOR<GuildCreateWithoutMemberActivityInput, GuildUncheckedCreateWithoutMemberActivityInput>
+  }
+
+  export type GuildUpsertWithoutMemberActivityInput = {
+    update: XOR<GuildUpdateWithoutMemberActivityInput, GuildUncheckedUpdateWithoutMemberActivityInput>
+    create: XOR<GuildCreateWithoutMemberActivityInput, GuildUncheckedCreateWithoutMemberActivityInput>
+    where?: GuildWhereInput
+  }
+
+  export type GuildUpdateToOneWithWhereWithoutMemberActivityInput = {
+    where?: GuildWhereInput
+    data: XOR<GuildUpdateWithoutMemberActivityInput, GuildUncheckedUpdateWithoutMemberActivityInput>
+  }
+
+  export type GuildUpdateWithoutMemberActivityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    discordGuildId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adminNotifyChannelId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingChannelId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
+    forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
+    characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
+    requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
+    adminRoles?: GuildAdminRoleUpdateManyWithoutGuildNestedInput
+    rosterMembers?: GuildRosterMemberUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
+    claimConflicts?: GuildRosterClaimConflictUpdateManyWithoutGuildNestedInput
+    pendingRosterMatches?: GuildPendingRosterMatchUpdateManyWithoutGuildNestedInput
+    lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
+    lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
+  }
+
+  export type GuildUncheckedUpdateWithoutMemberActivityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    discordGuildId?: StringFieldUpdateOperationsInput | string
+    createdById?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastExportedById?: NullableStringFieldUpdateOperationsInput | string | null
+    lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRosterImportedById?: NullableStringFieldUpdateOperationsInput | string | null
+    adminNotifyChannelId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingChannelId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
+    forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    characters?: GuildCharacterUncheckedUpdateManyWithoutGuildNestedInput
+    requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
+    adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
+    rosterMembers?: GuildRosterMemberUncheckedUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
+    claimConflicts?: GuildRosterClaimConflictUncheckedUpdateManyWithoutGuildNestedInput
+    pendingRosterMatches?: GuildPendingRosterMatchUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutRoleRulesInput = {
@@ -32055,6 +33995,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
     characters?: GuildCharacterCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
@@ -32062,6 +34006,7 @@ export namespace Prisma {
     rosterMembers?: GuildRosterMemberCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -32082,12 +34027,17 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     characters?: GuildCharacterUncheckedCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberUncheckedCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictUncheckedCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutRoleRulesInput = {
@@ -32186,6 +34136,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
     characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
@@ -32193,6 +34147,7 @@ export namespace Prisma {
     rosterMembers?: GuildRosterMemberUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -32213,12 +34168,17 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     characters?: GuildCharacterUncheckedUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUncheckedUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUncheckedUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildRoleRuleGrantedRoleUpsertWithWhereUniqueWithoutRuleInput = {
@@ -32458,6 +34418,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
     characters?: GuildCharacterCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleCreateNestedManyWithoutGuildInput
@@ -32465,6 +34429,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -32485,12 +34450,17 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     characters?: GuildCharacterUncheckedCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberUncheckedCreateNestedManyWithoutGuildInput
     roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictUncheckedCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutRequiredRolesInput = {
@@ -32522,6 +34492,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
     characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUpdateManyWithoutGuildNestedInput
@@ -32529,6 +34503,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -32549,12 +34524,17 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     characters?: GuildCharacterUncheckedUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUncheckedUpdateManyWithoutGuildNestedInput
     roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUncheckedUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutAdminRolesInput = {
@@ -32570,6 +34550,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
     characters?: GuildCharacterCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
@@ -32577,6 +34561,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -32597,12 +34582,17 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     characters?: GuildCharacterUncheckedCreateNestedManyWithoutGuildInput
     requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberUncheckedCreateNestedManyWithoutGuildInput
     roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictUncheckedCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutAdminRolesInput = {
@@ -32634,6 +34624,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
     characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
@@ -32641,6 +34635,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -32661,12 +34656,17 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     characters?: GuildCharacterUncheckedUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUncheckedUpdateManyWithoutGuildNestedInput
     roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUncheckedUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutCharactersInput = {
@@ -32682,6 +34682,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
     requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleCreateNestedManyWithoutGuildInput
@@ -32689,6 +34693,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -32709,12 +34714,17 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
     requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
     adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
     rosterMembers?: GuildRosterMemberUncheckedCreateNestedManyWithoutGuildInput
     roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
     claimConflicts?: GuildRosterClaimConflictUncheckedCreateNestedManyWithoutGuildInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutCharactersInput = {
@@ -32806,6 +34816,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
     requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUpdateManyWithoutGuildNestedInput
@@ -32813,6 +34827,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -32833,12 +34848,17 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
     rosterMembers?: GuildRosterMemberUncheckedUpdateManyWithoutGuildNestedInput
     roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUncheckedUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type UserUpsertWithoutGuildCharactersInput = {
@@ -33108,6 +35128,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
   }
 
   export type GuildCreateManyLastExportedByInput = {
@@ -33125,6 +35149,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
   }
 
   export type GuildCreateManyLastRosterImportedByInput = {
@@ -33142,6 +35170,10 @@ export namespace Prisma {
     onboardingMessageId?: string | null
     onboardingMessageText?: string | null
     forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityTargetRoleId?: string | null
+    inactivityRoleId?: string | null
   }
 
   export type GuildCharacterCreateManyUserInput = {
@@ -33263,6 +35295,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUpdateManyWithoutGuildNestedInput
@@ -33270,6 +35306,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -33289,6 +35326,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     characters?: GuildCharacterUncheckedUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
@@ -33296,6 +35337,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUncheckedUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildUncheckedUpdateManyWithoutCreatedByInput = {
@@ -33313,6 +35355,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type GuildUpdateWithoutLastExportedByInput = {
@@ -33328,6 +35374,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
     characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
@@ -33336,6 +35386,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUpdateManyWithoutGuildNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
 
@@ -33354,6 +35405,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     characters?: GuildCharacterUncheckedUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
@@ -33361,6 +35416,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUncheckedUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildUncheckedUpdateManyWithoutLastExportedByInput = {
@@ -33378,6 +35434,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type GuildUpdateWithoutLastRosterImportedByInput = {
@@ -33393,6 +35453,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
     characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
@@ -33401,6 +35465,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
   }
 
@@ -33419,6 +35484,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
     characters?: GuildCharacterUncheckedUpdateManyWithoutGuildNestedInput
     requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
     adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
@@ -33426,6 +35495,7 @@ export namespace Prisma {
     roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
     claimConflicts?: GuildRosterClaimConflictUncheckedUpdateManyWithoutGuildNestedInput
     pendingRosterMatches?: GuildPendingRosterMatchUncheckedUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildUncheckedUpdateManyWithoutLastRosterImportedByInput = {
@@ -33443,6 +35513,10 @@ export namespace Prisma {
     onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityTargetRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type GuildCharacterUpdateWithoutUserInput = {
@@ -33529,6 +35603,16 @@ export namespace Prisma {
     names: string
     includeAltsInNickname: boolean
     createdAt?: Date | string
+  }
+
+  export type GuildMemberActivityCreateManyGuildInput = {
+    id?: string
+    discordUserId: string
+    discordUserTag: string
+    lastActiveAt: Date | string
+    joinedAt: Date | string
+    previousRoleIds?: string | null
+    markedInactiveAt?: Date | string | null
   }
 
   export type GuildCharacterUpdateWithoutGuildInput = {
@@ -33701,6 +35785,36 @@ export namespace Prisma {
     names?: StringFieldUpdateOperationsInput | string
     includeAltsInNickname?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GuildMemberActivityUpdateWithoutGuildInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    discordUserId?: StringFieldUpdateOperationsInput | string
+    discordUserTag?: StringFieldUpdateOperationsInput | string
+    lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    previousRoleIds?: NullableStringFieldUpdateOperationsInput | string | null
+    markedInactiveAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type GuildMemberActivityUncheckedUpdateWithoutGuildInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    discordUserId?: StringFieldUpdateOperationsInput | string
+    discordUserTag?: StringFieldUpdateOperationsInput | string
+    lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    previousRoleIds?: NullableStringFieldUpdateOperationsInput | string | null
+    markedInactiveAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type GuildMemberActivityUncheckedUpdateManyWithoutGuildInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    discordUserId?: StringFieldUpdateOperationsInput | string
+    discordUserTag?: StringFieldUpdateOperationsInput | string
+    lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    previousRoleIds?: NullableStringFieldUpdateOperationsInput | string | null
+    markedInactiveAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type GuildRosterClaimConflictCreateManyRosterMemberInput = {

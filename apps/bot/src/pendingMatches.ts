@@ -36,7 +36,7 @@ export async function syncPendingRosterMatches(client: Client<true>): Promise<vo
     }
 
     const names = JSON.parse(row.names) as string[];
-    const { matchedCount } = await matchRosterAndApply(
+    const { matchedCount, unmatchedCount } = await matchRosterAndApply(
       member,
       row.guild,
       names,
@@ -44,7 +44,10 @@ export async function syncPendingRosterMatches(client: Client<true>): Promise<vo
       { applyEvenIfNoMatch: false },
     );
 
-    if (matchedCount > 0) {
+    // Only fully resolved (nothing left unaccounted for) clears the entry
+    // — a partial match (e.g. main found, one alt still not imported)
+    // keeps retrying the rest silently rather than declaring victory early.
+    if (unmatchedCount === 0) {
       await db.guildPendingRosterMatch.delete({ where: { id: row.id } });
       await member
         .send(
@@ -62,7 +65,9 @@ export async function syncPendingRosterMatches(client: Client<true>): Promise<vo
       await db.guildPendingRosterMatch.delete({ where: { id: row.id } });
       await member
         .send(
-          "I still couldn't find you in the guild roster after checking for 42 hours — please ask an officer to help get you set up.",
+          matchedCount > 0
+            ? "I still couldn't find all of your names in the guild roster after checking for 42 hours — please ask an officer to help get the rest set up."
+            : "I still couldn't find you in the guild roster after checking for 42 hours — please ask an officer to help get you set up.",
         )
         .catch(() => {
           // Best-effort.

@@ -181,6 +181,10 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
   const [adminNotifyChannelId, setAdminNotifyChannelId] = useState("");
   const [onboardingChannelId, setOnboardingChannelId] = useState("");
   const [onboardingMessageText, setOnboardingMessageText] = useState("");
+  const [inactivityEnabled, setInactivityEnabled] = useState(false);
+  const [inactivityDays, setInactivityDays] = useState("");
+  const [inactivityTargetRoleId, setInactivityTargetRoleId] = useState("");
+  const [inactivityRoleId, setInactivityRoleId] = useState("");
   const [rules, setRules] = useState<RuleDraft[]>([]);
 
   useEffect(() => {
@@ -189,6 +193,12 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
     setAdminNotifyChannelId(config.data.adminNotifyChannelId ?? "");
     setOnboardingChannelId(config.data.onboardingChannelId ?? "");
     setOnboardingMessageText(config.data.onboardingMessageText ?? "");
+    setInactivityEnabled(config.data.inactivityFilterEnabled);
+    setInactivityDays(
+      config.data.inactivityDays != null ? String(config.data.inactivityDays) : "",
+    );
+    setInactivityTargetRoleId(config.data.inactivityTargetRoleId ?? "");
+    setInactivityRoleId(config.data.inactivityRoleId ?? "");
     setRules(
       config.data.rules.map((r) => ({
         id: r.id,
@@ -222,6 +232,9 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
   });
   const repostOnboardingButton = api.guild.repostOnboardingButton.useMutation();
   const requestSync = api.guild.requestSync.useMutation();
+  const saveInactivitySettings = api.guild.setInactivitySettings.useMutation({
+    onSuccess: async () => utils.guild.discordRoleConfig.invalidate({ guildId }),
+  });
   const upsertRule = api.guild.upsertRoleRule.useMutation({
     onSuccess: async () => utils.guild.discordRoleConfig.invalidate({ guildId }),
   });
@@ -360,8 +373,9 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
         <p className="text-sm text-discord-text-muted">
           The bot posts (and keeps up) a standing &quot;Start Onboarding&quot;
           button message here — a public channel like #welcome works well.
-          Anyone can click it to (re-)run the onboarding DM, no need to know
-          the /onboarding command. Leave unset to skip posting one.
+          Anyone can click it to (re-)run onboarding, privately (only they
+          see the questions), no need to know the /onboarding command. Leave
+          unset to skip posting one.
         </p>
         <div className="flex gap-2">
           <ChannelSelect
@@ -397,7 +411,7 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
         <textarea
           value={onboardingMessageText}
           onChange={(e) => setOnboardingMessageText(e.target.value)}
-          placeholder="Click below to start (or redo) onboarding — I'll DM you a few quick questions to get your nickname and roles set up."
+          placeholder="Click below to start (or redo) onboarding — I'll ask a few quick questions right here (only you can see them) to get your nickname and roles set up."
           rows={3}
           className="rounded-2xl bg-discord-base px-4 py-2 text-sm text-discord-text placeholder:text-discord-text-muted"
         />
@@ -475,6 +489,70 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
           </p>
         )}
         {setAdminNotifyChannel.isSuccess && (
+          <p className="text-sm text-discord-green">Saved!</p>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2 rounded-xl bg-discord-elevated p-6">
+        <h3 className="font-bold">Inactivity filter</h3>
+        <p className="text-sm text-discord-text-muted">
+          Members holding the target role who haven&apos;t sent a message in
+          this many days get their other roles saved and swapped for the
+          inactive role — not kicked. They can restore themselves any time
+          with <code>/reactivate</code>.
+        </p>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={inactivityEnabled}
+            onChange={(e) => setInactivityEnabled(e.target.checked)}
+          />
+          Enabled
+        </label>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="number"
+            min={1}
+            value={inactivityDays}
+            onChange={(e) => setInactivityDays(e.target.value)}
+            placeholder="Days"
+            className="w-24 rounded-full bg-discord-base px-4 py-2 text-discord-text"
+          />
+          <RoleSelect
+            value={inactivityTargetRoleId}
+            onChange={setInactivityTargetRoleId}
+            roles={discordRoles.data}
+            placeholder="Track members with this role"
+          />
+          <RoleSelect
+            value={inactivityRoleId}
+            onChange={setInactivityRoleId}
+            roles={discordRoles.data}
+            placeholder="Swap to this role when inactive"
+          />
+          <button
+            type="button"
+            onClick={() =>
+              saveInactivitySettings.mutate({
+                guildId,
+                enabled: inactivityEnabled,
+                days: inactivityDays.trim() === "" ? null : Number(inactivityDays),
+                targetRoleId: inactivityTargetRoleId.trim() === "" ? null : inactivityTargetRoleId,
+                inactiveRoleId: inactivityRoleId.trim() === "" ? null : inactivityRoleId,
+              })
+            }
+            disabled={saveInactivitySettings.isPending}
+            className="rounded-full bg-discord-elevated-hover px-4 py-2 text-sm font-semibold"
+          >
+            {saveInactivitySettings.isPending ? "Saving..." : "Save"}
+          </button>
+        </div>
+        {saveInactivitySettings.error && (
+          <p className="text-sm text-discord-red">
+            {saveInactivitySettings.error.message}
+          </p>
+        )}
+        {saveInactivitySettings.isSuccess && (
           <p className="text-sm text-discord-green">Saved!</p>
         )}
       </div>

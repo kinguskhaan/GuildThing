@@ -10,7 +10,7 @@ import { db } from "@guildthing/db";
 export const START_ONBOARDING_BUTTON_ID = "start-onboarding";
 
 const DEFAULT_MESSAGE_TEXT =
-  "Click below to start (or redo) onboarding — I'll DM you a few quick questions to get your nickname and roles set up.";
+  "Click below to start (or redo) onboarding — I'll ask a few quick questions right here (only you can see them) to get your nickname and roles set up.";
 
 function buildButtonMessage(customText: string | null) {
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(

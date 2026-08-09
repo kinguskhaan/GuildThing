@@ -3,14 +3,24 @@ import {
   Events,
   GatewayIntentBits,
   type Guild,
-  Partials,
   Routes,
   SlashCommandBuilder,
 } from "discord.js";
 
 import { db } from "@guildthing/db";
 
-import { cancelOnboarding, handleNewMember } from "./onboarding.js";
+import {
+  handleReactivate,
+  initializeMemberActivity,
+  removeMemberActivity,
+  runInactivityFilter,
+  trackMessageActivity,
+} from "./activityTracking.js";
+import {
+  cancelOnboarding,
+  notifyNewMemberToOnboard,
+  runOnboardingInteractive,
+} from "./onboarding.js";
 import { ensureOnboardingButtons, START_ONBOARDING_BUTTON_ID } from "./onboardingButton.js";
 import { syncPendingRosterMatches } from "./pendingMatches.js";
 import { ROLE_SYNC_INTERVAL_MS, runFullRoleSync } from "./roleSync.js";
@@ -34,18 +44,28 @@ if (!token) {
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
+    // For the GuildMemberAdd join-nudge and fetching members during
+    // onboarding.
     GatewayIntentBits.GuildMembers,
+    // For the inactivity filter's activity tracking (trackMessageActivity)
+    // — only need to know a message happened, not its content, so
+    // MessageContent (a privileged intent) is deliberately not requested.
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.DirectMessages,
   ],
-  // DM channels arrive as partials until fetched — needed to reliably send
-  // and collect messages in the onboarding DM.
-  partials: [Partials.Channel],
+  // No DirectMessages intent or channel partials needed — onboarding runs
+  // entirely through interactions (buttons, modals) now, not message
+  // collectors, and the join-nudge DM is a fire-and-forget send that
+  // doesn't need any gateway intent.
 });
 
 const onboardingCommand = new SlashCommandBuilder()
   .setName("onboarding")
-  .setDescription("Restart the GuildThing onboarding DM from the start")
+  .setDescription("Restart GuildThing onboarding from the start")
+  .toJSON();
+
+const reactivateCommand = new SlashCommandBuilder()
+  .setName("reactivate")
+  .setDescription("Restore your roles if you've been marked inactive")
   .toJSON();
 
 // Guild-scoped registration (not global) — applies instantly instead of
@@ -53,7 +73,7 @@ const onboardingCommand = new SlashCommandBuilder()
 // matters a lot while actively testing the flow.
 async function registerCommands(guild: Guild) {
   try {
-    await guild.commands.set([onboardingCommand]);
+    await guild.commands.set([onboardingCommand, reactivateCommand]);
   } catch (err) {
     console.error(`[bot] failed to register commands for ${guild.name}:`, err);
   }
@@ -97,6 +117,9 @@ client.once(Events.ClientReady, (readyClient) => {
     });
     syncPendingRosterMatches(readyClient).catch((err: unknown) => {
       console.error("[bot] pending roster match sync failed:", err);
+    });
+    runInactivityFilter(readyClient).catch((err: unknown) => {
+      console.error("[bot] inactivity filter failed:", err);
     });
   };
   runDailySync();
@@ -148,37 +171,41 @@ client.on(Events.GuildCreate, (guild) => {
   });
 });
 
+// No longer starts the interactive flow itself — that needs a live
+// interaction to reply/showModal through (button click or slash command),
+// which a raw join event doesn't have. Just a best-effort DM pointing them
+// at how to start it; the reliable path is the always-visible onboarding
+// button/command on the server itself, not this.
 client.on(Events.GuildMemberAdd, (member) => {
-  handleNewMember(member).catch((err: unknown) => {
-    console.error(`[bot] onboarding failed for ${member.user.tag}:`, err);
+  notifyNewMemberToOnboard(member).catch((err: unknown) => {
+    console.error(`[bot] join notification failed for ${member.user.tag}:`, err);
+  });
+  initializeMemberActivity(member).catch((err: unknown) => {
+    console.error(`[bot] activity init failed for ${member.user.tag}:`, err);
   });
 });
 
-// Shared by the /onboarding slash command and the "Start Onboarding"
-// button — both just need to ack the interaction and (re)start the DM flow
-// for whoever triggered it.
-async function startOnboardingFromInteraction(
-  interaction:
-    | import("discord.js").ChatInputCommandInteraction
-    | import("discord.js").ButtonInteraction,
-): Promise<void> {
-  if (!interaction.guild) return;
-  const guild = interaction.guild;
+// No inactivity data worth keeping once someone's gone.
+client.on(Events.GuildMemberRemove, (member) => {
+  removeMemberActivity(member.guild.id, member.id).catch((err: unknown) => {
+    console.error(`[bot] activity cleanup failed for ${member.user.tag}:`, err);
+  });
+});
 
-  const replyStarted = Date.now();
-  await interaction.reply({
-    content: "Check your DMs!",
-    flags: ["Ephemeral"],
+client.on(Events.MessageCreate, (message) => {
+  trackMessageActivity(message).catch((err: unknown) => {
+    console.error("[bot] activity tracking failed:", err);
   });
-  console.log(`[bot] interaction.reply() took ${Date.now() - replyStarted}ms`);
-  const member = await guild.members.fetch(interaction.user.id);
-  cancelOnboarding(member.id);
-  await handleNewMember(member).catch((err: unknown) => {
-    console.error(`[bot] onboarding failed for ${member.user.tag}:`, err);
-  });
-}
+});
 
 client.on(Events.InteractionCreate, (interaction) => {
+  if (interaction.isChatInputCommand() && interaction.commandName === "reactivate") {
+    void handleReactivate(interaction).catch((err: unknown) => {
+      console.error(`[bot] /reactivate failed for ${interaction.user.tag}:`, err);
+    });
+    return;
+  }
+
   const isOnboardingCommand =
     interaction.isChatInputCommand() && interaction.commandName === "onboarding";
   const isOnboardingButton =
@@ -189,12 +216,16 @@ client.on(Events.InteractionCreate, (interaction) => {
     `[bot] onboarding interaction received (${isOnboardingButton ? "button" : "command"}) — was ${Date.now() - interaction.createdTimestamp}ms old on arrival, gateway ping ${client.ws.ping}ms`,
   );
 
+  // Force-clears any stuck/abandoned session so re-clicking or re-running
+  // /onboarding always starts clean, same as before.
+  cancelOnboarding(interaction.user.id);
+
   // A single interaction failing (e.g. Discord expiring it before we reply
   // — "Unknown interaction") must never take the whole bot process down.
   // Node terminates on unhandled rejections by default, and this handler
-  // is fire-and-forget from discord.js's perspective, so every await here
-  // needs to stay inside this try.
-  void startOnboardingFromInteraction(interaction).catch((err: unknown) => {
+  // is fire-and-forget from discord.js's perspective, so every await in
+  // the whole onboarding flow needs to stay inside this try.
+  void runOnboardingInteractive(interaction).catch((err: unknown) => {
     console.error(
       `[bot] onboarding interaction failed for ${interaction.user.tag}:`,
       err,

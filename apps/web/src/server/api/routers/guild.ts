@@ -1065,6 +1065,59 @@ export const guildRouter = createTRPCRouter({
       };
     }),
 
+  // Who's currently queued for the bot's automatic roster-match retry (see
+  // GuildPendingRosterMatch) — i.e. people who typed a name during
+  // onboarding that wasn't found (yet) in the roster.
+  pendingRosterMatches: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const rows = await ctx.db.guildPendingRosterMatch.findMany({
+        where: { guildId: input.guildId },
+        orderBy: { createdAt: "desc" },
+      });
+
+      return rows.map((r) => ({
+        id: r.id,
+        discordUserTag: r.discordUserTag,
+        names: JSON.parse(r.names) as string[],
+        createdAt: r.createdAt,
+      }));
+    }),
+
+  // Gives up retrying a queued entry — e.g. the admin knows that name will
+  // never show up in the roster and would rather stop the notices than
+  // wait out the full 42h.
+  dismissPendingRosterMatch: protectedProcedure
+    .input(z.object({ guildId: z.string(), id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      await ctx.db.guildPendingRosterMatch.deleteMany({
+        where: { id: input.id, guildId: input.guildId },
+      });
+      return { ok: true };
+    }),
+
   // Distinct rank/class values already in the roster, so the Discord-roles
   // admin UI can offer a datalist instead of the admin free-typing exact
   // strings that have to match GuildRosterMember rows verbatim.
@@ -1309,10 +1362,48 @@ export const guildRouter = createTRPCRouter({
       return { ok: true };
     }),
 
+  // Inactivity filter — see Guild.inactivityFilterEnabled in schema.prisma.
+  // targetRoleId/inactiveRoleId are nullable so the admin can enable the
+  // toggle and fill the role pickers in afterward; the bot's daily job
+  // just skips guilds that aren't fully configured yet.
+  setInactivitySettings: protectedProcedure
+    .input(
+      z.object({
+        guildId: z.string(),
+        enabled: z.boolean(),
+        days: z.number().int().min(1).nullable(),
+        targetRoleId: z.string().nullable(),
+        inactiveRoleId: z.string().nullable(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      await ctx.db.guild.update({
+        where: { id: input.guildId },
+        data: {
+          inactivityFilterEnabled: input.enabled,
+          inactivityDays: input.days,
+          inactivityTargetRoleId: input.targetRoleId,
+          inactivityRoleId: input.inactiveRoleId,
+        },
+      });
+      return { ok: true };
+    }),
+
   // pugRoleId + adminNotifyChannelId + onboardingChannelId/MessageText +
-  // every role rule (with conditions) for the guild, one call for the
-  // Discord-roles admin page — same "small dedicated query" shape as
-  // exportStatus/rosterImportStatus above.
+  // inactivity-filter settings + every role rule (with conditions) for the
+  // guild, one call for the Discord-roles admin page — same "small
+  // dedicated query" shape as exportStatus/rosterImportStatus above.
   discordRoleConfig: protectedProcedure
     .input(z.object({ guildId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -1335,6 +1426,10 @@ export const guildRouter = createTRPCRouter({
             adminNotifyChannelId: true,
             onboardingChannelId: true,
             onboardingMessageText: true,
+            inactivityFilterEnabled: true,
+            inactivityDays: true,
+            inactivityTargetRoleId: true,
+            inactivityRoleId: true,
           },
         }),
         ctx.db.guildRoleRule.findMany({
@@ -1350,6 +1445,10 @@ export const guildRouter = createTRPCRouter({
         adminNotifyChannelId: guild.adminNotifyChannelId,
         onboardingChannelId: guild.onboardingChannelId,
         onboardingMessageText: guild.onboardingMessageText,
+        inactivityFilterEnabled: guild.inactivityFilterEnabled,
+        inactivityDays: guild.inactivityDays,
+        inactivityTargetRoleId: guild.inactivityTargetRoleId,
+        inactivityRoleId: guild.inactivityRoleId,
         rules,
       };
     }),

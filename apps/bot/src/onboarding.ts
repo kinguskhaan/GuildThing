@@ -2,15 +2,19 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  type ButtonInteraction,
+  type ChatInputCommandInteraction,
   ComponentType,
   type GuildMember,
+  MessageFlags,
+  ModalBuilder,
+  type ModalSubmitInteraction,
+  TextInputBuilder,
+  TextInputStyle,
 } from "discord.js";
 
 import { db } from "@guildthing/db";
 
-// A PUG's nickname/role application doesn't need the roster-matching parts
-// of matchRosterAndApply (there's no roster row for a PUG at all), so it
-// uses applyNicknameAndRoles directly instead.
 import {
   applyNicknameAndRoles,
   MAX_NICKNAME_LENGTH,
@@ -19,45 +23,70 @@ import {
 
 const QUESTION_TIMEOUT_MS = 5 * 60_000;
 
-// Guards against overlapping onboarding conversations for the same person
-// — e.g. testing by leaving and rejoining the server fires a fresh
-// GuildMemberAdd each time, and without this, multiple concurrent DM flows
-// end up racing each other's askText/askChoice collectors in the same
-// channel (whichever's listening grabs the reply, the rest just time out).
+// Guards against overlapping onboarding runs for the same person — e.g.
+// double-clicking "Start Onboarding", or running /onboarding while a
+// button-triggered flow is still active. Without this, two concurrent runs
+// end up racing each other's modal/button collectors.
 const activeOnboarding = new Set<string>();
 
-async function askText(
-  member: GuildMember,
-  question: string,
-): Promise<string | null> {
-  const dm = await member.createDM();
-  await dm.send(question);
+// Everything the flow needs is driven through Discord interactions
+// (button clicks, modal submits) — never DMs — so it works regardless of
+// whether the person has server-member DMs enabled. A "cursor" tracks the
+// most recent not-yet-acknowledged interaction; each step consumes it and
+// produces a new one.
+type ChoiceInteraction = ButtonInteraction | ModalSubmitInteraction;
+type ModalTriggerInteraction = ButtonInteraction | ChatInputCommandInteraction;
+
+// Shows a single-field modal and waits for it to be submitted. Must be
+// called on an interaction that hasn't been responded to yet — showModal()
+// itself is the acknowledgement, same constraint as reply()/update().
+async function askTextModal(
+  interaction: ModalTriggerInteraction,
+  modalTitle: string,
+  fieldLabel: string,
+): Promise<{ value: string; interaction: ModalSubmitInteraction } | null> {
+  const modalId = `onboard-modal-${interaction.id}`;
+  const modal = new ModalBuilder()
+    .setCustomId(modalId)
+    .setTitle(modalTitle.slice(0, 45))
+    .addComponents(
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("value")
+          .setLabel(fieldLabel.slice(0, 45))
+          .setStyle(TextInputStyle.Short)
+          .setMaxLength(32)
+          .setRequired(true),
+      ),
+    );
+
+  await interaction.showModal(modal);
   try {
-    const collected = await dm.awaitMessages({
-      filter: (m) => m.author.id === member.id,
-      max: 1,
+    const submitted = await interaction.awaitModalSubmit({
       time: QUESTION_TIMEOUT_MS,
-      errors: ["time"],
+      filter: (i) => i.user.id === interaction.user.id && i.customId === modalId,
     });
-    return collected.first()?.content.trim() ?? null;
+    return { value: submitted.fields.getTextInputValue("value").trim(), interaction: submitted };
   } catch (err) {
     console.log(
-      `[bot] ${member.user.tag} didn't answer in time (or an error occurred):`,
+      `[bot] ${interaction.user.tag} didn't submit the "${fieldLabel}" modal in time (or an error occurred):`,
       err,
     );
     return null;
   }
 }
 
-// Generic button-choice question — used for guild/PUG and the
-// include-alts-in-nickname question. Returns the clicked button's
-// customId, or null on timeout.
+// Button-choice question, ephemeral so only the person themselves sees it.
+// Replies fresh if `interaction` hasn't been acknowledged yet (e.g. right
+// after a modal submit), or updates it in place if it's a previous button
+// click being chained — either way returns the RAW clicked interaction,
+// unacknowledged, so the caller decides what happens next (another
+// update(), a showModal(), a final notify, etc).
 async function askChoice(
-  member: GuildMember,
+  interaction: ChoiceInteraction,
   content: string,
   choices: { id: string; label: string; primary?: boolean }[],
-): Promise<string | null> {
-  const dm = await member.createDM();
+): Promise<{ value: string; interaction: ButtonInteraction } | null> {
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
     choices.map((c) =>
       new ButtonBuilder()
@@ -66,43 +95,66 @@ async function askChoice(
         .setStyle(c.primary ? ButtonStyle.Primary : ButtonStyle.Secondary),
     ),
   );
-  await dm.send({ content, components: [row] });
+
+  if (interaction.isButton()) {
+    await interaction.update({ content, components: [row] });
+  } else {
+    await interaction.reply({ content, components: [row], flags: MessageFlags.Ephemeral });
+  }
+
   try {
-    // Collected on the channel, not the specific message — message-scoped
-    // collection (Message#awaitMessageComponent) filters on
-    // interaction.message matching, which doesn't reliably hold for DM
-    // interactions; filtering by user id on the channel instead sidesteps
-    // that entirely.
-    const interaction = await dm.awaitMessageComponent({
+    const message = await interaction.fetchReply();
+    const clicked = await message.awaitMessageComponent({
       componentType: ComponentType.Button,
       time: QUESTION_TIMEOUT_MS,
-      filter: (i) => i.user.id === member.id,
+      filter: (i) => i.user.id === interaction.user.id,
     });
-    const ageAtReceipt = Date.now() - interaction.createdTimestamp;
-    console.log(
-      `[bot] ${member.user.tag} clicked "${interaction.customId}" — interaction was ${ageAtReceipt}ms old when our collector received it`,
-    );
-    const updateStarted = Date.now();
-    await interaction.update({ components: [] });
-    console.log(`[bot] update() took ${Date.now() - updateStarted}ms`);
-    return interaction.customId;
+    return { value: clicked.customId, interaction: clicked };
   } catch (err) {
     console.log(
-      `[bot] ${member.user.tag} didn't answer the button prompt in time (or an error occurred):`,
+      `[bot] ${interaction.user.tag} didn't answer the button prompt in time (or an error occurred):`,
       err,
     );
     return null;
   }
 }
 
+// Wraps a mutable "current interaction" reference into a notify function
+// usable by applyNicknameAndRoles/matchRosterAndApply — the first call
+// updates/replies on whatever interaction is current, later calls (or a
+// cursor already marked replied by askNicknameSelectionInteractive) use
+// followUp so multiple notices in a row all land as separate ephemeral
+// messages instead of erroring on a double-reply.
+function createNotifier(cursor: { interaction: ChoiceInteraction }) {
+  return async (message: string): Promise<void> => {
+    try {
+      const interaction = cursor.interaction;
+      if (!interaction.replied && !interaction.deferred) {
+        if (interaction.isButton()) {
+          await interaction.update({ content: message, components: [] });
+        } else {
+          await interaction.reply({ content: message, flags: MessageFlags.Ephemeral });
+        }
+      } else {
+        await interaction.followUp({ content: message, flags: MessageFlags.Ephemeral });
+      }
+    } catch (err) {
+      console.error(
+        `[bot] failed to notify ${cursor.interaction.user.tag} via interaction:`,
+        err,
+      );
+    }
+  };
+}
+
 // Toggle-button question used when the full name list (main + alts) won't
 // fit Discord's 32-char nickname cap — lets the person pick which alts to
 // drop instead of the bot silently cutting the list at a "/" boundary. The
-// main name (names[0]) is always kept; only alts get toggle buttons. Falls
-// back to whatever's currently selected (starts as "all") on timeout, so
-// applyNicknameAndRoles' own truncateNickname safety net still applies.
-async function askNicknameSelection(
-  member: GuildMember,
+// main name (names[0]) is always kept; only alts get toggle buttons.
+// Mutates `cursor` as clicks come in so whatever notify() runs afterward
+// (in applyNicknameAndRoles) picks up from the right interaction.
+async function askNicknameSelectionInteractive(
+  cursor: { interaction: ChoiceInteraction },
   names: string[],
 ): Promise<string[]> {
   const mainName = names[0]!;
@@ -131,7 +183,9 @@ async function askNicknameSelection(
     );
     const rows: ActionRowBuilder<ButtonBuilder>[] = [];
     for (let i = 0; i < altButtons.length; i += 5) {
-      rows.push(new ActionRowBuilder<ButtonBuilder>().addComponents(altButtons.slice(i, i + 5)));
+      rows.push(
+        new ActionRowBuilder<ButtonBuilder>().addComponents(altButtons.slice(i, i + 5)),
+      );
     }
     rows.push(
       new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -145,124 +199,178 @@ async function askNicknameSelection(
     return rows;
   }
 
-  const dm = await member.createDM();
-  await dm.send({ content: buildContent(), components: buildComponents() });
+  const interaction = cursor.interaction;
+  if (interaction.isButton()) {
+    await interaction.update({ content: buildContent(), components: buildComponents() });
+  } else {
+    await interaction.reply({
+      content: buildContent(),
+      components: buildComponents(),
+      flags: MessageFlags.Ephemeral,
+    });
+  }
 
   for (;;) {
-    let interaction;
+    let clicked: ButtonInteraction;
     try {
-      interaction = await dm.awaitMessageComponent({
+      const message = await cursor.interaction.fetchReply();
+      clicked = await message.awaitMessageComponent({
         componentType: ComponentType.Button,
         time: QUESTION_TIMEOUT_MS,
-        filter: (i) => i.user.id === member.id,
+        filter: (i) => i.user.id === cursor.interaction.user.id,
       });
     } catch {
       console.log(
-        `[bot] ${member.user.tag} didn't finish the nickname-selection prompt in time — using current selection`,
+        `[bot] ${cursor.interaction.user.tag} didn't finish the nickname-selection prompt in time — using current selection`,
       );
       break;
     }
+    cursor.interaction = clicked;
 
-    if (interaction.customId === "confirm") {
-      await interaction.update({ components: [] });
+    if (clicked.customId === "confirm") {
+      await clicked.update({ components: [] });
       break;
     }
 
-    const altIndex = Number(interaction.customId.slice("toggle:".length));
+    const altIndex = Number(clicked.customId.slice("toggle:".length));
     const name = altNames[altIndex];
     if (name != null) {
       if (selected.has(name)) selected.delete(name);
       else selected.add(name);
     }
-    await interaction.update({ content: buildContent(), components: buildComponents() });
+    await clicked.update({ content: buildContent(), components: buildComponents() });
   }
 
   return [mainName, ...altNames.filter((n) => selected.has(n))];
 }
 
 // Used by the /onboarding command to force-restart cleanly — clears any
-// stuck/abandoned session (e.g. someone who left mid-conversation last
-// time) before handleNewMember's own guard would otherwise skip a rerun.
+// stuck/abandoned session (e.g. someone who left mid-flow last time)
+// before the guard would otherwise skip a rerun.
 export function cancelOnboarding(discordUserId: string): void {
   activeOnboarding.delete(discordUserId);
 }
 
-export async function handleNewMember(member: GuildMember): Promise<void> {
-  if (activeOnboarding.has(member.id)) {
-    console.log(
-      `[bot] ${member.user.tag} already has an onboarding conversation in progress, skipping duplicate join event`,
-    );
+// Best-effort DM nudge on join — NOT the interactive flow itself (which
+// needs a live interaction to reply/showModal through, so it can only
+// start from the "Start Onboarding" button or /onboarding command). Just
+// points the person at how to start it. If DMs are closed this silently
+// does nothing, which is fine: they'll see the onboarding channel/button
+// on the server itself regardless.
+export async function notifyNewMemberToOnboard(member: GuildMember): Promise<void> {
+  const guild = await db.guild.findUnique({
+    where: { discordGuildId: member.guild.id },
+  });
+  if (!guild) return;
+
+  const hint = guild.onboardingChannelId
+    ? `head to <#${guild.onboardingChannelId}> and click "Start Onboarding"`
+    : "run `/onboarding`";
+  await member.send(`Welcome to ${member.guild.name}! To get set up, ${hint}.`).catch(() => {
+    // DMs disabled — fine, the onboarding channel/button on the server
+    // itself is the reliable path now, this was just a nicety.
+  });
+}
+
+export async function runOnboardingInteractive(
+  triggerInteraction: ModalTriggerInteraction,
+): Promise<void> {
+  const discordUserId = triggerInteraction.user.id;
+  if (activeOnboarding.has(discordUserId)) {
+    await triggerInteraction
+      .reply({
+        content:
+          "You've already got an onboarding session in progress — check your recent messages here, or wait a bit and try again.",
+        flags: MessageFlags.Ephemeral,
+      })
+      .catch(() => {});
     return;
   }
-  activeOnboarding.add(member.id);
+  activeOnboarding.add(discordUserId);
   try {
-    await runOnboarding(member);
+    await runOnboarding(triggerInteraction);
   } finally {
-    activeOnboarding.delete(member.id);
+    activeOnboarding.delete(discordUserId);
   }
 }
 
-async function runOnboarding(member: GuildMember): Promise<void> {
+async function runOnboarding(triggerInteraction: ModalTriggerInteraction): Promise<void> {
+  if (!triggerInteraction.guild) return;
+  const discordGuild = triggerInteraction.guild;
+  const member = await discordGuild.members.fetch(triggerInteraction.user.id);
+
   const guild = await db.guild.findUnique({
-    where: { discordGuildId: member.guild.id },
+    where: { discordGuildId: discordGuild.id },
   });
   if (!guild) {
     // This Discord server isn't registered as a GuildThing guild — nothing
     // for the bot to do here.
+    await triggerInteraction
+      .reply({
+        content: "This Discord server isn't registered with GuildThing — nothing for me to do here.",
+        flags: MessageFlags.Ephemeral,
+      })
+      .catch(() => {});
     return;
   }
 
-  const mainName = await askText(
-    member,
-    `Welcome to ${member.guild.name}! I'm going to ask a few onboarding questions you need to complete to get access to the Discord server.\n\nWhat is your in-game nickname? Please reply with a chat message.`,
+  const mainNameResult = await askTextModal(
+    triggerInteraction,
+    `Welcome to ${discordGuild.name}!`,
+    "What's your in-game nickname?",
   );
-  if (mainName == null) return;
+  if (mainNameResult == null) return;
+  const mainName = mainNameResult.value;
 
-  const affiliation = await askChoice(
-    member,
+  const affiliationResult = await askChoice(
+    mainNameResult.interaction,
     "Are you a guild member, or are you here to join a PUG?",
     [
       { id: "guild", label: "Guild member", primary: true },
       { id: "pug", label: "PUG" },
     ],
   );
-  if (affiliation == null) return;
+  if (affiliationResult == null) return;
 
-  if (affiliation === "pug") {
+  if (affiliationResult.value === "pug") {
+    const cursor = { interaction: affiliationResult.interaction as ChoiceInteraction };
     await applyNicknameAndRoles(
       member,
       guild.id,
       [mainName],
       guild.pugRoleId ? [guild.pugRoleId] : [],
       [],
+      { notify: createNotifier(cursor) },
     );
     return;
   }
 
-  const hasAlts = await askChoice(member, "Do you have any alts?", [
+  const hasAltsResult = await askChoice(affiliationResult.interaction, "Do you have any alts?", [
     { id: "yes", label: "Yes", primary: true },
     { id: "no", label: "No" },
   ]);
-  if (hasAlts == null) return;
+  if (hasAltsResult == null) return;
 
   const altNames: string[] = [];
-  if (hasAlts === "yes") {
+  let lastChoice = hasAltsResult.interaction;
+  if (hasAltsResult.value === "yes") {
     let addingAlts = true;
     while (addingAlts) {
-      const altName = await askText(member, "What is your alt's name?");
-      if (altName == null) return;
-      altNames.push(altName);
+      const altResult = await askTextModal(lastChoice, "Add an alt", "What is your alt's name?");
+      if (altResult == null) return;
+      altNames.push(altResult.value);
 
-      const addAnother = await askChoice(
-        member,
-        "Do you want to add another alt?",
+      const addAnotherResult = await askChoice(
+        altResult.interaction,
+        `Added \`${altResult.value}\`. Add another alt?`,
         [
           { id: "yes", label: "Yes" },
           { id: "no", label: "No", primary: true },
         ],
       );
-      if (addAnother == null) return;
-      addingAlts = addAnother === "yes";
+      if (addAnotherResult == null) return;
+      lastChoice = addAnotherResult.interaction;
+      addingAlts = addAnotherResult.value === "yes";
     }
   }
 
@@ -271,32 +379,41 @@ async function runOnboarding(member: GuildMember): Promise<void> {
   // Only worth asking if there's actually a choice to make — someone with
   // no alts just gets their main name, no extra question.
   let includeAltsInNickname = true;
+  let finalInteraction: ButtonInteraction = lastChoice;
   if (altNames.length > 0) {
-    const choice = await askChoice(
-      member,
+    const includeResult = await askChoice(
+      lastChoice,
       `Do you want your alts included in your server nickname? e.g. "${allNames.join("/")}"`,
       [
         { id: "yes", label: "Yes", primary: true },
         { id: "no", label: "No" },
       ],
     );
-    if (choice == null) return;
-    includeAltsInNickname = choice === "yes";
+    if (includeResult == null) return;
+    includeAltsInNickname = includeResult.value === "yes";
+    finalInteraction = includeResult.interaction;
   }
 
-  const { matchedCount, conflictCount } = await matchRosterAndApply(
+  const cursor = { interaction: finalInteraction as ChoiceInteraction };
+  const notify = createNotifier(cursor);
+  const { matchedCount, unmatchedCount } = await matchRosterAndApply(
     member,
     guild,
     allNames,
     includeAltsInNickname,
-    { chooseNicknameNames: (names) => askNicknameSelection(member, names) },
+    {
+      chooseNicknameNames: (names) => askNicknameSelectionInteractive(cursor, names),
+      notify,
+    },
   );
 
-  if (matchedCount === 0 && conflictCount === 0) {
-    // Genuinely not in the roster yet — not a claim dispute, just data that
-    // probably hasn't been (re-)imported since they joined. Queue this for
-    // the daily role-sync job to retry automatically (see pendingMatches.ts)
-    // instead of leaving them stuck with no roles until someone notices.
+  if (unmatchedCount > 0) {
+    // At least one name (could be the main, could just be an alt) wasn't
+    // found in the roster — not a claim dispute, just data that probably
+    // hasn't been (re-)imported since they joined. Queue this for the
+    // daily role-sync job to retry automatically (see pendingMatches.ts)
+    // instead of that name being stuck as plain text forever. Whatever DID
+    // match already got claimed/applied above regardless.
     await db.guildPendingRosterMatch.upsert({
       where: { guildId_discordUserId: { guildId: guild.id, discordUserId: member.id } },
       create: {
@@ -313,13 +430,11 @@ async function runOnboarding(member: GuildMember): Promise<void> {
         createdAt: new Date(),
       },
     });
-    await member
-      .send(
-        `I couldn't find "${mainName}" in the guild roster yet — that's probably just because it hasn't been updated recently, not a mistake on your end. I'll keep checking automatically for the next 42 hours and set your roles the moment it shows up. If it still hasn't resolved by then, please ping an officer.`,
-      )
-      .catch(() => {
-        // Best-effort — if even this DM fails, there's nothing more to do.
-      });
+    await notify(
+      matchedCount > 0
+        ? `Heads up — I found some of your names in the roster and set those up, but ${unmatchedCount === 1 ? "one name wasn't" : `${unmatchedCount} names weren't`} found yet. I'll keep checking automatically for up to 42 hours.`
+        : `I couldn't find "${mainName}" in the guild roster yet — that's probably just because it hasn't been updated recently, not a mistake on your end. I'll keep checking automatically for the next 42 hours and set your roles the moment it shows up. If it still hasn't resolved by then, please ping an officer.`,
+    );
   } else {
     await db.guildPendingRosterMatch.deleteMany({
       where: { guildId: guild.id, discordUserId: member.id },
