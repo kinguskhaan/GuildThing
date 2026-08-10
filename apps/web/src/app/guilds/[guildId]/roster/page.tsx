@@ -29,7 +29,16 @@ export default async function RosterPage({
 
       <NicknameEditor initialNickname={me.nickname} fallback={me.name} />
 
-      {guild.isAdmin && <GuildRosterImportForm guildId={guildId} />}
+      {guild.isAdmin && guild.rosterSource === "onboarding" && (
+        <div className="bg-discord-elevated text-discord-text-muted w-full rounded-xl p-4 text-sm">
+          This guild builds its roster from Discord onboarding — there&apos;s
+          nothing to import here. Switch back to &quot;Addon export&quot; on the
+          Discord onboarding roles admin page if that changes.
+        </div>
+      )}
+      {guild.isAdmin && guild.rosterSource !== "onboarding" && (
+        <GuildRosterImportForm guildId={guildId} />
+      )}
       {guild.isAdmin && (
         <GuildPendingMatches guildId={guildId} entries={pendingMatches} />
       )}
@@ -38,11 +47,17 @@ export default async function RosterPage({
       )}
 
       {members.length === 0 ? (
-        <div className="w-full rounded-xl bg-discord-elevated p-6 text-center text-discord-text-muted">
-          No roster imported yet.
+        <div className="bg-discord-elevated text-discord-text-muted w-full rounded-xl p-6 text-center">
+          {guild.rosterSource === "onboarding"
+            ? "Nobody has onboarded yet."
+            : "No roster imported yet."}
         </div>
       ) : (
-        <GuildRosterTable guildId={guildId} members={members} isAdmin={guild.isAdmin} />
+        <GuildRosterTable
+          guildId={guildId}
+          members={members}
+          isAdmin={guild.isAdmin}
+        />
       )}
     </div>
   );

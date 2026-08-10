@@ -140,12 +140,30 @@ model Guild {
   memberActivity GuildMemberActivity[]
   inactivityTargetRoles GuildInactivityTargetRole[]
   pugMembers     GuildPugMember[]
+  events         Event[]
   createdAt      DateTime @default(now())
 
+  // "addon" (default) — the roster comes from pasting the GuildThing
+  // Roster addon's export; onboarding only matches/claims characters that
+  // already exist there, and an unmatched name gets queued to retry once
+  // the roster catches up (see GuildPendingRosterMatch).
+  // "onboarding" — for a play group with no in-game guild to scan a roster
+  // from. There's no addon import; onboarding itself creates the roster
+  // row the moment someone claims a name, asking for their class since
+  // nothing else can supply it. rank is fixed to "Member" and level to 1
+  // for every row created this way — neither means anything without a
+  // real guild hierarchy backing them.
+  rosterSource String @default("addon")
+
+  // Whether onboarding even asks "guild member or PUG?" at all. Off by
+  // default is wrong for existing guilds mid-use, so this defaults to on;
+  // a guild that doesn't want PUGs can turn it off and onboarding skips
+  // straight to the guild-member flow for everyone.
+  pugEnabled Boolean @default(true)
   // Discord role given to someone who says they're here for a PUG, not as
   // a guild member — set by an admin, bot assigns it directly with no rule
   // evaluation (see GuildRoleRule) when the bot's onboarding DM gets that
-  // answer.
+  // answer. Irrelevant while pugEnabled is false.
   pugRoleId String?
 
   // Who last generated the addon export string, and when — shown on the
@@ -370,6 +388,126 @@ model GuildRoleRuleCondition {
   textValue String? // used when operator == "equals"
   minNumber Int?    // used when operator == "between"
   maxNumber Int?    // used when operator == "between"
+}
+
+// A custom event signup — e.g. a 5-man dungeon group — created either via
+// the bot's /event create command or the site's event form. Posted/kept in
+// sync as a single Discord message the bot edits in place (discordMessageId
+// is null until the bot's poll picks it up and posts it, which is how a
+// web-created event reaches Discord — same "web writes the DB + a flag, the
+// bot's periodic tick notices and acts" pattern as forceSyncRequestedAt).
+// Signing up, voting, leaving, and cancelling all happen through the
+// Discord message's own components — the site only creates/lists/cancels,
+// it doesn't mirror the interactive parts.
+model Event {
+  id      String @id @default(cuid())
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  title    String
+  imageUrl String?
+  // "yyyy-mm-dd" — shown as "Date: {date}" on the embed. Defaults to
+  // today's date in both the bot modal and the web form (not enforced
+  // here), so it's rarely actually null in practice.
+  date String?
+
+  createdByDiscordUserId String
+  createdByDiscordTag    String
+
+  discordChannelId String
+  // Each event gets its own thread (named after the title) so signing up
+  // doesn't clutter the parent channel — null until the bot's poll (or
+  // immediate post, for bot-created events) creates it. Deleted outright
+  // when the event is cancelled, for a clean "it's just gone" cancel.
+  discordThreadId String?
+  // The embed message posted inside that thread — null until the thread
+  // exists.
+  discordMessageId String?
+
+  // "open" | "locked" | "cancelled"
+  status String @default("open")
+  // Set once locked (auto after 30min-since-createdAt or every role slot
+  // full, whichever first — see runEventAutoLock) to whichever
+  // EventTimeOption had the most votes.
+  lockedTimeOptionId String?
+
+  // Set by web-side create/cancel so the bot's poll tick knows to
+  // (re)render the Discord message without waiting on any other signal —
+  // cleared once the bot's synced it.
+  pendingWebUpdate Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  timeOptions EventTimeOption[]
+  roleSlots   EventRoleSlot[]
+  signups     EventSignup[]
+  votes       EventTimeVote[]
+
+  @@index([guildId])
+}
+
+// One proposed time slot people can vote for. Free-text label (e.g.
+// "19:00–21:00") rather than structured start/end — nothing here parses or
+// compares times, it's purely a votable option.
+model EventTimeOption {
+  id      String @id @default(cuid())
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  label   String
+  votes   EventTimeVote[]
+}
+
+// One person's vote in one event — a person has exactly one vote per event
+// (moving it between options is "changing your vote", not adding another),
+// hence the unique on (eventId, discordUserId) rather than per-option.
+model EventTimeVote {
+  id            String          @id @default(cuid())
+  eventId       String
+  event         Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  timeOptionId  String
+  timeOption    EventTimeOption @relation(fields: [timeOptionId], references: [id], onDelete: Cascade)
+  discordUserId String
+  votedAt       DateTime        @default(now())
+
+  @@unique([eventId, discordUserId])
+}
+
+// A role bucket needed for the event (e.g. "Tank" x1, "DPS" x3) — free-text
+// name rather than a fixed tank/healer/dps enum, so this isn't locked to
+// WoW's trinity if it's ever used for something else.
+model EventRoleSlot {
+  id       String @id @default(cuid())
+  eventId  String
+  event    Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  roleName String
+  capacity Int
+  // Unicode emoji ("🛡️") or a Discord custom emoji in its raw <:name:id>/
+  // <a:name:id> form — whoever creates the event picks it, shown next to
+  // the role name on the embed. Null falls back to no icon at all.
+  emoji    String?
+  signups  EventSignup[]
+}
+
+// One person signed up for one role slot in one event — the unique on
+// (eventId, discordUserId) is what makes "sign up for a different role"
+// a move rather than a second entry, same idea as EventTimeVote.
+// characterName/class are auto-filled from the account's claimed
+// GuildRosterMember when one exists, left null otherwise — nothing here
+// re-asks for data the roster already has.
+model EventSignup {
+  id             String        @id @default(cuid())
+  eventId        String
+  event          Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  roleSlotId     String
+  roleSlot       EventRoleSlot @relation(fields: [roleSlotId], references: [id], onDelete: Cascade)
+  discordUserId  String
+  discordUserTag String
+  characterName  String?
+  class          String?
+  isLeader       Boolean       @default(false)
+  signedUpAt     DateTime      @default(now())
+
+  @@unique([eventId, discordUserId])
 }
 
 model GuildRequiredRole {

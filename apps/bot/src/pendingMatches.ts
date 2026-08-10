@@ -15,7 +15,9 @@ export const PENDING_MATCH_RETENTION_MS = 42 * 60 * 60_000;
 // who onboarded before their name was imported; a still-unmatched entry
 // older than PENDING_MATCH_RETENTION_MS gets dropped with a heads-up DM
 // instead of retried forever.
-export async function syncPendingRosterMatches(client: Client<true>): Promise<void> {
+export async function syncPendingRosterMatches(
+  client: Client<true>,
+): Promise<void> {
   const pending = await db.guildPendingRosterMatch.findMany({
     include: { guild: true },
   });
@@ -29,17 +31,23 @@ export async function syncPendingRosterMatches(client: Client<true>): Promise<vo
       member = await discordGuild.members.fetch(row.discordUserId);
     } catch {
       // They're no longer in the server — nothing left to retry.
-      await db.guildPendingRosterMatch.delete({ where: { id: row.id } }).catch(() => {
-        // Already gone — fine.
-      });
+      await db.guildPendingRosterMatch
+        .delete({ where: { id: row.id } })
+        .catch(() => {
+          // Already gone — fine.
+        });
       continue;
     }
 
+    // Only ever queued in addon-mode (see runOnboarding) — an
+    // onboarding-built roster creates the row immediately instead of
+    // waiting, so class here is always irrelevant/unused.
     const names = JSON.parse(row.names) as string[];
+    const characters = names.map((name) => ({ name, class: null }));
     const { matchedCount, unmatchedCount } = await matchRosterAndApply(
       member,
       row.guild,
-      names,
+      characters,
       row.includeAltsInNickname,
       { applyEvenIfNoMatch: false },
     );

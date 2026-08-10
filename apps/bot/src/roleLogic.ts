@@ -1,4 +1,8 @@
-import { ChannelType, type GuildMember, type PermissionOverwriteOptions } from "discord.js";
+import {
+  ChannelType,
+  type GuildMember,
+  type PermissionOverwriteOptions,
+} from "discord.js";
 
 import { db } from "@guildthing/db";
 
@@ -72,12 +76,17 @@ export async function notifyAdmins(
   if (!guild?.adminNotifyChannelId) return false;
 
   try {
-    const channel = await member.guild.channels.fetch(guild.adminNotifyChannelId);
+    const channel = await member.guild.channels.fetch(
+      guild.adminNotifyChannelId,
+    );
     if (!channel?.isTextBased()) return false;
     await channel.send(message);
     return true;
   } catch (err) {
-    console.error(`[bot] failed to post admin notice for guild ${guildId}:`, err);
+    console.error(
+      `[bot] failed to post admin notice for guild ${guildId}:`,
+      err,
+    );
     return false;
   }
 }
@@ -125,7 +134,10 @@ export function conditionMatches(
 // them manually for an unrelated reason is never touched.
 async function getManagedRoleIds(guildId: string): Promise<Set<string>> {
   const [guild, rules] = await Promise.all([
-    db.guild.findUnique({ where: { id: guildId }, select: { pugRoleId: true } }),
+    db.guild.findUnique({
+      where: { id: guildId },
+      select: { pugRoleId: true },
+    }),
     db.guildRoleRule.findMany({
       where: { guildId },
       select: { grantedRoles: { select: { discordRoleId: true } } },
@@ -144,16 +156,25 @@ async function getManagedRoleIds(guildId: string): Promise<Set<string>> {
 // for this guild — every rule's grantedChannels. Mirrors getManagedRoleIds
 // but keyed by channel id -> its type (text/voice), since that determines
 // which permission bits get granted.
-async function getManagedChannelGrants(guildId: string): Promise<Map<string, "text" | "voice">> {
+async function getManagedChannelGrants(
+  guildId: string,
+): Promise<Map<string, "text" | "voice">> {
   const rules = await db.guildRoleRule.findMany({
     where: { guildId },
-    select: { grantedChannels: { select: { discordChannelId: true, channelType: true } } },
+    select: {
+      grantedChannels: {
+        select: { discordChannelId: true, channelType: true },
+      },
+    },
   });
 
   const grants = new Map<string, "text" | "voice">();
   for (const rule of rules) {
     for (const granted of rule.grantedChannels) {
-      grants.set(granted.discordChannelId, granted.channelType === "voice" ? "voice" : "text");
+      grants.set(
+        granted.discordChannelId,
+        granted.channelType === "voice" ? "voice" : "text",
+      );
     }
   }
   return grants;
@@ -163,7 +184,9 @@ function channelGrantPermissions(
   type: "text" | "voice",
   value: true | null,
 ): PermissionOverwriteOptions {
-  return type === "voice" ? { ViewChannel: value, Connect: value } : { ViewChannel: value };
+  return type === "voice"
+    ? { ViewChannel: value, Connect: value }
+    : { ViewChannel: value };
 }
 
 // Default notify implementation — DMs the member directly, swallowing any
@@ -203,7 +226,10 @@ export async function applyChannelGrants(
       member.guild.channels.cache.get(channelId) ??
       (await member.guild.channels.fetch(channelId).catch(() => null));
     if (!channel) continue;
-    if (channel.type !== ChannelType.GuildText && channel.type !== ChannelType.GuildVoice) {
+    if (
+      channel.type !== ChannelType.GuildText &&
+      channel.type !== ChannelType.GuildVoice
+    ) {
       continue;
     }
 
@@ -308,16 +334,23 @@ export async function applyNicknameAndRoles(
   // longer belongs, rather than only ever adding.
   const managedRoleIds = await getManagedRoleIds(guildId);
   const desired = new Set(desiredRoleIds);
-  const currentManaged = member.roles.cache.filter((r) => managedRoleIds.has(r.id));
+  const currentManaged = member.roles.cache.filter((r) =>
+    managedRoleIds.has(r.id),
+  );
   const toAdd = desiredRoleIds.filter((id) => !currentManaged.has(id));
-  const toRemove = currentManaged.filter((r) => !desired.has(r.id)).map((r) => r.id);
+  const toRemove = currentManaged
+    .filter((r) => !desired.has(r.id))
+    .map((r) => r.id);
 
   if (toAdd.length > 0 || toRemove.length > 0) {
     try {
       if (toAdd.length > 0) await member.roles.add(toAdd);
       if (toRemove.length > 0) await member.roles.remove(toRemove);
     } catch (err) {
-      console.error(`[bot] failed to update roles for ${member.user.tag}:`, err);
+      console.error(
+        `[bot] failed to update roles for ${member.user.tag}:`,
+        err,
+      );
       // Most likely cause: the bot's own role sits below the role(s) it's
       // trying to grant/remove in the server's role list — Discord blocks
       // that regardless of permissions.
@@ -336,7 +369,9 @@ export async function applyNicknameAndRoles(
 
   await applyChannelGrants(member, guildId, desiredChannelGrants, { notify });
 
-  await notify("You're done! If you ever want to redo this, run `/onboarding`.");
+  await notify(
+    "You're done! If you ever want to redo this, run `/onboarding`.",
+  );
 }
 
 interface MatchAndApplyOptions {
@@ -352,7 +387,15 @@ interface MatchAndApplyOptions {
   notify?: (message: string) => Promise<void>;
 }
 
-// Matches `allNames` against the guild's roster, claims newly-matched
+export interface NamedCharacter {
+  name: string;
+  // Only meaningful (and only ever asked) when guild.rosterSource is
+  // "onboarding" — addon-sourced guilds get class from the roster row
+  // itself once matched, never from what the person types.
+  class: string | null;
+}
+
+// Matches `characters` against the guild's roster, claims newly-matched
 // characters for `member` (or flags a conflict if someone else already has),
 // evaluates role rules against whatever matched, and applies the resulting
 // nickname/roles. Shared by the onboarding flow and the daily
@@ -360,15 +403,21 @@ interface MatchAndApplyOptions {
 // exact same matching/claiming/rule logic.
 export async function matchRosterAndApply(
   member: GuildMember,
-  guild: { id: string },
-  allNames: string[],
+  guild: { id: string; rosterSource: string },
+  characters: NamedCharacter[],
   includeAltsInNickname: boolean,
   options: MatchAndApplyOptions = {},
-): Promise<{ matchedCount: number; conflictCount: number; unmatchedCount: number }> {
+): Promise<{
+  matchedCount: number;
+  conflictCount: number;
+  unmatchedCount: number;
+}> {
   const rosterRows = await db.guildRosterMember.findMany({
     where: { guildId: guild.id },
   });
-  const rosterByName = new Map(rosterRows.map((r) => [r.name.toLowerCase(), r]));
+  const rosterByName = new Map(
+    rosterRows.map((r) => [r.name.toLowerCase(), r]),
+  );
 
   // Prevents different Discord accounts from all claiming the same roster
   // character (e.g. several people all saying they're "Bubblekingen"): the
@@ -381,9 +430,59 @@ export async function matchRosterAndApply(
   const displayNames: string[] = [];
   const conflictNames: string[] = [];
   const unmatchedNames: string[] = [];
-  for (const name of allNames) {
+  for (const character of characters) {
+    const { name } = character;
     const row = rosterByName.get(name.toLowerCase());
+
     if (!row) {
+      // No pre-existing roster to wait on — a play group with no in-game
+      // guild builds its roster from onboarding claims directly, so an
+      // unmatched name means "new character", not "not imported yet".
+      if (guild.rosterSource === "onboarding") {
+        try {
+          const created = await db.guildRosterMember.create({
+            data: {
+              guildId: guild.id,
+              name,
+              rank: "Member",
+              level: 1,
+              class: character.class,
+              claimedByDiscordUserId: member.id,
+              claimedByDiscordTag: member.user.tag,
+            },
+          });
+          displayNames.push(created.name);
+          matched.push({
+            rank: created.rank,
+            level: created.level,
+            class: created.class,
+          });
+        } catch (err) {
+          // Unique [guildId, name] violation — someone else claimed this
+          // exact name in the tiny window between our lookup and create.
+          console.error(
+            `[bot] failed to create roster row for "${name}":`,
+            err,
+          );
+          const existing = await db.guildRosterMember.findUnique({
+            where: { guildId_name: { guildId: guild.id, name } },
+          });
+          displayNames.push(existing?.name ?? name);
+          if (existing) {
+            conflictNames.push(existing.name);
+            await db.guildRosterClaimConflict.create({
+              data: {
+                guildId: guild.id,
+                rosterMemberId: existing.id,
+                attemptedByDiscordId: member.id,
+                attemptedByDiscordTag: member.user.tag,
+              },
+            });
+          }
+        }
+        continue;
+      }
+
       displayNames.push(name);
       unmatchedNames.push(name);
       continue;
@@ -443,11 +542,20 @@ export async function matchRosterAndApply(
   }
 
   if (matched.length > 0 || (options.applyEvenIfNoMatch ?? true)) {
-    const nicknameNames = includeAltsInNickname ? displayNames : displayNames.slice(0, 1);
-    await applyNicknameAndRoles(member, guild.id, nicknameNames, [...roleIds], channelGrants, {
-      chooseNicknameNames: options.chooseNicknameNames,
-      notify: options.notify,
-    });
+    const nicknameNames = includeAltsInNickname
+      ? displayNames
+      : displayNames.slice(0, 1);
+    await applyNicknameAndRoles(
+      member,
+      guild.id,
+      nicknameNames,
+      [...roleIds],
+      channelGrants,
+      {
+        chooseNicknameNames: options.chooseNicknameNames,
+        notify: options.notify,
+      },
+    );
   }
 
   return {

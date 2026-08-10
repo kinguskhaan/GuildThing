@@ -191,6 +191,8 @@ exports.Prisma.GuildScalarFieldEnum = {
   discordGuildId: 'discordGuildId',
   createdById: 'createdById',
   createdAt: 'createdAt',
+  rosterSource: 'rosterSource',
+  pugEnabled: 'pugEnabled',
   pugRoleId: 'pugRoleId',
   lastExportedAt: 'lastExportedAt',
   lastExportedById: 'lastExportedById',
@@ -292,6 +294,57 @@ exports.Prisma.GuildRoleRuleConditionScalarFieldEnum = {
   maxNumber: 'maxNumber'
 };
 
+exports.Prisma.EventScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  title: 'title',
+  imageUrl: 'imageUrl',
+  date: 'date',
+  createdByDiscordUserId: 'createdByDiscordUserId',
+  createdByDiscordTag: 'createdByDiscordTag',
+  discordChannelId: 'discordChannelId',
+  discordThreadId: 'discordThreadId',
+  discordMessageId: 'discordMessageId',
+  status: 'status',
+  lockedTimeOptionId: 'lockedTimeOptionId',
+  pendingWebUpdate: 'pendingWebUpdate',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.EventTimeOptionScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  label: 'label'
+};
+
+exports.Prisma.EventTimeVoteScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  timeOptionId: 'timeOptionId',
+  discordUserId: 'discordUserId',
+  votedAt: 'votedAt'
+};
+
+exports.Prisma.EventRoleSlotScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  roleName: 'roleName',
+  capacity: 'capacity',
+  emoji: 'emoji'
+};
+
+exports.Prisma.EventSignupScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  roleSlotId: 'roleSlotId',
+  discordUserId: 'discordUserId',
+  discordUserTag: 'discordUserTag',
+  characterName: 'characterName',
+  class: 'class',
+  isLeader: 'isLeader',
+  signedUpAt: 'signedUpAt'
+};
+
 exports.Prisma.GuildRequiredRoleScalarFieldEnum = {
   id: 'id',
   guildId: 'guildId',
@@ -374,6 +427,11 @@ exports.Prisma.ModelName = {
   GuildRoleRuleGrantedRole: 'GuildRoleRuleGrantedRole',
   GuildRoleRuleGrantedChannel: 'GuildRoleRuleGrantedChannel',
   GuildRoleRuleCondition: 'GuildRoleRuleCondition',
+  Event: 'Event',
+  EventTimeOption: 'EventTimeOption',
+  EventTimeVote: 'EventTimeVote',
+  EventRoleSlot: 'EventRoleSlot',
+  EventSignup: 'EventSignup',
   GuildRequiredRole: 'GuildRequiredRole',
   GuildAdminRole: 'GuildAdminRole',
   GuildCharacter: 'GuildCharacter',

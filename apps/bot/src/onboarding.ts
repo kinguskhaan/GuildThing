@@ -19,9 +19,25 @@ import {
   applyNicknameAndRoles,
   MAX_NICKNAME_LENGTH,
   matchRosterAndApply,
+  type NamedCharacter,
 } from "./roleLogic.js";
 
 const QUESTION_TIMEOUT_MS = 5 * 60_000;
+
+// Only asked when Guild.rosterSource is "onboarding" (no addon to scan
+// class from) — matches the class tokens the addon itself exports, same
+// list CLASS_COLORS on the site keys off.
+const WOW_CLASS_CHOICES = [
+  { id: "WARRIOR", label: "Warrior" },
+  { id: "PALADIN", label: "Paladin" },
+  { id: "HUNTER", label: "Hunter" },
+  { id: "ROGUE", label: "Rogue" },
+  { id: "PRIEST", label: "Priest" },
+  { id: "SHAMAN", label: "Shaman" },
+  { id: "MAGE", label: "Mage" },
+  { id: "WARLOCK", label: "Warlock" },
+  { id: "DRUID", label: "Druid" },
+];
 
 // Guards against overlapping onboarding runs for the same person — e.g.
 // double-clicking "Start Onboarding", or running /onboarding while a
@@ -64,9 +80,13 @@ async function askTextModal(
   try {
     const submitted = await interaction.awaitModalSubmit({
       time: QUESTION_TIMEOUT_MS,
-      filter: (i) => i.user.id === interaction.user.id && i.customId === modalId,
+      filter: (i) =>
+        i.user.id === interaction.user.id && i.customId === modalId,
     });
-    return { value: submitted.fields.getTextInputValue("value").trim(), interaction: submitted };
+    return {
+      value: submitted.fields.getTextInputValue("value").trim(),
+      interaction: submitted,
+    };
   } catch (err) {
     console.log(
       `[bot] ${interaction.user.tag} didn't submit the "${fieldLabel}" modal in time (or an error occurred):`,
@@ -87,19 +107,32 @@ async function askChoice(
   content: string,
   choices: { id: string; label: string; primary?: boolean }[],
 ): Promise<{ value: string; interaction: ButtonInteraction } | null> {
-  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    choices.map((c) =>
-      new ButtonBuilder()
-        .setCustomId(c.id)
-        .setLabel(c.label)
-        .setStyle(c.primary ? ButtonStyle.Primary : ButtonStyle.Secondary),
-    ),
+  // Chunked into rows of 5 (Discord's per-row button cap) — most questions
+  // only ever have 2-3 choices and get one row same as before, but this
+  // also covers longer lists like the class picker (9 choices, 2 rows).
+  const buttons = choices.map((c) =>
+    new ButtonBuilder()
+      .setCustomId(c.id)
+      .setLabel(c.label)
+      .setStyle(c.primary ? ButtonStyle.Primary : ButtonStyle.Secondary),
   );
+  const rows: ActionRowBuilder<ButtonBuilder>[] = [];
+  for (let i = 0; i < buttons.length; i += 5) {
+    rows.push(
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        buttons.slice(i, i + 5),
+      ),
+    );
+  }
 
   if (interaction.isButton()) {
-    await interaction.update({ content, components: [row] });
+    await interaction.update({ content, components: rows });
   } else {
-    await interaction.reply({ content, components: [row], flags: MessageFlags.Ephemeral });
+    await interaction.reply({
+      content,
+      components: rows,
+      flags: MessageFlags.Ephemeral,
+    });
   }
 
   try {
@@ -133,10 +166,16 @@ function createNotifier(cursor: { interaction: ChoiceInteraction }) {
         if (interaction.isButton()) {
           await interaction.update({ content: message, components: [] });
         } else {
-          await interaction.reply({ content: message, flags: MessageFlags.Ephemeral });
+          await interaction.reply({
+            content: message,
+            flags: MessageFlags.Ephemeral,
+          });
         }
       } else {
-        await interaction.followUp({ content: message, flags: MessageFlags.Ephemeral });
+        await interaction.followUp({
+          content: message,
+          flags: MessageFlags.Ephemeral,
+        });
       }
     } catch (err) {
       console.error(
@@ -179,12 +218,16 @@ async function askNicknameSelectionInteractive(
       new ButtonBuilder()
         .setCustomId(`toggle:${i}`)
         .setLabel(selected.has(name) ? `✅ ${name}` : name)
-        .setStyle(selected.has(name) ? ButtonStyle.Primary : ButtonStyle.Secondary),
+        .setStyle(
+          selected.has(name) ? ButtonStyle.Primary : ButtonStyle.Secondary,
+        ),
     );
     const rows: ActionRowBuilder<ButtonBuilder>[] = [];
     for (let i = 0; i < altButtons.length; i += 5) {
       rows.push(
-        new ActionRowBuilder<ButtonBuilder>().addComponents(altButtons.slice(i, i + 5)),
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+          altButtons.slice(i, i + 5),
+        ),
       );
     }
     rows.push(
@@ -201,7 +244,10 @@ async function askNicknameSelectionInteractive(
 
   const interaction = cursor.interaction;
   if (interaction.isButton()) {
-    await interaction.update({ content: buildContent(), components: buildComponents() });
+    await interaction.update({
+      content: buildContent(),
+      components: buildComponents(),
+    });
   } else {
     await interaction.reply({
       content: buildContent(),
@@ -238,7 +284,10 @@ async function askNicknameSelectionInteractive(
       if (selected.has(name)) selected.delete(name);
       else selected.add(name);
     }
-    await clicked.update({ content: buildContent(), components: buildComponents() });
+    await clicked.update({
+      content: buildContent(),
+      components: buildComponents(),
+    });
   }
 
   return [mainName, ...altNames.filter((n) => selected.has(n))];
@@ -257,7 +306,9 @@ export function cancelOnboarding(discordUserId: string): void {
 // points the person at how to start it. If DMs are closed this silently
 // does nothing, which is fine: they'll see the onboarding channel/button
 // on the server itself regardless.
-export async function notifyNewMemberToOnboard(member: GuildMember): Promise<void> {
+export async function notifyNewMemberToOnboard(
+  member: GuildMember,
+): Promise<void> {
   const guild = await db.guild.findUnique({
     where: { discordGuildId: member.guild.id },
   });
@@ -266,10 +317,12 @@ export async function notifyNewMemberToOnboard(member: GuildMember): Promise<voi
   const hint = guild.onboardingChannelId
     ? `head to <#${guild.onboardingChannelId}> and click "Start Onboarding"`
     : "run `/onboarding`";
-  await member.send(`Welcome to ${member.guild.name}! To get set up, ${hint}.`).catch(() => {
-    // DMs disabled — fine, the onboarding channel/button on the server
-    // itself is the reliable path now, this was just a nicety.
-  });
+  await member
+    .send(`Welcome to ${member.guild.name}! To get set up, ${hint}.`)
+    .catch(() => {
+      // DMs disabled — fine, the onboarding channel/button on the server
+      // itself is the reliable path now, this was just a nicety.
+    });
 }
 
 export async function runOnboardingInteractive(
@@ -294,7 +347,9 @@ export async function runOnboardingInteractive(
   }
 }
 
-async function runOnboarding(triggerInteraction: ModalTriggerInteraction): Promise<void> {
+async function runOnboarding(
+  triggerInteraction: ModalTriggerInteraction,
+): Promise<void> {
   if (!triggerInteraction.guild) return;
   const discordGuild = triggerInteraction.guild;
   const member = await discordGuild.members.fetch(triggerInteraction.user.id);
@@ -307,7 +362,8 @@ async function runOnboarding(triggerInteraction: ModalTriggerInteraction): Promi
     // for the bot to do here.
     await triggerInteraction
       .reply({
-        content: "This Discord server isn't registered with GuildThing — nothing for me to do here.",
+        content:
+          "This Discord server isn't registered with GuildThing — nothing for me to do here.",
         flags: MessageFlags.Ephemeral,
       })
       .catch(() => {});
@@ -322,36 +378,57 @@ async function runOnboarding(triggerInteraction: ModalTriggerInteraction): Promi
   if (mainNameResult == null) return;
   const mainName = mainNameResult.value;
 
-  const affiliationResult = await askChoice(
-    mainNameResult.interaction,
-    "Are you a guild member, or are you here to join a PUG?",
-    [
-      { id: "guild", label: "Guild member", primary: true },
-      { id: "pug", label: "PUG" },
-    ],
-  );
-  if (affiliationResult == null) return;
+  // Only asked at all if the guild has PUGs turned on — otherwise there's
+  // no meaningful choice to make (nowhere to route a "PUG" answer to), so
+  // skip straight into the guild-member flow instead of asking a question
+  // with only one real answer.
+  let hasAltsTrigger: ChoiceInteraction = mainNameResult.interaction;
 
-  if (affiliationResult.value === "pug") {
-    const cursor = { interaction: affiliationResult.interaction as ChoiceInteraction };
-    await applyNicknameAndRoles(
-      member,
-      guild.id,
-      [mainName],
-      guild.pugRoleId ? [guild.pugRoleId] : [],
-      [],
-      { notify: createNotifier(cursor) },
+  if (guild.pugEnabled) {
+    const affiliationResult = await askChoice(
+      mainNameResult.interaction,
+      "Are you a guild member, or are you here to join a PUG?",
+      [
+        { id: "guild", label: "Guild member", primary: true },
+        { id: "pug", label: "PUG" },
+      ],
     );
-    // The authoritative "chose PUG" record — independent of whether a PUG
-    // role is even configured, or whether the role assignment above
-    // actually succeeded — so the site's "hasn't claimed a character" view
-    // can correctly exclude them either way.
-    await db.guildPugMember.upsert({
-      where: { guildId_discordUserId: { guildId: guild.id, discordUserId: member.id } },
-      create: { guildId: guild.id, discordUserId: member.id, discordUserTag: member.user.tag },
-      update: { discordUserTag: member.user.tag },
-    });
-    return;
+    if (affiliationResult == null) return;
+
+    if (affiliationResult.value === "pug") {
+      const cursor = {
+        interaction: affiliationResult.interaction as ChoiceInteraction,
+      };
+      await applyNicknameAndRoles(
+        member,
+        guild.id,
+        [mainName],
+        guild.pugRoleId ? [guild.pugRoleId] : [],
+        [],
+        { notify: createNotifier(cursor) },
+      );
+      // The authoritative "chose PUG" record — independent of whether a PUG
+      // role is even configured, or whether the role assignment above
+      // actually succeeded — so the site's "hasn't claimed a character" view
+      // can correctly exclude them either way.
+      await db.guildPugMember.upsert({
+        where: {
+          guildId_discordUserId: {
+            guildId: guild.id,
+            discordUserId: member.id,
+          },
+        },
+        create: {
+          guildId: guild.id,
+          discordUserId: member.id,
+          discordUserTag: member.user.tag,
+        },
+        update: { discordUserTag: member.user.tag },
+      });
+      return;
+    }
+
+    hasAltsTrigger = affiliationResult.interaction;
   }
 
   // They're onboarding as a guild member now — clear any stale "chose PUG"
@@ -360,23 +437,58 @@ async function runOnboarding(triggerInteraction: ModalTriggerInteraction): Promi
     .deleteMany({ where: { guildId: guild.id, discordUserId: member.id } })
     .catch(() => {});
 
-  const hasAltsResult = await askChoice(affiliationResult.interaction, "Do you have any alts?", [
+  // A play group with no in-game guild has no addon to read class from —
+  // ask for it directly instead. Addon-sourced guilds get class from the
+  // roster row once matched, so this is skipped entirely for them.
+  const onboardingBuildsRoster = guild.rosterSource === "onboarding";
+
+  let mainClass: string | null = null;
+  let classTrigger: ChoiceInteraction = hasAltsTrigger;
+  if (onboardingBuildsRoster) {
+    const classResult = await askChoice(
+      hasAltsTrigger,
+      `What class is **${mainName}**?`,
+      WOW_CLASS_CHOICES,
+    );
+    if (classResult == null) return;
+    mainClass = classResult.value;
+    classTrigger = classResult.interaction;
+  }
+
+  const hasAltsResult = await askChoice(classTrigger, "Do you have any alts?", [
     { id: "yes", label: "Yes", primary: true },
     { id: "no", label: "No" },
   ]);
   if (hasAltsResult == null) return;
 
-  const altNames: string[] = [];
+  const alts: NamedCharacter[] = [];
   let lastChoice = hasAltsResult.interaction;
   if (hasAltsResult.value === "yes") {
     let addingAlts = true;
     while (addingAlts) {
-      const altResult = await askTextModal(lastChoice, "Add an alt", "What is your alt's name?");
+      const altResult = await askTextModal(
+        lastChoice,
+        "Add an alt",
+        "What is your alt's name?",
+      );
       if (altResult == null) return;
-      altNames.push(altResult.value);
+
+      let altClass: string | null = null;
+      let addAnotherTrigger: ChoiceInteraction = altResult.interaction;
+      if (onboardingBuildsRoster) {
+        const altClassResult = await askChoice(
+          altResult.interaction,
+          `What class is **${altResult.value}**?`,
+          WOW_CLASS_CHOICES,
+        );
+        if (altClassResult == null) return;
+        altClass = altClassResult.value;
+        addAnotherTrigger = altClassResult.interaction;
+      }
+      alts.push({ name: altResult.value, class: altClass });
 
       const addAnotherResult = await askChoice(
-        altResult.interaction,
+        addAnotherTrigger,
         `Added \`${altResult.value}\`. Add another alt?`,
         [
           { id: "yes", label: "Yes" },
@@ -389,13 +501,17 @@ async function runOnboarding(triggerInteraction: ModalTriggerInteraction): Promi
     }
   }
 
-  const allNames = [mainName, ...altNames];
+  const characters: NamedCharacter[] = [
+    { name: mainName, class: mainClass },
+    ...alts,
+  ];
+  const allNames = characters.map((c) => c.name);
 
   // Only worth asking if there's actually a choice to make — someone with
   // no alts just gets their main name, no extra question.
   let includeAltsInNickname = true;
   let finalInteraction: ButtonInteraction = lastChoice;
-  if (altNames.length > 0) {
+  if (alts.length > 0) {
     const includeResult = await askChoice(
       lastChoice,
       `Do you want your alts included in your server nickname? e.g. "${allNames.join("/")}"`,
@@ -414,10 +530,11 @@ async function runOnboarding(triggerInteraction: ModalTriggerInteraction): Promi
   const { matchedCount, unmatchedCount } = await matchRosterAndApply(
     member,
     guild,
-    allNames,
+    characters,
     includeAltsInNickname,
     {
-      chooseNicknameNames: (names) => askNicknameSelectionInteractive(cursor, names),
+      chooseNicknameNames: (names) =>
+        askNicknameSelectionInteractive(cursor, names),
       notify,
     },
   );
@@ -430,7 +547,9 @@ async function runOnboarding(triggerInteraction: ModalTriggerInteraction): Promi
     // instead of that name being stuck as plain text forever. Whatever DID
     // match already got claimed/applied above regardless.
     await db.guildPendingRosterMatch.upsert({
-      where: { guildId_discordUserId: { guildId: guild.id, discordUserId: member.id } },
+      where: {
+        guildId_discordUserId: { guildId: guild.id, discordUserId: member.id },
+      },
       create: {
         guildId: guild.id,
         discordUserId: member.id,

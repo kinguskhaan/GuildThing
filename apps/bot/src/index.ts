@@ -21,7 +21,16 @@ import {
   notifyNewMemberToOnboard,
   runOnboardingInteractive,
 } from "./onboarding.js";
-import { ensureOnboardingButtons, START_ONBOARDING_BUTTON_ID } from "./onboardingButton.js";
+import {
+  ensureOnboardingButtons,
+  START_ONBOARDING_BUTTON_ID,
+} from "./onboardingButton.js";
+import {
+  handleEventComponentInteraction,
+  handleEventCreateCommand,
+  runEventAutoLock,
+  syncPendingWebEvents,
+} from "./events.js";
 import { syncPendingRosterMatches } from "./pendingMatches.js";
 import { ROLE_SYNC_INTERVAL_MS, runFullRoleSync } from "./roleSync.js";
 
@@ -35,6 +44,11 @@ const ONBOARDING_BUTTON_CHECK_INTERVAL_MS = 60_000;
 // Guild.forceSyncRequestedAt) — short enough that clicking the button feels
 // close to instant instead of waiting for the once-a-day automatic sync.
 const FORCE_SYNC_CHECK_INTERVAL_MS = 15_000;
+
+// How often to post web-created events to Discord and check open events for
+// auto-lock — short enough that creating an event on the site feels close
+// to instant, same reasoning as FORCE_SYNC_CHECK_INTERVAL_MS.
+const EVENT_TICK_INTERVAL_MS = 15_000;
 
 const token = process.env.DISCORD_BOT_TOKEN;
 if (!token) {
@@ -68,22 +82,41 @@ const reactivateCommand = new SlashCommandBuilder()
   .setDescription("Restore your roles if you've been marked inactive")
   .toJSON();
 
+// Namespaced under the bot's own name rather than a bare /event — leaves
+// room to add more GuildThing-branded commands under the same prefix later
+// (/guildthing sync, etc.) without cluttering the top-level command list.
+const guildthingCommand = new SlashCommandBuilder()
+  .setName("guildthing")
+  .setDescription("GuildThing commands")
+  .addSubcommand((sub) =>
+    sub
+      .setName("event")
+      .setDescription("Create an event signup (e.g. a dungeon group) here"),
+  )
+  .toJSON();
+
 // Guild-scoped registration (not global) — applies instantly instead of
 // waiting up to an hour for Discord to propagate a global command, which
 // matters a lot while actively testing the flow.
 async function registerCommands(guild: Guild) {
   try {
-    await guild.commands.set([onboardingCommand, reactivateCommand]);
+    await guild.commands.set([
+      onboardingCommand,
+      reactivateCommand,
+      guildthingCommand,
+    ]);
   } catch (err) {
     console.error(`[bot] failed to register commands for ${guild.name}:`, err);
   }
 }
 
 client.once(Events.ClientReady, (readyClient) => {
-  console.log(`[bot] logged in as ${readyClient.user.tag}, registering commands...`);
-  void Promise.all(readyClient.guilds.cache.map((g) => registerCommands(g))).then(
-    () => console.log("[bot] ready — commands registered"),
+  console.log(
+    `[bot] logged in as ${readyClient.user.tag}, registering commands...`,
   );
+  void Promise.all(
+    readyClient.guilds.cache.map((g) => registerCommands(g)),
+  ).then(() => console.log("[bot] ready — commands registered"));
 
   // Best-effort mitigation for this host's slow/flaky primary DNS server
   // (a cold discord.com lookup alone can take several seconds — see the
@@ -140,20 +173,35 @@ client.once(Events.ClientReady, (readyClient) => {
   };
   checkForceSync();
   setInterval(checkForceSync, FORCE_SYNC_CHECK_INTERVAL_MS);
+
+  const checkEvents = () => {
+    syncPendingWebEvents(readyClient).catch((err: unknown) => {
+      console.error("[bot] event web-sync failed:", err);
+    });
+    runEventAutoLock(readyClient).catch((err: unknown) => {
+      console.error("[bot] event auto-lock failed:", err);
+    });
+  };
+  checkEvents();
+  setInterval(checkEvents, EVENT_TICK_INTERVAL_MS);
 });
 
 // Runs the same full roster/role/channel-grant sync as the daily job, but
 // only when at least one guild has been flagged via the site's "Sync now"
 // button — lets an admin get an immediate resync while debugging a
 // rule/channel-grant setup instead of waiting up to a day.
-async function checkForceSyncRequests(client: import("discord.js").Client<true>): Promise<void> {
+async function checkForceSyncRequests(
+  client: import("discord.js").Client<true>,
+): Promise<void> {
   const pending = await db.guild.findMany({
     where: { forceSyncRequestedAt: { not: null } },
     select: { id: true },
   });
   if (pending.length === 0) return;
 
-  console.log(`[bot] force-sync requested for ${pending.length} guild(s), syncing now`);
+  console.log(
+    `[bot] force-sync requested for ${pending.length} guild(s), syncing now`,
+  );
   await runFullRoleSync(client);
   await syncPendingRosterMatches(client);
   await db.guild.updateMany({
@@ -178,7 +226,10 @@ client.on(Events.GuildCreate, (guild) => {
 // button/command on the server itself, not this.
 client.on(Events.GuildMemberAdd, (member) => {
   notifyNewMemberToOnboard(member).catch((err: unknown) => {
-    console.error(`[bot] join notification failed for ${member.user.tag}:`, err);
+    console.error(
+      `[bot] join notification failed for ${member.user.tag}:`,
+      err,
+    );
   });
   initializeMemberActivity(member).catch((err: unknown) => {
     console.error(`[bot] activity init failed for ${member.user.tag}:`, err);
@@ -199,17 +250,52 @@ client.on(Events.MessageCreate, (message) => {
 });
 
 client.on(Events.InteractionCreate, (interaction) => {
-  if (interaction.isChatInputCommand() && interaction.commandName === "reactivate") {
+  if (
+    interaction.isChatInputCommand() &&
+    interaction.commandName === "reactivate"
+  ) {
     void handleReactivate(interaction).catch((err: unknown) => {
-      console.error(`[bot] /reactivate failed for ${interaction.user.tag}:`, err);
+      console.error(
+        `[bot] /reactivate failed for ${interaction.user.tag}:`,
+        err,
+      );
+    });
+    return;
+  }
+
+  if (
+    interaction.isChatInputCommand() &&
+    interaction.commandName === "guildthing" &&
+    interaction.options.getSubcommand() === "event"
+  ) {
+    void handleEventCreateCommand(interaction).catch((err: unknown) => {
+      console.error(
+        `[bot] /guildthing event failed for ${interaction.user.tag}:`,
+        err,
+      );
+    });
+    return;
+  }
+
+  if (
+    (interaction.isStringSelectMenu() || interaction.isButton()) &&
+    interaction.customId.startsWith("event:")
+  ) {
+    void handleEventComponentInteraction(interaction).catch((err: unknown) => {
+      console.error(
+        `[bot] event interaction failed for ${interaction.user.tag}:`,
+        err,
+      );
     });
     return;
   }
 
   const isOnboardingCommand =
-    interaction.isChatInputCommand() && interaction.commandName === "onboarding";
+    interaction.isChatInputCommand() &&
+    interaction.commandName === "onboarding";
   const isOnboardingButton =
-    interaction.isButton() && interaction.customId === START_ONBOARDING_BUTTON_ID;
+    interaction.isButton() &&
+    interaction.customId === START_ONBOARDING_BUTTON_ID;
   if (!isOnboardingCommand && !isOnboardingButton) return;
 
   console.log(

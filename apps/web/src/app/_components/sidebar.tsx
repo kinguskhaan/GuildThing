@@ -49,41 +49,62 @@ export function Sidebar() {
   // page at /roster, labeled "Members" since that's the more meaningful
   // name for what it shows now.
   const membersHref = guild ? `/guilds/${guild.id}/roster` : "";
+  const eventsHref = guild ? `/guilds/${guild.id}/events` : "";
   const adminLinks = guild
     ? [
-        { href: `/guilds/${guild.id}/admin/recipes`, label: "Raw recipe catalog" },
-        { href: `/guilds/${guild.id}/admin/data`, label: "Manage imported data" },
-        { href: `/guilds/${guild.id}/admin/discord-roles`, label: "Discord onboarding roles" },
+        {
+          href: `/guilds/${guild.id}/admin/recipes`,
+          label: "Raw recipe catalog",
+        },
+        {
+          href: `/guilds/${guild.id}/admin/data`,
+          label: "Manage imported data",
+        },
+        {
+          href: `/guilds/${guild.id}/admin/discord-roles`,
+          label: "Discord onboarding roles",
+        },
       ]
     : [];
 
   return (
-    <nav className="flex h-screen w-56 shrink-0 flex-col gap-1 border-r border-black/20 bg-discord-sidebar p-3">
+    <nav className="bg-discord-sidebar flex h-screen w-56 shrink-0 flex-col gap-1 border-r border-black/20 p-3">
       <GuildSwitcher currentGuild={guild} />
       <div className="my-2 border-t border-black/20" />
 
       {hasAccess && (
         <>
-          <Link href={membersHref} className={navLinkClass(pathname === membersHref)}>
+          <Link
+            href={membersHref}
+            className={navLinkClass(pathname === membersHref)}
+          >
             Members
+          </Link>
+          <Link
+            href={eventsHref}
+            className={navLinkClass(pathname === eventsHref)}
+          >
+            Events
           </Link>
 
           <div className="my-2 border-t border-black/20" />
 
-          <span className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-discord-text-muted">
+          <span className="text-discord-text-muted px-2 pb-2 text-xs font-semibold uppercase tracking-wide">
             Professions
           </span>
 
           {professions.isLoading && (
-            <span className="px-2 text-sm text-discord-text-muted">Loading...</span>
+            <span className="text-discord-text-muted px-2 text-sm">
+              Loading...
+            </span>
           )}
           {professions.error && (
-            <span className="px-2 text-sm text-discord-red">
+            <span className="text-discord-red px-2 text-sm">
               {professions.error.message}
             </span>
           )}
           {professions.data?.length === 0 && (
-            <span className="px-2 text-sm text-discord-text-muted">
+            <span className="text-discord-text-muted px-2 text-sm">
               No professions imported yet.
             </span>
           )}
@@ -97,7 +118,7 @@ export function Sidebar() {
                 className={`flex items-center justify-between ${navLinkClass(pathname === href)}`}
               >
                 <span>{profession.name}</span>
-                <span className="text-xs text-discord-text-muted">
+                <span className="text-discord-text-muted text-xs">
                   {profession.characters.length}
                 </span>
               </Link>
@@ -108,34 +129,44 @@ export function Sidebar() {
 
       {isAdmin && (
         <>
-          <span className="mt-3 px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-discord-text-muted">
+          <span className="text-discord-text-muted mt-3 px-2 pb-2 text-xs font-semibold uppercase tracking-wide">
             Admin
           </span>
           {adminLinks.map(({ href, label }) => (
-            <Link key={href} href={href} className={navLinkClass(pathname === href)}>
+            <Link
+              key={href}
+              href={href}
+              className={navLinkClass(pathname === href)}
+            >
               {label}
             </Link>
           ))}
         </>
       )}
 
-      <span className="mt-3 px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-discord-text-muted">
+      <span className="text-discord-text-muted mt-3 px-2 pb-2 text-xs font-semibold uppercase tracking-wide">
         Addon
       </span>
-      <Link href="/guilds/addon" className={navLinkClass(pathname === "/guilds/addon")}>
+      <Link
+        href="/guilds/addon"
+        className={navLinkClass(pathname === "/guilds/addon")}
+      >
         Download
       </Link>
 
-      <span className="mt-3 px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-discord-text-muted">
+      <span className="text-discord-text-muted mt-3 px-2 pb-2 text-xs font-semibold uppercase tracking-wide">
         Bot
       </span>
-      <Link href="/guilds/bot" className={navLinkClass(pathname === "/guilds/bot")}>
+      <Link
+        href="/guilds/bot"
+        className={navLinkClass(pathname === "/guilds/bot")}
+      >
         Add to Discord
       </Link>
 
       {isInstanceOwner && (
         <>
-          <span className="mt-3 px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-discord-text-muted">
+          <span className="text-discord-text-muted mt-3 px-2 pb-2 text-xs font-semibold uppercase tracking-wide">
             Instance
           </span>
           <Link

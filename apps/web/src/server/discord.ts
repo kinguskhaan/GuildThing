@@ -53,7 +53,10 @@ function ttlFor(roles: string[] | null): number {
   return roles === null ? NOT_MEMBER_CACHE_TTL_MS : MEMBER_CACHE_TTL_MS;
 }
 
-const memberCache = new Map<string, { roles: string[] | null; cachedAt: number }>();
+const memberCache = new Map<
+  string,
+  { roles: string[] | null; cachedAt: number }
+>();
 const rateLimitedUntil = new Map<string, number>();
 const pendingLookups = new Map<string, Promise<string[] | null>>();
 
@@ -85,7 +88,10 @@ async function readPersistedRoles(
   if (Date.now() - row.fetchedAt.getTime() > ttlFor(roles)) {
     return undefined;
   }
-  if (accountUpdatedAt && row.fetchedAt.getTime() < accountUpdatedAt.getTime()) {
+  if (
+    accountUpdatedAt &&
+    row.fetchedAt.getTime() < accountUpdatedAt.getTime()
+  ) {
     return undefined;
   }
   return { roles, fetchedAt: row.fetchedAt };
@@ -136,7 +142,9 @@ async function fetchMemberRoles(
       (JSON.parse(body || "{}") as { retry_after?: number }).retry_after ?? 5,
     );
     rateLimitedUntil.set(cacheKey, Date.now() + retryAfter * 1000);
-    console.error(`[discord] rate limited for guild ${discordGuildId}, retry after ${retryAfter}s`);
+    console.error(
+      `[discord] rate limited for guild ${discordGuildId}, retry after ${retryAfter}s`,
+    );
     throw new DiscordRateLimitedError(retryAfter);
   }
   if (!res.ok) {
@@ -174,10 +182,16 @@ async function getMemberRoles(
 
   const limitedUntil = rateLimitedUntil.get(cacheKey);
   if (limitedUntil && limitedUntil > Date.now()) {
-    throw new DiscordRateLimitedError(Math.ceil((limitedUntil - Date.now()) / 1000));
+    throw new DiscordRateLimitedError(
+      Math.ceil((limitedUntil - Date.now()) / 1000),
+    );
   }
 
-  const persisted = await readPersistedRoles(discordGuildId, userId, accountUpdatedAt);
+  const persisted = await readPersistedRoles(
+    discordGuildId,
+    userId,
+    accountUpdatedAt,
+  );
   if (persisted) {
     memberCache.set(cacheKey, {
       roles: persisted.roles,
@@ -254,12 +268,17 @@ export interface DiscordGuildSummary {
   icon: string | null;
 }
 
-function guildIconUrl(discordGuildId: string, icon: string | null): string | null {
+function guildIconUrl(
+  discordGuildId: string,
+  icon: string | null,
+): string | null {
   if (!icon) return null;
   return `https://cdn.discordapp.com/icons/${discordGuildId}/${icon}.${icon.startsWith("a_") ? "gif" : "png"}`;
 }
 
-export async function fetchUserGuilds(userId: string): Promise<DiscordGuildSummary[]> {
+export async function fetchUserGuilds(
+  userId: string,
+): Promise<DiscordGuildSummary[]> {
   const accessToken = await getDiscordAccessToken(userId);
 
   const res = await fetch("https://discord.com/api/users/@me/guilds", {
@@ -296,7 +315,10 @@ export async function getGuildIconUrl(
   const cached = await db.discordGuildInfoCache.findUnique({
     where: { discordGuildId },
   });
-  if (cached && Date.now() - cached.fetchedAt.getTime() < GUILD_INFO_CACHE_TTL_MS) {
+  if (
+    cached &&
+    Date.now() - cached.fetchedAt.getTime() < GUILD_INFO_CACHE_TTL_MS
+  ) {
     return guildIconUrl(discordGuildId, cached.icon);
   }
 
@@ -380,6 +402,7 @@ export interface DiscordChannelSummary {
 // can grant direct access to either kind, see GuildRoleRuleGrantedChannel).
 const GUILD_TEXT_CHANNEL_TYPE = 0;
 const GUILD_VOICE_CHANNEL_TYPE = 2;
+const GUILD_FORUM_CHANNEL_TYPE = 15;
 
 interface RawDiscordChannel {
   id: string;
@@ -388,7 +411,9 @@ interface RawDiscordChannel {
   position: number;
 }
 
-async function fetchGuildChannels(discordGuildId: string): Promise<RawDiscordChannel[]> {
+async function fetchGuildChannels(
+  discordGuildId: string,
+): Promise<RawDiscordChannel[]> {
   const res = await fetch(
     `https://discord.com/api/v10/guilds/${discordGuildId}/channels`,
     { headers: { Authorization: `Bot ${env.DISCORD_BOT_TOKEN}` } },
@@ -399,7 +424,9 @@ async function fetchGuildChannels(discordGuildId: string): Promise<RawDiscordCha
   }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    console.error(`[discord] channel list lookup failed: ${res.status} ${body}`);
+    console.error(
+      `[discord] channel list lookup failed: ${res.status} ${body}`,
+    );
     throw new Error(`Discord API error ${res.status}`);
   }
 
@@ -423,6 +450,39 @@ export async function getGuildChannels(
     .map((c) => ({ id: c.id, name: c.name }));
 }
 
+export interface DiscordEventChannelOption {
+  id: string;
+  name: string;
+  type: "text" | "forum";
+}
+
+/**
+ * Text AND forum channels for a Discord server, for the event-creation
+ * channel picker — the bot posts a text-channel event as a thread, a
+ * forum-channel one as a post (see apps/bot/src/events.ts), so both are
+ * valid targets unlike the plain-text-only pickers above.
+ */
+export async function getGuildChannelsForEvents(
+  discordGuildId: string,
+): Promise<DiscordEventChannelOption[]> {
+  const channels = await fetchGuildChannels(discordGuildId);
+  return channels
+    .filter(
+      (c) =>
+        c.type === GUILD_TEXT_CHANNEL_TYPE ||
+        c.type === GUILD_FORUM_CHANNEL_TYPE,
+    )
+    .sort((a, b) => a.position - b.position)
+    .map((c) => ({
+      id: c.id,
+      name: c.name,
+      type:
+        c.type === GUILD_FORUM_CHANNEL_TYPE
+          ? ("forum" as const)
+          : ("text" as const),
+    }));
+}
+
 export interface DiscordChannelGrantOption {
   id: string;
   name: string;
@@ -440,13 +500,18 @@ export async function getGuildChannelsForGrants(
   const channels = await fetchGuildChannels(discordGuildId);
   return channels
     .filter(
-      (c) => c.type === GUILD_TEXT_CHANNEL_TYPE || c.type === GUILD_VOICE_CHANNEL_TYPE,
+      (c) =>
+        c.type === GUILD_TEXT_CHANNEL_TYPE ||
+        c.type === GUILD_VOICE_CHANNEL_TYPE,
     )
     .sort((a, b) => a.position - b.position)
     .map((c) => ({
       id: c.id,
       name: c.name,
-      type: c.type === GUILD_VOICE_CHANNEL_TYPE ? ("voice" as const) : ("text" as const),
+      type:
+        c.type === GUILD_VOICE_CHANNEL_TYPE
+          ? ("voice" as const)
+          : ("text" as const),
     }));
 }
 
@@ -494,7 +559,9 @@ export async function getGuildMembers(
     }
     if (!res.ok) {
       const body = await res.text().catch(() => "");
-      console.error(`[discord] member list lookup failed: ${res.status} ${body}`);
+      console.error(
+        `[discord] member list lookup failed: ${res.status} ${body}`,
+      );
       throw new Error(`Discord API error ${res.status}`);
     }
 
@@ -528,14 +595,17 @@ export async function sendDirectMessage(
   discordUserId: string,
   content: string,
 ): Promise<boolean> {
-  const openRes = await fetch("https://discord.com/api/v10/users/@me/channels", {
-    method: "POST",
-    headers: {
-      Authorization: `Bot ${env.DISCORD_BOT_TOKEN}`,
-      "Content-Type": "application/json",
+  const openRes = await fetch(
+    "https://discord.com/api/v10/users/@me/channels",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bot ${env.DISCORD_BOT_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ recipient_id: discordUserId }),
     },
-    body: JSON.stringify({ recipient_id: discordUserId }),
-  });
+  );
   if (!openRes.ok) return false;
   const channel = (await openRes.json()) as { id: string };
 

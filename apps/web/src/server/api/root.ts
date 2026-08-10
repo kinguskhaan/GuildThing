@@ -1,3 +1,4 @@
+import { eventRouter } from "~/server/api/routers/event";
 import { guildRouter } from "~/server/api/routers/guild";
 import { instanceSettingsRouter } from "~/server/api/routers/instanceSettings";
 import { postRouter } from "~/server/api/routers/post";
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   guild: guildRouter,
   user: userRouter,
   instanceSettings: instanceSettingsRouter,
+  event: eventRouter,
 });
 
 // export type definition of API
