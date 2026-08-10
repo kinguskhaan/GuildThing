@@ -1,3 +1,4 @@
+import { GuildEventChannelPresets } from "~/app/_components/guild-event-channel-presets";
 import { GuildEventsForm } from "~/app/_components/guild-events-form";
 import { GuildEventsList } from "~/app/_components/guild-events-list";
 import { api } from "~/trpc/server";
@@ -18,6 +19,7 @@ export default async function EventsPage({
       <h2 className="text-center text-2xl font-bold">Events</h2>
 
       {guild.isAdmin && <GuildEventsForm guildId={guildId} />}
+      {guild.isAdmin && <GuildEventChannelPresets guildId={guildId} />}
 
       {events.length === 0 ? (
         <div className="bg-discord-elevated text-discord-text-muted w-full rounded-xl p-6 text-center">

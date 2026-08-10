@@ -104,6 +104,11 @@ export type GuildRoleRuleGrantedChannel = $Result.DefaultSelection<Prisma.$Guild
  */
 export type GuildRoleRuleCondition = $Result.DefaultSelection<Prisma.$GuildRoleRuleConditionPayload>
 /**
+ * Model EventChannelPreset
+ * 
+ */
+export type EventChannelPreset = $Result.DefaultSelection<Prisma.$EventChannelPresetPayload>
+/**
  * Model Event
  * 
  */
@@ -461,6 +466,16 @@ export class PrismaClient<
     * ```
     */
   get guildRoleRuleCondition(): Prisma.GuildRoleRuleConditionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.eventChannelPreset`: Exposes CRUD operations for the **EventChannelPreset** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EventChannelPresets
+    * const eventChannelPresets = await prisma.eventChannelPreset.findMany()
+    * ```
+    */
+  get eventChannelPreset(): Prisma.EventChannelPresetDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.event`: Exposes CRUD operations for the **Event** model.
@@ -1040,6 +1055,7 @@ export namespace Prisma {
     GuildRoleRuleGrantedRole: 'GuildRoleRuleGrantedRole',
     GuildRoleRuleGrantedChannel: 'GuildRoleRuleGrantedChannel',
     GuildRoleRuleCondition: 'GuildRoleRuleCondition',
+    EventChannelPreset: 'EventChannelPreset',
     Event: 'Event',
     EventTimeOption: 'EventTimeOption',
     EventTimeVote: 'EventTimeVote',
@@ -1070,7 +1086,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "post" | "user" | "session" | "account" | "verification" | "instanceSettings" | "allowedGuildCreator" | "guild" | "guildInactivityTargetRole" | "guildRosterMember" | "guildRosterClaimConflict" | "guildPendingRosterMatch" | "guildPugMember" | "guildMemberActivity" | "guildRoleRule" | "guildRoleRuleGrantedRole" | "guildRoleRuleGrantedChannel" | "guildRoleRuleCondition" | "event" | "eventTimeOption" | "eventTimeVote" | "eventRoleSlot" | "eventSignup" | "guildRequiredRole" | "guildAdminRole" | "guildCharacter" | "profession" | "recipe" | "discordMemberRoleCache" | "discordGuildInfoCache"
+      modelProps: "post" | "user" | "session" | "account" | "verification" | "instanceSettings" | "allowedGuildCreator" | "guild" | "guildInactivityTargetRole" | "guildRosterMember" | "guildRosterClaimConflict" | "guildPendingRosterMatch" | "guildPugMember" | "guildMemberActivity" | "guildRoleRule" | "guildRoleRuleGrantedRole" | "guildRoleRuleGrantedChannel" | "guildRoleRuleCondition" | "eventChannelPreset" | "event" | "eventTimeOption" | "eventTimeVote" | "eventRoleSlot" | "eventSignup" | "guildRequiredRole" | "guildAdminRole" | "guildCharacter" | "profession" | "recipe" | "discordMemberRoleCache" | "discordGuildInfoCache"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2406,6 +2422,80 @@ export namespace Prisma {
           }
         }
       }
+      EventChannelPreset: {
+        payload: Prisma.$EventChannelPresetPayload<ExtArgs>
+        fields: Prisma.EventChannelPresetFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EventChannelPresetFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventChannelPresetPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EventChannelPresetFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventChannelPresetPayload>
+          }
+          findFirst: {
+            args: Prisma.EventChannelPresetFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventChannelPresetPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EventChannelPresetFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventChannelPresetPayload>
+          }
+          findMany: {
+            args: Prisma.EventChannelPresetFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventChannelPresetPayload>[]
+          }
+          create: {
+            args: Prisma.EventChannelPresetCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventChannelPresetPayload>
+          }
+          createMany: {
+            args: Prisma.EventChannelPresetCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EventChannelPresetCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventChannelPresetPayload>[]
+          }
+          delete: {
+            args: Prisma.EventChannelPresetDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventChannelPresetPayload>
+          }
+          update: {
+            args: Prisma.EventChannelPresetUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventChannelPresetPayload>
+          }
+          deleteMany: {
+            args: Prisma.EventChannelPresetDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EventChannelPresetUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.EventChannelPresetUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventChannelPresetPayload>[]
+          }
+          upsert: {
+            args: Prisma.EventChannelPresetUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventChannelPresetPayload>
+          }
+          aggregate: {
+            args: Prisma.EventChannelPresetAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEventChannelPreset>
+          }
+          groupBy: {
+            args: Prisma.EventChannelPresetGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EventChannelPresetGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EventChannelPresetCountArgs<ExtArgs>
+            result: $Utils.Optional<EventChannelPresetCountAggregateOutputType> | number
+          }
+        }
+      }
       Event: {
         payload: Prisma.$EventPayload<ExtArgs>
         fields: Prisma.EventFieldRefs
@@ -3408,6 +3498,7 @@ export namespace Prisma {
     guildRoleRuleGrantedRole?: GuildRoleRuleGrantedRoleOmit
     guildRoleRuleGrantedChannel?: GuildRoleRuleGrantedChannelOmit
     guildRoleRuleCondition?: GuildRoleRuleConditionOmit
+    eventChannelPreset?: EventChannelPresetOmit
     event?: EventOmit
     eventTimeOption?: EventTimeOptionOmit
     eventTimeVote?: EventTimeVoteOmit
@@ -3605,6 +3696,7 @@ export namespace Prisma {
     inactivityTargetRoles: number
     pugMembers: number
     events: number
+    eventChannelPresets: number
   }
 
   export type GuildCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3619,6 +3711,7 @@ export namespace Prisma {
     inactivityTargetRoles?: boolean | GuildCountOutputTypeCountInactivityTargetRolesArgs
     pugMembers?: boolean | GuildCountOutputTypeCountPugMembersArgs
     events?: boolean | GuildCountOutputTypeCountEventsArgs
+    eventChannelPresets?: boolean | GuildCountOutputTypeCountEventChannelPresetsArgs
   }
 
   // Custom InputTypes
@@ -3707,6 +3800,13 @@ export namespace Prisma {
    */
   export type GuildCountOutputTypeCountEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: EventWhereInput
+  }
+
+  /**
+   * GuildCountOutputType without action
+   */
+  export type GuildCountOutputTypeCountEventChannelPresetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EventChannelPresetWhereInput
   }
 
 
@@ -11923,6 +12023,7 @@ export namespace Prisma {
     inactivityTargetRoles?: boolean | Guild$inactivityTargetRolesArgs<ExtArgs>
     pugMembers?: boolean | Guild$pugMembersArgs<ExtArgs>
     events?: boolean | Guild$eventsArgs<ExtArgs>
+    eventChannelPresets?: boolean | Guild$eventChannelPresetsArgs<ExtArgs>
     lastExportedBy?: boolean | Guild$lastExportedByArgs<ExtArgs>
     lastRosterImportedBy?: boolean | Guild$lastRosterImportedByArgs<ExtArgs>
     _count?: boolean | GuildCountOutputTypeDefaultArgs<ExtArgs>
@@ -12017,6 +12118,7 @@ export namespace Prisma {
     inactivityTargetRoles?: boolean | Guild$inactivityTargetRolesArgs<ExtArgs>
     pugMembers?: boolean | Guild$pugMembersArgs<ExtArgs>
     events?: boolean | Guild$eventsArgs<ExtArgs>
+    eventChannelPresets?: boolean | Guild$eventChannelPresetsArgs<ExtArgs>
     lastExportedBy?: boolean | Guild$lastExportedByArgs<ExtArgs>
     lastRosterImportedBy?: boolean | Guild$lastRosterImportedByArgs<ExtArgs>
     _count?: boolean | GuildCountOutputTypeDefaultArgs<ExtArgs>
@@ -12047,6 +12149,7 @@ export namespace Prisma {
       inactivityTargetRoles: Prisma.$GuildInactivityTargetRolePayload<ExtArgs>[]
       pugMembers: Prisma.$GuildPugMemberPayload<ExtArgs>[]
       events: Prisma.$EventPayload<ExtArgs>[]
+      eventChannelPresets: Prisma.$EventChannelPresetPayload<ExtArgs>[]
       lastExportedBy: Prisma.$UserPayload<ExtArgs> | null
       lastRosterImportedBy: Prisma.$UserPayload<ExtArgs> | null
     }
@@ -12477,6 +12580,7 @@ export namespace Prisma {
     inactivityTargetRoles<T extends Guild$inactivityTargetRolesArgs<ExtArgs> = {}>(args?: Subset<T, Guild$inactivityTargetRolesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildInactivityTargetRolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     pugMembers<T extends Guild$pugMembersArgs<ExtArgs> = {}>(args?: Subset<T, Guild$pugMembersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildPugMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     events<T extends Guild$eventsArgs<ExtArgs> = {}>(args?: Subset<T, Guild$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    eventChannelPresets<T extends Guild$eventChannelPresetsArgs<ExtArgs> = {}>(args?: Subset<T, Guild$eventChannelPresetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventChannelPresetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     lastExportedBy<T extends Guild$lastExportedByArgs<ExtArgs> = {}>(args?: Subset<T, Guild$lastExportedByArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     lastRosterImportedBy<T extends Guild$lastRosterImportedByArgs<ExtArgs> = {}>(args?: Subset<T, Guild$lastRosterImportedByArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
@@ -13183,6 +13287,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: EventScalarFieldEnum | EventScalarFieldEnum[]
+  }
+
+  /**
+   * Guild.eventChannelPresets
+   */
+  export type Guild$eventChannelPresetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventChannelPreset
+     */
+    select?: EventChannelPresetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventChannelPreset
+     */
+    omit?: EventChannelPresetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventChannelPresetInclude<ExtArgs> | null
+    where?: EventChannelPresetWhereInput
+    orderBy?: EventChannelPresetOrderByWithRelationInput | EventChannelPresetOrderByWithRelationInput[]
+    cursor?: EventChannelPresetWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: EventChannelPresetScalarFieldEnum | EventChannelPresetScalarFieldEnum[]
   }
 
   /**
@@ -24077,6 +24205,1075 @@ export namespace Prisma {
 
 
   /**
+   * Model EventChannelPreset
+   */
+
+  export type AggregateEventChannelPreset = {
+    _count: EventChannelPresetCountAggregateOutputType | null
+    _min: EventChannelPresetMinAggregateOutputType | null
+    _max: EventChannelPresetMaxAggregateOutputType | null
+  }
+
+  export type EventChannelPresetMinAggregateOutputType = {
+    id: string | null
+    guildId: string | null
+    discordChannelId: string | null
+    roles: string | null
+    buttonEnabled: boolean | null
+    buttonMessageId: string | null
+  }
+
+  export type EventChannelPresetMaxAggregateOutputType = {
+    id: string | null
+    guildId: string | null
+    discordChannelId: string | null
+    roles: string | null
+    buttonEnabled: boolean | null
+    buttonMessageId: string | null
+  }
+
+  export type EventChannelPresetCountAggregateOutputType = {
+    id: number
+    guildId: number
+    discordChannelId: number
+    roles: number
+    buttonEnabled: number
+    buttonMessageId: number
+    _all: number
+  }
+
+
+  export type EventChannelPresetMinAggregateInputType = {
+    id?: true
+    guildId?: true
+    discordChannelId?: true
+    roles?: true
+    buttonEnabled?: true
+    buttonMessageId?: true
+  }
+
+  export type EventChannelPresetMaxAggregateInputType = {
+    id?: true
+    guildId?: true
+    discordChannelId?: true
+    roles?: true
+    buttonEnabled?: true
+    buttonMessageId?: true
+  }
+
+  export type EventChannelPresetCountAggregateInputType = {
+    id?: true
+    guildId?: true
+    discordChannelId?: true
+    roles?: true
+    buttonEnabled?: true
+    buttonMessageId?: true
+    _all?: true
+  }
+
+  export type EventChannelPresetAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EventChannelPreset to aggregate.
+     */
+    where?: EventChannelPresetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EventChannelPresets to fetch.
+     */
+    orderBy?: EventChannelPresetOrderByWithRelationInput | EventChannelPresetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EventChannelPresetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EventChannelPresets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EventChannelPresets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EventChannelPresets
+    **/
+    _count?: true | EventChannelPresetCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EventChannelPresetMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EventChannelPresetMaxAggregateInputType
+  }
+
+  export type GetEventChannelPresetAggregateType<T extends EventChannelPresetAggregateArgs> = {
+        [P in keyof T & keyof AggregateEventChannelPreset]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEventChannelPreset[P]>
+      : GetScalarType<T[P], AggregateEventChannelPreset[P]>
+  }
+
+
+
+
+  export type EventChannelPresetGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EventChannelPresetWhereInput
+    orderBy?: EventChannelPresetOrderByWithAggregationInput | EventChannelPresetOrderByWithAggregationInput[]
+    by: EventChannelPresetScalarFieldEnum[] | EventChannelPresetScalarFieldEnum
+    having?: EventChannelPresetScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EventChannelPresetCountAggregateInputType | true
+    _min?: EventChannelPresetMinAggregateInputType
+    _max?: EventChannelPresetMaxAggregateInputType
+  }
+
+  export type EventChannelPresetGroupByOutputType = {
+    id: string
+    guildId: string
+    discordChannelId: string
+    roles: string | null
+    buttonEnabled: boolean
+    buttonMessageId: string | null
+    _count: EventChannelPresetCountAggregateOutputType | null
+    _min: EventChannelPresetMinAggregateOutputType | null
+    _max: EventChannelPresetMaxAggregateOutputType | null
+  }
+
+  type GetEventChannelPresetGroupByPayload<T extends EventChannelPresetGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EventChannelPresetGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EventChannelPresetGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EventChannelPresetGroupByOutputType[P]>
+            : GetScalarType<T[P], EventChannelPresetGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EventChannelPresetSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    guildId?: boolean
+    discordChannelId?: boolean
+    roles?: boolean
+    buttonEnabled?: boolean
+    buttonMessageId?: boolean
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eventChannelPreset"]>
+
+  export type EventChannelPresetSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    guildId?: boolean
+    discordChannelId?: boolean
+    roles?: boolean
+    buttonEnabled?: boolean
+    buttonMessageId?: boolean
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eventChannelPreset"]>
+
+  export type EventChannelPresetSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    guildId?: boolean
+    discordChannelId?: boolean
+    roles?: boolean
+    buttonEnabled?: boolean
+    buttonMessageId?: boolean
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eventChannelPreset"]>
+
+  export type EventChannelPresetSelectScalar = {
+    id?: boolean
+    guildId?: boolean
+    discordChannelId?: boolean
+    roles?: boolean
+    buttonEnabled?: boolean
+    buttonMessageId?: boolean
+  }
+
+  export type EventChannelPresetOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "discordChannelId" | "roles" | "buttonEnabled" | "buttonMessageId", ExtArgs["result"]["eventChannelPreset"]>
+  export type EventChannelPresetInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+  }
+  export type EventChannelPresetIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+  }
+  export type EventChannelPresetIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+  }
+
+  export type $EventChannelPresetPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EventChannelPreset"
+    objects: {
+      guild: Prisma.$GuildPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      guildId: string
+      discordChannelId: string
+      roles: string | null
+      buttonEnabled: boolean
+      buttonMessageId: string | null
+    }, ExtArgs["result"]["eventChannelPreset"]>
+    composites: {}
+  }
+
+  type EventChannelPresetGetPayload<S extends boolean | null | undefined | EventChannelPresetDefaultArgs> = $Result.GetResult<Prisma.$EventChannelPresetPayload, S>
+
+  type EventChannelPresetCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<EventChannelPresetFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: EventChannelPresetCountAggregateInputType | true
+    }
+
+  export interface EventChannelPresetDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EventChannelPreset'], meta: { name: 'EventChannelPreset' } }
+    /**
+     * Find zero or one EventChannelPreset that matches the filter.
+     * @param {EventChannelPresetFindUniqueArgs} args - Arguments to find a EventChannelPreset
+     * @example
+     * // Get one EventChannelPreset
+     * const eventChannelPreset = await prisma.eventChannelPreset.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EventChannelPresetFindUniqueArgs>(args: SelectSubset<T, EventChannelPresetFindUniqueArgs<ExtArgs>>): Prisma__EventChannelPresetClient<$Result.GetResult<Prisma.$EventChannelPresetPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one EventChannelPreset that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {EventChannelPresetFindUniqueOrThrowArgs} args - Arguments to find a EventChannelPreset
+     * @example
+     * // Get one EventChannelPreset
+     * const eventChannelPreset = await prisma.eventChannelPreset.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EventChannelPresetFindUniqueOrThrowArgs>(args: SelectSubset<T, EventChannelPresetFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EventChannelPresetClient<$Result.GetResult<Prisma.$EventChannelPresetPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first EventChannelPreset that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventChannelPresetFindFirstArgs} args - Arguments to find a EventChannelPreset
+     * @example
+     * // Get one EventChannelPreset
+     * const eventChannelPreset = await prisma.eventChannelPreset.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EventChannelPresetFindFirstArgs>(args?: SelectSubset<T, EventChannelPresetFindFirstArgs<ExtArgs>>): Prisma__EventChannelPresetClient<$Result.GetResult<Prisma.$EventChannelPresetPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first EventChannelPreset that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventChannelPresetFindFirstOrThrowArgs} args - Arguments to find a EventChannelPreset
+     * @example
+     * // Get one EventChannelPreset
+     * const eventChannelPreset = await prisma.eventChannelPreset.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EventChannelPresetFindFirstOrThrowArgs>(args?: SelectSubset<T, EventChannelPresetFindFirstOrThrowArgs<ExtArgs>>): Prisma__EventChannelPresetClient<$Result.GetResult<Prisma.$EventChannelPresetPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more EventChannelPresets that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventChannelPresetFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EventChannelPresets
+     * const eventChannelPresets = await prisma.eventChannelPreset.findMany()
+     * 
+     * // Get first 10 EventChannelPresets
+     * const eventChannelPresets = await prisma.eventChannelPreset.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const eventChannelPresetWithIdOnly = await prisma.eventChannelPreset.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EventChannelPresetFindManyArgs>(args?: SelectSubset<T, EventChannelPresetFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventChannelPresetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a EventChannelPreset.
+     * @param {EventChannelPresetCreateArgs} args - Arguments to create a EventChannelPreset.
+     * @example
+     * // Create one EventChannelPreset
+     * const EventChannelPreset = await prisma.eventChannelPreset.create({
+     *   data: {
+     *     // ... data to create a EventChannelPreset
+     *   }
+     * })
+     * 
+     */
+    create<T extends EventChannelPresetCreateArgs>(args: SelectSubset<T, EventChannelPresetCreateArgs<ExtArgs>>): Prisma__EventChannelPresetClient<$Result.GetResult<Prisma.$EventChannelPresetPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many EventChannelPresets.
+     * @param {EventChannelPresetCreateManyArgs} args - Arguments to create many EventChannelPresets.
+     * @example
+     * // Create many EventChannelPresets
+     * const eventChannelPreset = await prisma.eventChannelPreset.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EventChannelPresetCreateManyArgs>(args?: SelectSubset<T, EventChannelPresetCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EventChannelPresets and returns the data saved in the database.
+     * @param {EventChannelPresetCreateManyAndReturnArgs} args - Arguments to create many EventChannelPresets.
+     * @example
+     * // Create many EventChannelPresets
+     * const eventChannelPreset = await prisma.eventChannelPreset.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EventChannelPresets and only return the `id`
+     * const eventChannelPresetWithIdOnly = await prisma.eventChannelPreset.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EventChannelPresetCreateManyAndReturnArgs>(args?: SelectSubset<T, EventChannelPresetCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventChannelPresetPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a EventChannelPreset.
+     * @param {EventChannelPresetDeleteArgs} args - Arguments to delete one EventChannelPreset.
+     * @example
+     * // Delete one EventChannelPreset
+     * const EventChannelPreset = await prisma.eventChannelPreset.delete({
+     *   where: {
+     *     // ... filter to delete one EventChannelPreset
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EventChannelPresetDeleteArgs>(args: SelectSubset<T, EventChannelPresetDeleteArgs<ExtArgs>>): Prisma__EventChannelPresetClient<$Result.GetResult<Prisma.$EventChannelPresetPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one EventChannelPreset.
+     * @param {EventChannelPresetUpdateArgs} args - Arguments to update one EventChannelPreset.
+     * @example
+     * // Update one EventChannelPreset
+     * const eventChannelPreset = await prisma.eventChannelPreset.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EventChannelPresetUpdateArgs>(args: SelectSubset<T, EventChannelPresetUpdateArgs<ExtArgs>>): Prisma__EventChannelPresetClient<$Result.GetResult<Prisma.$EventChannelPresetPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more EventChannelPresets.
+     * @param {EventChannelPresetDeleteManyArgs} args - Arguments to filter EventChannelPresets to delete.
+     * @example
+     * // Delete a few EventChannelPresets
+     * const { count } = await prisma.eventChannelPreset.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EventChannelPresetDeleteManyArgs>(args?: SelectSubset<T, EventChannelPresetDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EventChannelPresets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventChannelPresetUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EventChannelPresets
+     * const eventChannelPreset = await prisma.eventChannelPreset.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EventChannelPresetUpdateManyArgs>(args: SelectSubset<T, EventChannelPresetUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EventChannelPresets and returns the data updated in the database.
+     * @param {EventChannelPresetUpdateManyAndReturnArgs} args - Arguments to update many EventChannelPresets.
+     * @example
+     * // Update many EventChannelPresets
+     * const eventChannelPreset = await prisma.eventChannelPreset.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more EventChannelPresets and only return the `id`
+     * const eventChannelPresetWithIdOnly = await prisma.eventChannelPreset.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends EventChannelPresetUpdateManyAndReturnArgs>(args: SelectSubset<T, EventChannelPresetUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventChannelPresetPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one EventChannelPreset.
+     * @param {EventChannelPresetUpsertArgs} args - Arguments to update or create a EventChannelPreset.
+     * @example
+     * // Update or create a EventChannelPreset
+     * const eventChannelPreset = await prisma.eventChannelPreset.upsert({
+     *   create: {
+     *     // ... data to create a EventChannelPreset
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EventChannelPreset we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EventChannelPresetUpsertArgs>(args: SelectSubset<T, EventChannelPresetUpsertArgs<ExtArgs>>): Prisma__EventChannelPresetClient<$Result.GetResult<Prisma.$EventChannelPresetPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of EventChannelPresets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventChannelPresetCountArgs} args - Arguments to filter EventChannelPresets to count.
+     * @example
+     * // Count the number of EventChannelPresets
+     * const count = await prisma.eventChannelPreset.count({
+     *   where: {
+     *     // ... the filter for the EventChannelPresets we want to count
+     *   }
+     * })
+    **/
+    count<T extends EventChannelPresetCountArgs>(
+      args?: Subset<T, EventChannelPresetCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EventChannelPresetCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EventChannelPreset.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventChannelPresetAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EventChannelPresetAggregateArgs>(args: Subset<T, EventChannelPresetAggregateArgs>): Prisma.PrismaPromise<GetEventChannelPresetAggregateType<T>>
+
+    /**
+     * Group by EventChannelPreset.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventChannelPresetGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EventChannelPresetGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EventChannelPresetGroupByArgs['orderBy'] }
+        : { orderBy?: EventChannelPresetGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EventChannelPresetGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEventChannelPresetGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EventChannelPreset model
+   */
+  readonly fields: EventChannelPresetFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EventChannelPreset.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EventChannelPresetClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    guild<T extends GuildDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GuildDefaultArgs<ExtArgs>>): Prisma__GuildClient<$Result.GetResult<Prisma.$GuildPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EventChannelPreset model
+   */
+  interface EventChannelPresetFieldRefs {
+    readonly id: FieldRef<"EventChannelPreset", 'String'>
+    readonly guildId: FieldRef<"EventChannelPreset", 'String'>
+    readonly discordChannelId: FieldRef<"EventChannelPreset", 'String'>
+    readonly roles: FieldRef<"EventChannelPreset", 'String'>
+    readonly buttonEnabled: FieldRef<"EventChannelPreset", 'Boolean'>
+    readonly buttonMessageId: FieldRef<"EventChannelPreset", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EventChannelPreset findUnique
+   */
+  export type EventChannelPresetFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventChannelPreset
+     */
+    select?: EventChannelPresetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventChannelPreset
+     */
+    omit?: EventChannelPresetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventChannelPresetInclude<ExtArgs> | null
+    /**
+     * Filter, which EventChannelPreset to fetch.
+     */
+    where: EventChannelPresetWhereUniqueInput
+  }
+
+  /**
+   * EventChannelPreset findUniqueOrThrow
+   */
+  export type EventChannelPresetFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventChannelPreset
+     */
+    select?: EventChannelPresetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventChannelPreset
+     */
+    omit?: EventChannelPresetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventChannelPresetInclude<ExtArgs> | null
+    /**
+     * Filter, which EventChannelPreset to fetch.
+     */
+    where: EventChannelPresetWhereUniqueInput
+  }
+
+  /**
+   * EventChannelPreset findFirst
+   */
+  export type EventChannelPresetFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventChannelPreset
+     */
+    select?: EventChannelPresetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventChannelPreset
+     */
+    omit?: EventChannelPresetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventChannelPresetInclude<ExtArgs> | null
+    /**
+     * Filter, which EventChannelPreset to fetch.
+     */
+    where?: EventChannelPresetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EventChannelPresets to fetch.
+     */
+    orderBy?: EventChannelPresetOrderByWithRelationInput | EventChannelPresetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EventChannelPresets.
+     */
+    cursor?: EventChannelPresetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EventChannelPresets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EventChannelPresets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EventChannelPresets.
+     */
+    distinct?: EventChannelPresetScalarFieldEnum | EventChannelPresetScalarFieldEnum[]
+  }
+
+  /**
+   * EventChannelPreset findFirstOrThrow
+   */
+  export type EventChannelPresetFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventChannelPreset
+     */
+    select?: EventChannelPresetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventChannelPreset
+     */
+    omit?: EventChannelPresetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventChannelPresetInclude<ExtArgs> | null
+    /**
+     * Filter, which EventChannelPreset to fetch.
+     */
+    where?: EventChannelPresetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EventChannelPresets to fetch.
+     */
+    orderBy?: EventChannelPresetOrderByWithRelationInput | EventChannelPresetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EventChannelPresets.
+     */
+    cursor?: EventChannelPresetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EventChannelPresets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EventChannelPresets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EventChannelPresets.
+     */
+    distinct?: EventChannelPresetScalarFieldEnum | EventChannelPresetScalarFieldEnum[]
+  }
+
+  /**
+   * EventChannelPreset findMany
+   */
+  export type EventChannelPresetFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventChannelPreset
+     */
+    select?: EventChannelPresetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventChannelPreset
+     */
+    omit?: EventChannelPresetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventChannelPresetInclude<ExtArgs> | null
+    /**
+     * Filter, which EventChannelPresets to fetch.
+     */
+    where?: EventChannelPresetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EventChannelPresets to fetch.
+     */
+    orderBy?: EventChannelPresetOrderByWithRelationInput | EventChannelPresetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EventChannelPresets.
+     */
+    cursor?: EventChannelPresetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EventChannelPresets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EventChannelPresets.
+     */
+    skip?: number
+    distinct?: EventChannelPresetScalarFieldEnum | EventChannelPresetScalarFieldEnum[]
+  }
+
+  /**
+   * EventChannelPreset create
+   */
+  export type EventChannelPresetCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventChannelPreset
+     */
+    select?: EventChannelPresetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventChannelPreset
+     */
+    omit?: EventChannelPresetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventChannelPresetInclude<ExtArgs> | null
+    /**
+     * The data needed to create a EventChannelPreset.
+     */
+    data: XOR<EventChannelPresetCreateInput, EventChannelPresetUncheckedCreateInput>
+  }
+
+  /**
+   * EventChannelPreset createMany
+   */
+  export type EventChannelPresetCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EventChannelPresets.
+     */
+    data: EventChannelPresetCreateManyInput | EventChannelPresetCreateManyInput[]
+  }
+
+  /**
+   * EventChannelPreset createManyAndReturn
+   */
+  export type EventChannelPresetCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventChannelPreset
+     */
+    select?: EventChannelPresetSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventChannelPreset
+     */
+    omit?: EventChannelPresetOmit<ExtArgs> | null
+    /**
+     * The data used to create many EventChannelPresets.
+     */
+    data: EventChannelPresetCreateManyInput | EventChannelPresetCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventChannelPresetIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EventChannelPreset update
+   */
+  export type EventChannelPresetUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventChannelPreset
+     */
+    select?: EventChannelPresetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventChannelPreset
+     */
+    omit?: EventChannelPresetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventChannelPresetInclude<ExtArgs> | null
+    /**
+     * The data needed to update a EventChannelPreset.
+     */
+    data: XOR<EventChannelPresetUpdateInput, EventChannelPresetUncheckedUpdateInput>
+    /**
+     * Choose, which EventChannelPreset to update.
+     */
+    where: EventChannelPresetWhereUniqueInput
+  }
+
+  /**
+   * EventChannelPreset updateMany
+   */
+  export type EventChannelPresetUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EventChannelPresets.
+     */
+    data: XOR<EventChannelPresetUpdateManyMutationInput, EventChannelPresetUncheckedUpdateManyInput>
+    /**
+     * Filter which EventChannelPresets to update
+     */
+    where?: EventChannelPresetWhereInput
+    /**
+     * Limit how many EventChannelPresets to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * EventChannelPreset updateManyAndReturn
+   */
+  export type EventChannelPresetUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventChannelPreset
+     */
+    select?: EventChannelPresetSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventChannelPreset
+     */
+    omit?: EventChannelPresetOmit<ExtArgs> | null
+    /**
+     * The data used to update EventChannelPresets.
+     */
+    data: XOR<EventChannelPresetUpdateManyMutationInput, EventChannelPresetUncheckedUpdateManyInput>
+    /**
+     * Filter which EventChannelPresets to update
+     */
+    where?: EventChannelPresetWhereInput
+    /**
+     * Limit how many EventChannelPresets to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventChannelPresetIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EventChannelPreset upsert
+   */
+  export type EventChannelPresetUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventChannelPreset
+     */
+    select?: EventChannelPresetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventChannelPreset
+     */
+    omit?: EventChannelPresetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventChannelPresetInclude<ExtArgs> | null
+    /**
+     * The filter to search for the EventChannelPreset to update in case it exists.
+     */
+    where: EventChannelPresetWhereUniqueInput
+    /**
+     * In case the EventChannelPreset found by the `where` argument doesn't exist, create a new EventChannelPreset with this data.
+     */
+    create: XOR<EventChannelPresetCreateInput, EventChannelPresetUncheckedCreateInput>
+    /**
+     * In case the EventChannelPreset was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EventChannelPresetUpdateInput, EventChannelPresetUncheckedUpdateInput>
+  }
+
+  /**
+   * EventChannelPreset delete
+   */
+  export type EventChannelPresetDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventChannelPreset
+     */
+    select?: EventChannelPresetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventChannelPreset
+     */
+    omit?: EventChannelPresetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventChannelPresetInclude<ExtArgs> | null
+    /**
+     * Filter which EventChannelPreset to delete.
+     */
+    where: EventChannelPresetWhereUniqueInput
+  }
+
+  /**
+   * EventChannelPreset deleteMany
+   */
+  export type EventChannelPresetDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EventChannelPresets to delete
+     */
+    where?: EventChannelPresetWhereInput
+    /**
+     * Limit how many EventChannelPresets to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * EventChannelPreset without action
+   */
+  export type EventChannelPresetDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventChannelPreset
+     */
+    select?: EventChannelPresetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventChannelPreset
+     */
+    omit?: EventChannelPresetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventChannelPresetInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model Event
    */
 
@@ -24092,6 +25289,7 @@ export namespace Prisma {
     title: string | null
     imageUrl: string | null
     date: string | null
+    description: string | null
     createdByDiscordUserId: string | null
     createdByDiscordTag: string | null
     discordChannelId: string | null
@@ -24109,6 +25307,7 @@ export namespace Prisma {
     title: string | null
     imageUrl: string | null
     date: string | null
+    description: string | null
     createdByDiscordUserId: string | null
     createdByDiscordTag: string | null
     discordChannelId: string | null
@@ -24126,6 +25325,7 @@ export namespace Prisma {
     title: number
     imageUrl: number
     date: number
+    description: number
     createdByDiscordUserId: number
     createdByDiscordTag: number
     discordChannelId: number
@@ -24145,6 +25345,7 @@ export namespace Prisma {
     title?: true
     imageUrl?: true
     date?: true
+    description?: true
     createdByDiscordUserId?: true
     createdByDiscordTag?: true
     discordChannelId?: true
@@ -24162,6 +25363,7 @@ export namespace Prisma {
     title?: true
     imageUrl?: true
     date?: true
+    description?: true
     createdByDiscordUserId?: true
     createdByDiscordTag?: true
     discordChannelId?: true
@@ -24179,6 +25381,7 @@ export namespace Prisma {
     title?: true
     imageUrl?: true
     date?: true
+    description?: true
     createdByDiscordUserId?: true
     createdByDiscordTag?: true
     discordChannelId?: true
@@ -24269,6 +25472,7 @@ export namespace Prisma {
     title: string
     imageUrl: string | null
     date: string | null
+    description: string | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -24303,6 +25507,7 @@ export namespace Prisma {
     title?: boolean
     imageUrl?: boolean
     date?: boolean
+    description?: boolean
     createdByDiscordUserId?: boolean
     createdByDiscordTag?: boolean
     discordChannelId?: boolean
@@ -24326,6 +25531,7 @@ export namespace Prisma {
     title?: boolean
     imageUrl?: boolean
     date?: boolean
+    description?: boolean
     createdByDiscordUserId?: boolean
     createdByDiscordTag?: boolean
     discordChannelId?: boolean
@@ -24344,6 +25550,7 @@ export namespace Prisma {
     title?: boolean
     imageUrl?: boolean
     date?: boolean
+    description?: boolean
     createdByDiscordUserId?: boolean
     createdByDiscordTag?: boolean
     discordChannelId?: boolean
@@ -24362,6 +25569,7 @@ export namespace Prisma {
     title?: boolean
     imageUrl?: boolean
     date?: boolean
+    description?: boolean
     createdByDiscordUserId?: boolean
     createdByDiscordTag?: boolean
     discordChannelId?: boolean
@@ -24373,7 +25581,7 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
-  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "title" | "imageUrl" | "date" | "createdByDiscordUserId" | "createdByDiscordTag" | "discordChannelId" | "discordThreadId" | "discordMessageId" | "status" | "lockedTimeOptionId" | "pendingWebUpdate" | "createdAt", ExtArgs["result"]["event"]>
+  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "title" | "imageUrl" | "date" | "description" | "createdByDiscordUserId" | "createdByDiscordTag" | "discordChannelId" | "discordThreadId" | "discordMessageId" | "status" | "lockedTimeOptionId" | "pendingWebUpdate" | "createdAt", ExtArgs["result"]["event"]>
   export type EventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     guild?: boolean | GuildDefaultArgs<ExtArgs>
     timeOptions?: boolean | Event$timeOptionsArgs<ExtArgs>
@@ -24404,6 +25612,7 @@ export namespace Prisma {
       title: string
       imageUrl: string | null
       date: string | null
+      description: string | null
       createdByDiscordUserId: string
       createdByDiscordTag: string
       discordChannelId: string
@@ -24846,6 +26055,7 @@ export namespace Prisma {
     readonly title: FieldRef<"Event", 'String'>
     readonly imageUrl: FieldRef<"Event", 'String'>
     readonly date: FieldRef<"Event", 'String'>
+    readonly description: FieldRef<"Event", 'String'>
     readonly createdByDiscordUserId: FieldRef<"Event", 'String'>
     readonly createdByDiscordTag: FieldRef<"Event", 'String'>
     readonly discordChannelId: FieldRef<"Event", 'String'>
@@ -37284,12 +38494,25 @@ export namespace Prisma {
   export type GuildRoleRuleConditionScalarFieldEnum = (typeof GuildRoleRuleConditionScalarFieldEnum)[keyof typeof GuildRoleRuleConditionScalarFieldEnum]
 
 
+  export const EventChannelPresetScalarFieldEnum: {
+    id: 'id',
+    guildId: 'guildId',
+    discordChannelId: 'discordChannelId',
+    roles: 'roles',
+    buttonEnabled: 'buttonEnabled',
+    buttonMessageId: 'buttonMessageId'
+  };
+
+  export type EventChannelPresetScalarFieldEnum = (typeof EventChannelPresetScalarFieldEnum)[keyof typeof EventChannelPresetScalarFieldEnum]
+
+
   export const EventScalarFieldEnum: {
     id: 'id',
     guildId: 'guildId',
     title: 'title',
     imageUrl: 'imageUrl',
     date: 'date',
+    description: 'description',
     createdByDiscordUserId: 'createdByDiscordUserId',
     createdByDiscordTag: 'createdByDiscordTag',
     discordChannelId: 'discordChannelId',
@@ -37973,6 +39196,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleListRelationFilter
     pugMembers?: GuildPugMemberListRelationFilter
     events?: EventListRelationFilter
+    eventChannelPresets?: EventChannelPresetListRelationFilter
     lastExportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     lastRosterImportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }
@@ -38010,6 +39234,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleOrderByRelationAggregateInput
     pugMembers?: GuildPugMemberOrderByRelationAggregateInput
     events?: EventOrderByRelationAggregateInput
+    eventChannelPresets?: EventChannelPresetOrderByRelationAggregateInput
     lastExportedBy?: UserOrderByWithRelationInput
     lastRosterImportedBy?: UserOrderByWithRelationInput
   }
@@ -38050,6 +39275,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleListRelationFilter
     pugMembers?: GuildPugMemberListRelationFilter
     events?: EventListRelationFilter
+    eventChannelPresets?: EventChannelPresetListRelationFilter
     lastExportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     lastRosterImportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }, "id" | "discordGuildId">
@@ -38712,6 +39938,67 @@ export namespace Prisma {
     maxNumber?: IntNullableWithAggregatesFilter<"GuildRoleRuleCondition"> | number | null
   }
 
+  export type EventChannelPresetWhereInput = {
+    AND?: EventChannelPresetWhereInput | EventChannelPresetWhereInput[]
+    OR?: EventChannelPresetWhereInput[]
+    NOT?: EventChannelPresetWhereInput | EventChannelPresetWhereInput[]
+    id?: StringFilter<"EventChannelPreset"> | string
+    guildId?: StringFilter<"EventChannelPreset"> | string
+    discordChannelId?: StringFilter<"EventChannelPreset"> | string
+    roles?: StringNullableFilter<"EventChannelPreset"> | string | null
+    buttonEnabled?: BoolFilter<"EventChannelPreset"> | boolean
+    buttonMessageId?: StringNullableFilter<"EventChannelPreset"> | string | null
+    guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
+  }
+
+  export type EventChannelPresetOrderByWithRelationInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    discordChannelId?: SortOrder
+    roles?: SortOrderInput | SortOrder
+    buttonEnabled?: SortOrder
+    buttonMessageId?: SortOrderInput | SortOrder
+    guild?: GuildOrderByWithRelationInput
+  }
+
+  export type EventChannelPresetWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    guildId_discordChannelId?: EventChannelPresetGuildIdDiscordChannelIdCompoundUniqueInput
+    AND?: EventChannelPresetWhereInput | EventChannelPresetWhereInput[]
+    OR?: EventChannelPresetWhereInput[]
+    NOT?: EventChannelPresetWhereInput | EventChannelPresetWhereInput[]
+    guildId?: StringFilter<"EventChannelPreset"> | string
+    discordChannelId?: StringFilter<"EventChannelPreset"> | string
+    roles?: StringNullableFilter<"EventChannelPreset"> | string | null
+    buttonEnabled?: BoolFilter<"EventChannelPreset"> | boolean
+    buttonMessageId?: StringNullableFilter<"EventChannelPreset"> | string | null
+    guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
+  }, "id" | "guildId_discordChannelId">
+
+  export type EventChannelPresetOrderByWithAggregationInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    discordChannelId?: SortOrder
+    roles?: SortOrderInput | SortOrder
+    buttonEnabled?: SortOrder
+    buttonMessageId?: SortOrderInput | SortOrder
+    _count?: EventChannelPresetCountOrderByAggregateInput
+    _max?: EventChannelPresetMaxOrderByAggregateInput
+    _min?: EventChannelPresetMinOrderByAggregateInput
+  }
+
+  export type EventChannelPresetScalarWhereWithAggregatesInput = {
+    AND?: EventChannelPresetScalarWhereWithAggregatesInput | EventChannelPresetScalarWhereWithAggregatesInput[]
+    OR?: EventChannelPresetScalarWhereWithAggregatesInput[]
+    NOT?: EventChannelPresetScalarWhereWithAggregatesInput | EventChannelPresetScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EventChannelPreset"> | string
+    guildId?: StringWithAggregatesFilter<"EventChannelPreset"> | string
+    discordChannelId?: StringWithAggregatesFilter<"EventChannelPreset"> | string
+    roles?: StringNullableWithAggregatesFilter<"EventChannelPreset"> | string | null
+    buttonEnabled?: BoolWithAggregatesFilter<"EventChannelPreset"> | boolean
+    buttonMessageId?: StringNullableWithAggregatesFilter<"EventChannelPreset"> | string | null
+  }
+
   export type EventWhereInput = {
     AND?: EventWhereInput | EventWhereInput[]
     OR?: EventWhereInput[]
@@ -38721,6 +40008,7 @@ export namespace Prisma {
     title?: StringFilter<"Event"> | string
     imageUrl?: StringNullableFilter<"Event"> | string | null
     date?: StringNullableFilter<"Event"> | string | null
+    description?: StringNullableFilter<"Event"> | string | null
     createdByDiscordUserId?: StringFilter<"Event"> | string
     createdByDiscordTag?: StringFilter<"Event"> | string
     discordChannelId?: StringFilter<"Event"> | string
@@ -38743,6 +40031,7 @@ export namespace Prisma {
     title?: SortOrder
     imageUrl?: SortOrderInput | SortOrder
     date?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
     createdByDiscordUserId?: SortOrder
     createdByDiscordTag?: SortOrder
     discordChannelId?: SortOrder
@@ -38768,6 +40057,7 @@ export namespace Prisma {
     title?: StringFilter<"Event"> | string
     imageUrl?: StringNullableFilter<"Event"> | string | null
     date?: StringNullableFilter<"Event"> | string | null
+    description?: StringNullableFilter<"Event"> | string | null
     createdByDiscordUserId?: StringFilter<"Event"> | string
     createdByDiscordTag?: StringFilter<"Event"> | string
     discordChannelId?: StringFilter<"Event"> | string
@@ -38790,6 +40080,7 @@ export namespace Prisma {
     title?: SortOrder
     imageUrl?: SortOrderInput | SortOrder
     date?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
     createdByDiscordUserId?: SortOrder
     createdByDiscordTag?: SortOrder
     discordChannelId?: SortOrder
@@ -38813,6 +40104,7 @@ export namespace Prisma {
     title?: StringWithAggregatesFilter<"Event"> | string
     imageUrl?: StringNullableWithAggregatesFilter<"Event"> | string | null
     date?: StringNullableWithAggregatesFilter<"Event"> | string | null
+    description?: StringNullableWithAggregatesFilter<"Event"> | string | null
     createdByDiscordUserId?: StringWithAggregatesFilter<"Event"> | string
     createdByDiscordTag?: StringWithAggregatesFilter<"Event"> | string
     discordChannelId?: StringWithAggregatesFilter<"Event"> | string
@@ -39972,6 +41264,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -40008,6 +41301,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildUpdateInput = {
@@ -40040,6 +41334,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -40076,6 +41371,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateManyInput = {
@@ -40751,11 +42047,74 @@ export namespace Prisma {
     maxNumber?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
+  export type EventChannelPresetCreateInput = {
+    id?: string
+    discordChannelId: string
+    roles?: string | null
+    buttonEnabled?: boolean
+    buttonMessageId?: string | null
+    guild: GuildCreateNestedOneWithoutEventChannelPresetsInput
+  }
+
+  export type EventChannelPresetUncheckedCreateInput = {
+    id?: string
+    guildId: string
+    discordChannelId: string
+    roles?: string | null
+    buttonEnabled?: boolean
+    buttonMessageId?: string | null
+  }
+
+  export type EventChannelPresetUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    discordChannelId?: StringFieldUpdateOperationsInput | string
+    roles?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
+    buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    guild?: GuildUpdateOneRequiredWithoutEventChannelPresetsNestedInput
+  }
+
+  export type EventChannelPresetUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    guildId?: StringFieldUpdateOperationsInput | string
+    discordChannelId?: StringFieldUpdateOperationsInput | string
+    roles?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
+    buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type EventChannelPresetCreateManyInput = {
+    id?: string
+    guildId: string
+    discordChannelId: string
+    roles?: string | null
+    buttonEnabled?: boolean
+    buttonMessageId?: string | null
+  }
+
+  export type EventChannelPresetUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    discordChannelId?: StringFieldUpdateOperationsInput | string
+    roles?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
+    buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type EventChannelPresetUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    guildId?: StringFieldUpdateOperationsInput | string
+    discordChannelId?: StringFieldUpdateOperationsInput | string
+    roles?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
+    buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
   export type EventCreateInput = {
     id?: string
     title: string
     imageUrl?: string | null
     date?: string | null
+    description?: string | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -40778,6 +42137,7 @@ export namespace Prisma {
     title: string
     imageUrl?: string | null
     date?: string | null
+    description?: string | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -40798,6 +42158,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -40820,6 +42181,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -40841,6 +42203,7 @@ export namespace Prisma {
     title: string
     imageUrl?: string | null
     date?: string | null
+    description?: string | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -40857,6 +42220,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -40874,6 +42238,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -41958,6 +43323,12 @@ export namespace Prisma {
     none?: EventWhereInput
   }
 
+  export type EventChannelPresetListRelationFilter = {
+    every?: EventChannelPresetWhereInput
+    some?: EventChannelPresetWhereInput
+    none?: EventChannelPresetWhereInput
+  }
+
   export type UserNullableScalarRelationFilter = {
     is?: UserWhereInput | null
     isNot?: UserWhereInput | null
@@ -42000,6 +43371,10 @@ export namespace Prisma {
   }
 
   export type EventOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type EventChannelPresetOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -42469,6 +43844,38 @@ export namespace Prisma {
     maxNumber?: SortOrder
   }
 
+  export type EventChannelPresetGuildIdDiscordChannelIdCompoundUniqueInput = {
+    guildId: string
+    discordChannelId: string
+  }
+
+  export type EventChannelPresetCountOrderByAggregateInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    discordChannelId?: SortOrder
+    roles?: SortOrder
+    buttonEnabled?: SortOrder
+    buttonMessageId?: SortOrder
+  }
+
+  export type EventChannelPresetMaxOrderByAggregateInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    discordChannelId?: SortOrder
+    roles?: SortOrder
+    buttonEnabled?: SortOrder
+    buttonMessageId?: SortOrder
+  }
+
+  export type EventChannelPresetMinOrderByAggregateInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    discordChannelId?: SortOrder
+    roles?: SortOrder
+    buttonEnabled?: SortOrder
+    buttonMessageId?: SortOrder
+  }
+
   export type EventTimeOptionListRelationFilter = {
     every?: EventTimeOptionWhereInput
     some?: EventTimeOptionWhereInput
@@ -42515,6 +43922,7 @@ export namespace Prisma {
     title?: SortOrder
     imageUrl?: SortOrder
     date?: SortOrder
+    description?: SortOrder
     createdByDiscordUserId?: SortOrder
     createdByDiscordTag?: SortOrder
     discordChannelId?: SortOrder
@@ -42532,6 +43940,7 @@ export namespace Prisma {
     title?: SortOrder
     imageUrl?: SortOrder
     date?: SortOrder
+    description?: SortOrder
     createdByDiscordUserId?: SortOrder
     createdByDiscordTag?: SortOrder
     discordChannelId?: SortOrder
@@ -42549,6 +43958,7 @@ export namespace Prisma {
     title?: SortOrder
     imageUrl?: SortOrder
     date?: SortOrder
+    description?: SortOrder
     createdByDiscordUserId?: SortOrder
     createdByDiscordTag?: SortOrder
     discordChannelId?: SortOrder
@@ -43413,6 +44823,13 @@ export namespace Prisma {
     connect?: EventWhereUniqueInput | EventWhereUniqueInput[]
   }
 
+  export type EventChannelPresetCreateNestedManyWithoutGuildInput = {
+    create?: XOR<EventChannelPresetCreateWithoutGuildInput, EventChannelPresetUncheckedCreateWithoutGuildInput> | EventChannelPresetCreateWithoutGuildInput[] | EventChannelPresetUncheckedCreateWithoutGuildInput[]
+    connectOrCreate?: EventChannelPresetCreateOrConnectWithoutGuildInput | EventChannelPresetCreateOrConnectWithoutGuildInput[]
+    createMany?: EventChannelPresetCreateManyGuildInputEnvelope
+    connect?: EventChannelPresetWhereUniqueInput | EventChannelPresetWhereUniqueInput[]
+  }
+
   export type UserCreateNestedOneWithoutLastExportedGuildsInput = {
     create?: XOR<UserCreateWithoutLastExportedGuildsInput, UserUncheckedCreateWithoutLastExportedGuildsInput>
     connectOrCreate?: UserCreateOrConnectWithoutLastExportedGuildsInput
@@ -43500,6 +44917,13 @@ export namespace Prisma {
     connectOrCreate?: EventCreateOrConnectWithoutGuildInput | EventCreateOrConnectWithoutGuildInput[]
     createMany?: EventCreateManyGuildInputEnvelope
     connect?: EventWhereUniqueInput | EventWhereUniqueInput[]
+  }
+
+  export type EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput = {
+    create?: XOR<EventChannelPresetCreateWithoutGuildInput, EventChannelPresetUncheckedCreateWithoutGuildInput> | EventChannelPresetCreateWithoutGuildInput[] | EventChannelPresetUncheckedCreateWithoutGuildInput[]
+    connectOrCreate?: EventChannelPresetCreateOrConnectWithoutGuildInput | EventChannelPresetCreateOrConnectWithoutGuildInput[]
+    createMany?: EventChannelPresetCreateManyGuildInputEnvelope
+    connect?: EventChannelPresetWhereUniqueInput | EventChannelPresetWhereUniqueInput[]
   }
 
   export type NullableIntFieldUpdateOperationsInput = {
@@ -43670,6 +45094,20 @@ export namespace Prisma {
     update?: EventUpdateWithWhereUniqueWithoutGuildInput | EventUpdateWithWhereUniqueWithoutGuildInput[]
     updateMany?: EventUpdateManyWithWhereWithoutGuildInput | EventUpdateManyWithWhereWithoutGuildInput[]
     deleteMany?: EventScalarWhereInput | EventScalarWhereInput[]
+  }
+
+  export type EventChannelPresetUpdateManyWithoutGuildNestedInput = {
+    create?: XOR<EventChannelPresetCreateWithoutGuildInput, EventChannelPresetUncheckedCreateWithoutGuildInput> | EventChannelPresetCreateWithoutGuildInput[] | EventChannelPresetUncheckedCreateWithoutGuildInput[]
+    connectOrCreate?: EventChannelPresetCreateOrConnectWithoutGuildInput | EventChannelPresetCreateOrConnectWithoutGuildInput[]
+    upsert?: EventChannelPresetUpsertWithWhereUniqueWithoutGuildInput | EventChannelPresetUpsertWithWhereUniqueWithoutGuildInput[]
+    createMany?: EventChannelPresetCreateManyGuildInputEnvelope
+    set?: EventChannelPresetWhereUniqueInput | EventChannelPresetWhereUniqueInput[]
+    disconnect?: EventChannelPresetWhereUniqueInput | EventChannelPresetWhereUniqueInput[]
+    delete?: EventChannelPresetWhereUniqueInput | EventChannelPresetWhereUniqueInput[]
+    connect?: EventChannelPresetWhereUniqueInput | EventChannelPresetWhereUniqueInput[]
+    update?: EventChannelPresetUpdateWithWhereUniqueWithoutGuildInput | EventChannelPresetUpdateWithWhereUniqueWithoutGuildInput[]
+    updateMany?: EventChannelPresetUpdateManyWithWhereWithoutGuildInput | EventChannelPresetUpdateManyWithWhereWithoutGuildInput[]
+    deleteMany?: EventChannelPresetScalarWhereInput | EventChannelPresetScalarWhereInput[]
   }
 
   export type UserUpdateOneWithoutLastExportedGuildsNestedInput = {
@@ -43844,6 +45282,20 @@ export namespace Prisma {
     update?: EventUpdateWithWhereUniqueWithoutGuildInput | EventUpdateWithWhereUniqueWithoutGuildInput[]
     updateMany?: EventUpdateManyWithWhereWithoutGuildInput | EventUpdateManyWithWhereWithoutGuildInput[]
     deleteMany?: EventScalarWhereInput | EventScalarWhereInput[]
+  }
+
+  export type EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput = {
+    create?: XOR<EventChannelPresetCreateWithoutGuildInput, EventChannelPresetUncheckedCreateWithoutGuildInput> | EventChannelPresetCreateWithoutGuildInput[] | EventChannelPresetUncheckedCreateWithoutGuildInput[]
+    connectOrCreate?: EventChannelPresetCreateOrConnectWithoutGuildInput | EventChannelPresetCreateOrConnectWithoutGuildInput[]
+    upsert?: EventChannelPresetUpsertWithWhereUniqueWithoutGuildInput | EventChannelPresetUpsertWithWhereUniqueWithoutGuildInput[]
+    createMany?: EventChannelPresetCreateManyGuildInputEnvelope
+    set?: EventChannelPresetWhereUniqueInput | EventChannelPresetWhereUniqueInput[]
+    disconnect?: EventChannelPresetWhereUniqueInput | EventChannelPresetWhereUniqueInput[]
+    delete?: EventChannelPresetWhereUniqueInput | EventChannelPresetWhereUniqueInput[]
+    connect?: EventChannelPresetWhereUniqueInput | EventChannelPresetWhereUniqueInput[]
+    update?: EventChannelPresetUpdateWithWhereUniqueWithoutGuildInput | EventChannelPresetUpdateWithWhereUniqueWithoutGuildInput[]
+    updateMany?: EventChannelPresetUpdateManyWithWhereWithoutGuildInput | EventChannelPresetUpdateManyWithWhereWithoutGuildInput[]
+    deleteMany?: EventChannelPresetScalarWhereInput | EventChannelPresetScalarWhereInput[]
   }
 
   export type GuildCreateNestedOneWithoutInactivityTargetRolesInput = {
@@ -44174,6 +45626,20 @@ export namespace Prisma {
     upsert?: GuildRoleRuleUpsertWithoutConditionsInput
     connect?: GuildRoleRuleWhereUniqueInput
     update?: XOR<XOR<GuildRoleRuleUpdateToOneWithWhereWithoutConditionsInput, GuildRoleRuleUpdateWithoutConditionsInput>, GuildRoleRuleUncheckedUpdateWithoutConditionsInput>
+  }
+
+  export type GuildCreateNestedOneWithoutEventChannelPresetsInput = {
+    create?: XOR<GuildCreateWithoutEventChannelPresetsInput, GuildUncheckedCreateWithoutEventChannelPresetsInput>
+    connectOrCreate?: GuildCreateOrConnectWithoutEventChannelPresetsInput
+    connect?: GuildWhereUniqueInput
+  }
+
+  export type GuildUpdateOneRequiredWithoutEventChannelPresetsNestedInput = {
+    create?: XOR<GuildCreateWithoutEventChannelPresetsInput, GuildUncheckedCreateWithoutEventChannelPresetsInput>
+    connectOrCreate?: GuildCreateOrConnectWithoutEventChannelPresetsInput
+    upsert?: GuildUpsertWithoutEventChannelPresetsInput
+    connect?: GuildWhereUniqueInput
+    update?: XOR<XOR<GuildUpdateToOneWithWhereWithoutEventChannelPresetsInput, GuildUpdateWithoutEventChannelPresetsInput>, GuildUncheckedUpdateWithoutEventChannelPresetsInput>
   }
 
   export type GuildCreateNestedOneWithoutEventsInput = {
@@ -45103,6 +46569,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -45138,6 +46605,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutCreatedByInput = {
@@ -45179,6 +46647,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
 
@@ -45213,6 +46682,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutLastExportedByInput = {
@@ -45254,6 +46724,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
   }
 
@@ -45288,6 +46759,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutLastRosterImportedByInput = {
@@ -46135,6 +47607,7 @@ export namespace Prisma {
     title: string
     imageUrl?: string | null
     date?: string | null
+    description?: string | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -46155,6 +47628,7 @@ export namespace Prisma {
     title: string
     imageUrl?: string | null
     date?: string | null
+    description?: string | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -46177,6 +47651,31 @@ export namespace Prisma {
 
   export type EventCreateManyGuildInputEnvelope = {
     data: EventCreateManyGuildInput | EventCreateManyGuildInput[]
+  }
+
+  export type EventChannelPresetCreateWithoutGuildInput = {
+    id?: string
+    discordChannelId: string
+    roles?: string | null
+    buttonEnabled?: boolean
+    buttonMessageId?: string | null
+  }
+
+  export type EventChannelPresetUncheckedCreateWithoutGuildInput = {
+    id?: string
+    discordChannelId: string
+    roles?: string | null
+    buttonEnabled?: boolean
+    buttonMessageId?: string | null
+  }
+
+  export type EventChannelPresetCreateOrConnectWithoutGuildInput = {
+    where: EventChannelPresetWhereUniqueInput
+    create: XOR<EventChannelPresetCreateWithoutGuildInput, EventChannelPresetUncheckedCreateWithoutGuildInput>
+  }
+
+  export type EventChannelPresetCreateManyGuildInputEnvelope = {
+    data: EventChannelPresetCreateManyGuildInput | EventChannelPresetCreateManyGuildInput[]
   }
 
   export type UserCreateWithoutLastExportedGuildsInput = {
@@ -46595,6 +48094,7 @@ export namespace Prisma {
     title?: StringFilter<"Event"> | string
     imageUrl?: StringNullableFilter<"Event"> | string | null
     date?: StringNullableFilter<"Event"> | string | null
+    description?: StringNullableFilter<"Event"> | string | null
     createdByDiscordUserId?: StringFilter<"Event"> | string
     createdByDiscordTag?: StringFilter<"Event"> | string
     discordChannelId?: StringFilter<"Event"> | string
@@ -46604,6 +48104,34 @@ export namespace Prisma {
     lockedTimeOptionId?: StringNullableFilter<"Event"> | string | null
     pendingWebUpdate?: BoolFilter<"Event"> | boolean
     createdAt?: DateTimeFilter<"Event"> | Date | string
+  }
+
+  export type EventChannelPresetUpsertWithWhereUniqueWithoutGuildInput = {
+    where: EventChannelPresetWhereUniqueInput
+    update: XOR<EventChannelPresetUpdateWithoutGuildInput, EventChannelPresetUncheckedUpdateWithoutGuildInput>
+    create: XOR<EventChannelPresetCreateWithoutGuildInput, EventChannelPresetUncheckedCreateWithoutGuildInput>
+  }
+
+  export type EventChannelPresetUpdateWithWhereUniqueWithoutGuildInput = {
+    where: EventChannelPresetWhereUniqueInput
+    data: XOR<EventChannelPresetUpdateWithoutGuildInput, EventChannelPresetUncheckedUpdateWithoutGuildInput>
+  }
+
+  export type EventChannelPresetUpdateManyWithWhereWithoutGuildInput = {
+    where: EventChannelPresetScalarWhereInput
+    data: XOR<EventChannelPresetUpdateManyMutationInput, EventChannelPresetUncheckedUpdateManyWithoutGuildInput>
+  }
+
+  export type EventChannelPresetScalarWhereInput = {
+    AND?: EventChannelPresetScalarWhereInput | EventChannelPresetScalarWhereInput[]
+    OR?: EventChannelPresetScalarWhereInput[]
+    NOT?: EventChannelPresetScalarWhereInput | EventChannelPresetScalarWhereInput[]
+    id?: StringFilter<"EventChannelPreset"> | string
+    guildId?: StringFilter<"EventChannelPreset"> | string
+    discordChannelId?: StringFilter<"EventChannelPreset"> | string
+    roles?: StringNullableFilter<"EventChannelPreset"> | string | null
+    buttonEnabled?: BoolFilter<"EventChannelPreset"> | boolean
+    buttonMessageId?: StringNullableFilter<"EventChannelPreset"> | string | null
   }
 
   export type UserUpsertWithoutLastExportedGuildsInput = {
@@ -46729,6 +48257,7 @@ export namespace Prisma {
     memberActivity?: GuildMemberActivityCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -46764,6 +48293,7 @@ export namespace Prisma {
     memberActivity?: GuildMemberActivityUncheckedCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutInactivityTargetRolesInput = {
@@ -46811,6 +48341,7 @@ export namespace Prisma {
     memberActivity?: GuildMemberActivityUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -46846,6 +48377,7 @@ export namespace Prisma {
     memberActivity?: GuildMemberActivityUncheckedUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutRosterMembersInput = {
@@ -46877,6 +48409,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -46912,6 +48445,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutRosterMembersInput = {
@@ -46984,6 +48518,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -47019,6 +48554,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildRosterClaimConflictUpsertWithWhereUniqueWithoutRosterMemberInput = {
@@ -47066,6 +48602,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -47101,6 +48638,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutClaimConflictsInput = {
@@ -47179,6 +48717,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -47214,6 +48753,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildRosterMemberUpsertWithoutClaimConflictsInput = {
@@ -47282,6 +48822,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -47317,6 +48858,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutPendingRosterMatchesInput = {
@@ -47364,6 +48906,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -47399,6 +48942,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutPugMembersInput = {
@@ -47430,6 +48974,7 @@ export namespace Prisma {
     memberActivity?: GuildMemberActivityCreateNestedManyWithoutGuildInput
     inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -47465,6 +49010,7 @@ export namespace Prisma {
     memberActivity?: GuildMemberActivityUncheckedCreateNestedManyWithoutGuildInput
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutPugMembersInput = {
@@ -47512,6 +49058,7 @@ export namespace Prisma {
     memberActivity?: GuildMemberActivityUpdateManyWithoutGuildNestedInput
     inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -47547,6 +49094,7 @@ export namespace Prisma {
     memberActivity?: GuildMemberActivityUncheckedUpdateManyWithoutGuildNestedInput
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutMemberActivityInput = {
@@ -47578,6 +49126,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -47613,6 +49162,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutMemberActivityInput = {
@@ -47660,6 +49210,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -47695,6 +49246,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutRoleRulesInput = {
@@ -47726,6 +49278,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -47761,6 +49314,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutRoleRulesInput = {
@@ -47875,6 +49429,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -47910,6 +49465,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildRoleRuleGrantedRoleUpsertWithWhereUniqueWithoutRuleInput = {
@@ -48136,6 +49692,158 @@ export namespace Prisma {
     grantedChannels?: GuildRoleRuleGrantedChannelUncheckedUpdateManyWithoutRuleNestedInput
   }
 
+  export type GuildCreateWithoutEventChannelPresetsInput = {
+    id?: string
+    name: string
+    discordGuildId: string
+    createdAt?: Date | string
+    rosterSource?: string
+    pugEnabled?: boolean
+    pugRoleId?: string | null
+    lastExportedAt?: Date | string | null
+    lastRosterImportedAt?: Date | string | null
+    adminNotifyChannelId?: string | null
+    onboardingChannelId?: string | null
+    onboardingMessageId?: string | null
+    onboardingMessageText?: string | null
+    forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityRoleId?: string | null
+    createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
+    characters?: GuildCharacterCreateNestedManyWithoutGuildInput
+    requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
+    adminRoles?: GuildAdminRoleCreateNestedManyWithoutGuildInput
+    rosterMembers?: GuildRosterMemberCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
+    claimConflicts?: GuildRosterClaimConflictCreateNestedManyWithoutGuildInput
+    pendingRosterMatches?: GuildPendingRosterMatchCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityCreateNestedManyWithoutGuildInput
+    inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
+    pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
+    events?: EventCreateNestedManyWithoutGuildInput
+    lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
+    lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
+  }
+
+  export type GuildUncheckedCreateWithoutEventChannelPresetsInput = {
+    id?: string
+    name: string
+    discordGuildId: string
+    createdById: string
+    createdAt?: Date | string
+    rosterSource?: string
+    pugEnabled?: boolean
+    pugRoleId?: string | null
+    lastExportedAt?: Date | string | null
+    lastExportedById?: string | null
+    lastRosterImportedAt?: Date | string | null
+    lastRosterImportedById?: string | null
+    adminNotifyChannelId?: string | null
+    onboardingChannelId?: string | null
+    onboardingMessageId?: string | null
+    onboardingMessageText?: string | null
+    forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityRoleId?: string | null
+    characters?: GuildCharacterUncheckedCreateNestedManyWithoutGuildInput
+    requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
+    adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
+    rosterMembers?: GuildRosterMemberUncheckedCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
+    claimConflicts?: GuildRosterClaimConflictUncheckedCreateNestedManyWithoutGuildInput
+    pendingRosterMatches?: GuildPendingRosterMatchUncheckedCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityUncheckedCreateNestedManyWithoutGuildInput
+    inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
+    pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
+    events?: EventUncheckedCreateNestedManyWithoutGuildInput
+  }
+
+  export type GuildCreateOrConnectWithoutEventChannelPresetsInput = {
+    where: GuildWhereUniqueInput
+    create: XOR<GuildCreateWithoutEventChannelPresetsInput, GuildUncheckedCreateWithoutEventChannelPresetsInput>
+  }
+
+  export type GuildUpsertWithoutEventChannelPresetsInput = {
+    update: XOR<GuildUpdateWithoutEventChannelPresetsInput, GuildUncheckedUpdateWithoutEventChannelPresetsInput>
+    create: XOR<GuildCreateWithoutEventChannelPresetsInput, GuildUncheckedCreateWithoutEventChannelPresetsInput>
+    where?: GuildWhereInput
+  }
+
+  export type GuildUpdateToOneWithWhereWithoutEventChannelPresetsInput = {
+    where?: GuildWhereInput
+    data: XOR<GuildUpdateWithoutEventChannelPresetsInput, GuildUncheckedUpdateWithoutEventChannelPresetsInput>
+  }
+
+  export type GuildUpdateWithoutEventChannelPresetsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    discordGuildId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rosterSource?: StringFieldUpdateOperationsInput | string
+    pugEnabled?: BoolFieldUpdateOperationsInput | boolean
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adminNotifyChannelId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingChannelId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
+    forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
+    characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
+    requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
+    adminRoles?: GuildAdminRoleUpdateManyWithoutGuildNestedInput
+    rosterMembers?: GuildRosterMemberUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
+    claimConflicts?: GuildRosterClaimConflictUpdateManyWithoutGuildNestedInput
+    pendingRosterMatches?: GuildPendingRosterMatchUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUpdateManyWithoutGuildNestedInput
+    inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
+    pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
+    events?: EventUpdateManyWithoutGuildNestedInput
+    lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
+    lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
+  }
+
+  export type GuildUncheckedUpdateWithoutEventChannelPresetsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    discordGuildId?: StringFieldUpdateOperationsInput | string
+    createdById?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rosterSource?: StringFieldUpdateOperationsInput | string
+    pugEnabled?: BoolFieldUpdateOperationsInput | boolean
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastExportedById?: NullableStringFieldUpdateOperationsInput | string | null
+    lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRosterImportedById?: NullableStringFieldUpdateOperationsInput | string | null
+    adminNotifyChannelId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingChannelId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
+    forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    characters?: GuildCharacterUncheckedUpdateManyWithoutGuildNestedInput
+    requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
+    adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
+    rosterMembers?: GuildRosterMemberUncheckedUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
+    claimConflicts?: GuildRosterClaimConflictUncheckedUpdateManyWithoutGuildNestedInput
+    pendingRosterMatches?: GuildPendingRosterMatchUncheckedUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUncheckedUpdateManyWithoutGuildNestedInput
+    inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
+    pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
+    events?: EventUncheckedUpdateManyWithoutGuildNestedInput
+  }
+
   export type GuildCreateWithoutEventsInput = {
     id?: string
     name: string
@@ -48165,6 +49873,7 @@ export namespace Prisma {
     memberActivity?: GuildMemberActivityCreateNestedManyWithoutGuildInput
     inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -48200,6 +49909,7 @@ export namespace Prisma {
     memberActivity?: GuildMemberActivityUncheckedCreateNestedManyWithoutGuildInput
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutEventsInput = {
@@ -48347,6 +50057,7 @@ export namespace Prisma {
     memberActivity?: GuildMemberActivityUpdateManyWithoutGuildNestedInput
     inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -48382,6 +50093,7 @@ export namespace Prisma {
     memberActivity?: GuildMemberActivityUncheckedUpdateManyWithoutGuildNestedInput
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type EventTimeOptionUpsertWithWhereUniqueWithoutEventInput = {
@@ -48499,6 +50211,7 @@ export namespace Prisma {
     title: string
     imageUrl?: string | null
     date?: string | null
+    description?: string | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -48520,6 +50233,7 @@ export namespace Prisma {
     title: string
     imageUrl?: string | null
     date?: string | null
+    description?: string | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -48578,6 +50292,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -48599,6 +50314,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -48634,6 +50350,7 @@ export namespace Prisma {
     title: string
     imageUrl?: string | null
     date?: string | null
+    description?: string | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -48655,6 +50372,7 @@ export namespace Prisma {
     title: string
     imageUrl?: string | null
     date?: string | null
+    description?: string | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -48707,6 +50425,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -48728,6 +50447,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -48770,6 +50490,7 @@ export namespace Prisma {
     title: string
     imageUrl?: string | null
     date?: string | null
+    description?: string | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -48791,6 +50512,7 @@ export namespace Prisma {
     title: string
     imageUrl?: string | null
     date?: string | null
+    description?: string | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -48857,6 +50579,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -48878,6 +50601,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -48913,6 +50637,7 @@ export namespace Prisma {
     title: string
     imageUrl?: string | null
     date?: string | null
+    description?: string | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -48934,6 +50659,7 @@ export namespace Prisma {
     title: string
     imageUrl?: string | null
     date?: string | null
+    description?: string | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -48990,6 +50716,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -49011,6 +50738,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -49081,6 +50809,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -49116,6 +50845,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutRequiredRolesInput = {
@@ -49163,6 +50893,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -49198,6 +50929,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutAdminRolesInput = {
@@ -49229,6 +50961,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -49264,6 +50997,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutAdminRolesInput = {
@@ -49311,6 +51045,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -49346,6 +51081,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutCharactersInput = {
@@ -49377,6 +51113,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -49412,6 +51149,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutCharactersInput = {
@@ -49521,6 +51259,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -49556,6 +51295,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type UserUpsertWithoutGuildCharactersInput = {
@@ -50019,6 +51759,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -50054,6 +51795,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildUncheckedUpdateManyWithoutCreatedByInput = {
@@ -50108,6 +51850,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
 
@@ -50142,6 +51885,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildUncheckedUpdateManyWithoutLastExportedByInput = {
@@ -50196,6 +51940,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
   }
 
@@ -50230,6 +51975,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildUncheckedUpdateManyWithoutLastRosterImportedByInput = {
@@ -50385,6 +52131,7 @@ export namespace Prisma {
     title: string
     imageUrl?: string | null
     date?: string | null
+    description?: string | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -50394,6 +52141,14 @@ export namespace Prisma {
     lockedTimeOptionId?: string | null
     pendingWebUpdate?: boolean
     createdAt?: Date | string
+  }
+
+  export type EventChannelPresetCreateManyGuildInput = {
+    id?: string
+    discordChannelId: string
+    roles?: string | null
+    buttonEnabled?: boolean
+    buttonMessageId?: string | null
   }
 
   export type GuildCharacterUpdateWithoutGuildInput = {
@@ -50639,6 +52394,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -50659,6 +52415,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -50679,6 +52436,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -50688,6 +52446,30 @@ export namespace Prisma {
     lockedTimeOptionId?: NullableStringFieldUpdateOperationsInput | string | null
     pendingWebUpdate?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EventChannelPresetUpdateWithoutGuildInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    discordChannelId?: StringFieldUpdateOperationsInput | string
+    roles?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
+    buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type EventChannelPresetUncheckedUpdateWithoutGuildInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    discordChannelId?: StringFieldUpdateOperationsInput | string
+    roles?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
+    buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type EventChannelPresetUncheckedUpdateManyWithoutGuildInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    discordChannelId?: StringFieldUpdateOperationsInput | string
+    roles?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
+    buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type GuildRosterClaimConflictCreateManyRosterMemberInput = {

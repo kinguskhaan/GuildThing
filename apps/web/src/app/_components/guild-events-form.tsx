@@ -63,6 +63,7 @@ export function GuildEventsForm({ guildId }: { guildId: string }) {
   const [title, setTitle] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [date, setDate] = useState(todayISODate);
+  const [description, setDescription] = useState("");
   const [channelId, setChannelId] = useState("");
   const [roleSlots, setRoleSlots] = useState<RoleSlotDraft[]>([
     emptyRoleSlot(),
@@ -81,6 +82,7 @@ export function GuildEventsForm({ guildId }: { guildId: string }) {
       setTitle("");
       setImageUrl("");
       setDate(todayISODate());
+      setDescription("");
       setRoleSlots([emptyRoleSlot()]);
       setTimeOptions([""]);
       setCollapsed(true);
@@ -112,6 +114,7 @@ export function GuildEventsForm({ guildId }: { guildId: string }) {
       title: title.trim(),
       imageUrl: imageUrl.trim() || undefined,
       date: date || undefined,
+      description: description.trim() || undefined,
       discordChannelId: channelId.trim(),
       roleSlots: parsedRoleSlots,
       timeOptionLabels: timeOptions.map((t) => t.trim()).filter(Boolean),
@@ -148,6 +151,13 @@ export function GuildEventsForm({ guildId }: { guildId: string }) {
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
+          />
+          <textarea
+            className="bg-discord-base text-discord-text rounded-2xl px-4 py-2"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Description (optional)"
+            rows={3}
           />
           <ChannelSelect
             value={channelId}

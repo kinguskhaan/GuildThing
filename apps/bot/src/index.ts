@@ -26,10 +26,13 @@ import {
   START_ONBOARDING_BUTTON_ID,
 } from "./onboardingButton.js";
 import {
+  ensureEventCreateButtons,
+  EVENT_CREATE_BUTTON_ID,
   handleEventComponentInteraction,
   handleEventCreateCommand,
-  runEventAutoLock,
+  repostDriftedEventButtons,
   runEventExpiry,
+  scheduleEventButtonRepostOnMessage,
   syncPendingWebEvents,
 } from "./events.js";
 import { syncPendingRosterMatches } from "./pendingMatches.js";
@@ -46,10 +49,16 @@ const ONBOARDING_BUTTON_CHECK_INTERVAL_MS = 60_000;
 // close to instant instead of waiting for the once-a-day automatic sync.
 const FORCE_SYNC_CHECK_INTERVAL_MS = 15_000;
 
-// How often to post web-created events to Discord and check open events for
-// auto-lock — short enough that creating an event on the site feels close
-// to instant, same reasoning as FORCE_SYNC_CHECK_INTERVAL_MS.
+// How often to post web-created events to Discord and clean up expired
+// ones — short enough that creating an event on the site feels close to
+// instant, same reasoning as FORCE_SYNC_CHECK_INTERVAL_MS.
 const EVENT_TICK_INTERVAL_MS = 15_000;
+
+// How often to check whether a channel's create-event button has drifted
+// away from the bottom (someone posted after it). One fetch per
+// button-enabled channel per check is cheap enough to run this often
+// without worrying about Discord's rate limits.
+const EVENT_BUTTON_DRIFT_CHECK_INTERVAL_MS = 60_000;
 
 const token = process.env.DISCORD_BOT_TOKEN;
 if (!token) {
@@ -179,15 +188,23 @@ client.once(Events.ClientReady, (readyClient) => {
     syncPendingWebEvents(readyClient).catch((err: unknown) => {
       console.error("[bot] event web-sync failed:", err);
     });
-    runEventAutoLock(readyClient).catch((err: unknown) => {
-      console.error("[bot] event auto-lock failed:", err);
-    });
     runEventExpiry(readyClient).catch((err: unknown) => {
       console.error("[bot] event expiry failed:", err);
+    });
+    ensureEventCreateButtons(readyClient).catch((err: unknown) => {
+      console.error("[bot] event-create button check failed:", err);
     });
   };
   checkEvents();
   setInterval(checkEvents, EVENT_TICK_INTERVAL_MS);
+
+  const checkEventButtonDrift = () => {
+    repostDriftedEventButtons(readyClient).catch((err: unknown) => {
+      console.error("[bot] event-create button drift check failed:", err);
+    });
+  };
+  checkEventButtonDrift();
+  setInterval(checkEventButtonDrift, EVENT_BUTTON_DRIFT_CHECK_INTERVAL_MS);
 });
 
 // Runs the same full roster/role/channel-grant sync as the daily job, but
@@ -251,6 +268,7 @@ client.on(Events.MessageCreate, (message) => {
   trackMessageActivity(message).catch((err: unknown) => {
     console.error("[bot] activity tracking failed:", err);
   });
+  scheduleEventButtonRepostOnMessage(message.client, message);
 });
 
 client.on(Events.InteractionCreate, (interaction) => {
@@ -288,6 +306,19 @@ client.on(Events.InteractionCreate, (interaction) => {
     void handleEventComponentInteraction(interaction).catch((err: unknown) => {
       console.error(
         `[bot] event interaction failed for ${interaction.user.tag}:`,
+        err,
+      );
+    });
+    return;
+  }
+
+  if (
+    interaction.isButton() &&
+    interaction.customId === EVENT_CREATE_BUTTON_ID
+  ) {
+    void handleEventCreateCommand(interaction).catch((err: unknown) => {
+      console.error(
+        `[bot] event-create button failed for ${interaction.user.tag}:`,
         err,
       );
     });

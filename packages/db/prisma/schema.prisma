@@ -141,6 +141,7 @@ model Guild {
   inactivityTargetRoles GuildInactivityTargetRole[]
   pugMembers     GuildPugMember[]
   events         Event[]
+  eventChannelPresets EventChannelPreset[]
   createdAt      DateTime @default(now())
 
   // "addon" (default) — the roster comes from pasting the GuildThing
@@ -399,6 +400,34 @@ model GuildRoleRuleCondition {
 // Signing up, voting, leaving, and cancelling all happen through the
 // Discord message's own components — the site only creates/lists/cancels,
 // it doesn't mirror the interactive parts.
+// A channel-specific default role composition (e.g. the "Wailing Caverns"
+// channel always wants Tank:1, Healer:1, DPS:3) — pre-fills the "Roles"
+// field when /guildthing event is run in that channel, instead of retyping
+// the same composition every time. Stored in the same "Name:Count:Emoji,
+// ..." format the create modal's Roles field already parses (see
+// parseRoleSlots in apps/bot/src/events.ts), so it can be dropped straight
+// into that field's default value with no extra parsing/formatting.
+// Also doubles as per-channel event-button config — buttonEnabled is
+// independent of whether a roles preset is set (a channel can have a
+// standing "Create new event" button with no preset, or a preset with no
+// button), same "each part optional, use what you need" spirit as the rest
+// of this feature.
+model EventChannelPreset {
+  id               String  @id @default(cuid())
+  guildId          String
+  guild            Guild   @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  discordChannelId String
+  roles            String?
+
+  // Whether the bot keeps a standing "Create new event" button message at
+  // the bottom of this channel — same idea as Guild.onboardingChannelId's
+  // button, for people who'd rather click than type /guildthing event.
+  buttonEnabled   Boolean @default(false)
+  buttonMessageId String?
+
+  @@unique([guildId, discordChannelId])
+}
+
 model Event {
   id      String @id @default(cuid())
   guildId String
@@ -410,6 +439,10 @@ model Event {
   // today's date in both the bot modal and the web form (not enforced
   // here), so it's rarely actually null in practice.
   date String?
+  // Free-text blurb shown under the title on the embed. Not on the bot's
+  // create modal (already at Discord's 5-text-input cap) — set via the web
+  // form at creation, or the bot's Edit modal afterward.
+  description String?
 
   createdByDiscordUserId String
   createdByDiscordTag    String

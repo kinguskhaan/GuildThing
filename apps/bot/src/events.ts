@@ -26,11 +26,6 @@ import { classEmojiTag } from "./classIcons.js";
 
 const MODAL_TIMEOUT_MS = 5 * 60_000;
 
-// Auto-lock a still-open event once this long has passed since creation,
-// as long as at least one vote has been cast — matches the "we'll lock in
-// the time once everyone has voted or in 30 min" footer shown on the embed.
-const AUTO_LOCK_AFTER_MS = 30 * 60_000;
-
 // How long the thread sits idle before Discord auto-archives it (it isn't
 // deleted by archiving, just hidden — only an explicit cancel deletes it).
 const THREAD_AUTO_ARCHIVE_MINUTES = 1440;
@@ -46,6 +41,7 @@ interface EventWithRelations {
   title: string;
   imageUrl: string | null;
   date: string | null;
+  description: string | null;
   createdByDiscordUserId: string;
   createdByDiscordTag: string;
   discordChannelId: string;
@@ -174,6 +170,7 @@ function buildEventEmbeds(event: EventWithRelations): EmbedBuilder[] {
   const embed = new EmbedBuilder()
     .setColor(color)
     .setTitle(event.title)
+    .setDescription(event.description)
     .addFields(
       { name: "📅 Date", value: event.date ?? "—", inline: true },
       {
@@ -236,7 +233,7 @@ function buildEventEmbeds(event: EventWithRelations): EmbedBuilder[] {
 
   if (event.status === "open") {
     embed.setFooter({
-      text: "We'll lock in the time once everyone has voted or in 30 min.",
+      text: "We'll lock in the time once everyone has voted.",
     });
   }
 
@@ -320,12 +317,18 @@ function buildEventComponents(event: EventWithRelations) {
           ),
       ),
     );
-    // Picking a mistaken time (e.g. a typo) has no direct "edit" — remove
-    // it and add the corrected one instead. Gated to the creator (same as
-    // Edit/Cancel) via an ephemeral picker rather than deleting straight
-    // from this row, so a wrong click doesn't nuke someone's proposal.
+    // No automatic timer decides when voting's "done" — the creator locks
+    // it in manually once they judge everyone's voted. Picking a mistaken
+    // time (e.g. a typo) also has no direct "edit" — remove it and add the
+    // corrected one instead. Both gated to the creator (same as Edit/
+    // Cancel) via an ephemeral picker for removal, so a wrong click can't
+    // nuke someone's proposal or lock things in early.
     rows.push(
       new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`event:${event.id}:lockin`)
+          .setLabel("Lock in the time")
+          .setStyle(ButtonStyle.Success),
         new ButtonBuilder()
           .setCustomId(`event:${event.id}:removetime`)
           .setLabel("Remove a time option")
@@ -425,8 +428,12 @@ async function createEventPost(
   return { thread, message };
 }
 
+// Shared by the /guildthing event subcommand and the optional standing
+// "Create new event" channel button (see ensureEventCreateButtons) — both
+// just need something that can showModal()/awaitModalSubmit(), which a
+// slash command and a button click equally are.
 export async function handleEventCreateCommand(
-  interaction: ChatInputCommandInteraction,
+  interaction: ChatInputCommandInteraction | ButtonInteraction,
 ): Promise<void> {
   if (!interaction.guild) return;
   const guild = await db.guild.findUnique({
@@ -439,6 +446,18 @@ export async function handleEventCreateCommand(
     });
     return;
   }
+
+  // A dungeon-specific channel (e.g. Wailing Caverns) can have a saved
+  // default role composition — pre-fills the Roles field instead of
+  // retyping it every time, still editable right here before submitting.
+  const preset = await db.eventChannelPreset.findUnique({
+    where: {
+      guildId_discordChannelId: {
+        guildId: guild.id,
+        discordChannelId: interaction.channelId,
+      },
+    },
+  });
 
   const modal = new ModalBuilder()
     .setCustomId(`event-create-${interaction.id}`)
@@ -473,7 +492,8 @@ export async function handleEventCreateCommand(
           .setCustomId("roles")
           .setLabel("Roles, e.g. Tank:1:🛡️, Healer:1:✨, DPS:3")
           .setStyle(TextInputStyle.Short)
-          .setRequired(true),
+          .setRequired(true)
+          .setValue(preset?.roles ?? ""),
       ),
       new ActionRowBuilder<TextInputBuilder>().addComponents(
         new TextInputBuilder()
@@ -690,6 +710,15 @@ async function promptEditModal(
           .setMaxLength(10)
           .setValue(event.date ?? todayISODate()),
       ),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("description")
+          .setLabel("Description (optional)")
+          .setStyle(TextInputStyle.Paragraph)
+          .setRequired(false)
+          .setMaxLength(1000)
+          .setValue(event.description ?? ""),
+      ),
     );
 
   await interaction.showModal(modal);
@@ -711,6 +740,8 @@ async function promptEditModal(
             event.date ||
             todayISODate(),
         ),
+        description:
+          submitted.fields.getTextInputValue("description").trim() || null,
       },
     });
 
@@ -758,6 +789,7 @@ export async function handleEventComponentInteraction(
     "addtime",
     "removetime",
     "removetimeselect",
+    "lockin",
   ]);
   if (event.status !== "open" && TIME_LOCKED_ACTIONS.has(action)) {
     await interaction
@@ -927,6 +959,20 @@ export async function handleEventComponentInteraction(
     }
     await promptEditModal(interaction, event);
     return; // promptEditModal already rendered via the modal submit interaction
+  } else if (action === "lockin" && interaction.isButton()) {
+    if (interaction.user.id !== event.createdByDiscordUserId) {
+      await interaction.reply({
+        content: "Only the person who created this event can lock in the time.",
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+    // lockEvent already edits the real message via syncEventMessage, so
+    // this just needs to close out the interaction without a second,
+    // redundant edit.
+    await lockEvent(interaction.client, event);
+    await interaction.deferUpdate().catch(() => {});
+    return;
   } else if (action === "removetime" && interaction.isButton()) {
     if (interaction.user.id !== event.createdByDiscordUserId) {
       await interaction.reply({
@@ -1040,7 +1086,10 @@ export async function handleEventComponentInteraction(
 
 // Picks the winning time option (most votes; ties go to whichever was added
 // first) and locks the event, or locks with no winner if nobody proposed a
-// time at all — either way, "locked" just means signups/votes stop.
+// time at all — either way, "locked" just means signups/votes stop. Only
+// triggered manually now (the "Lock in the time" button, creator-only) —
+// there's no automatic timer, since guessing "everyone's voted" from a
+// fixed timeout was never actually right for every event's size/urgency.
 async function lockEvent(
   client: Client<true>,
   event: EventWithRelations,
@@ -1197,28 +1246,6 @@ export async function syncPendingWebEvents(
   }
 }
 
-// Auto-locks any open event that's had at least one vote for 30+ minutes —
-// see AUTO_LOCK_AFTER_MS. Deliberately NOT triggered by roles filling up
-// (a previous version did that too) — a small event (e.g. a single Tank
-// slot) would then lock the instant someone signed up, cutting off the
-// ability to propose/remove time options before anyone got the chance,
-// which is exactly the opposite of what the footer text promises
-// ("once everyone has voted or in 30 min").
-export async function runEventAutoLock(client: Client<true>): Promise<void> {
-  const openEvents = await db.event.findMany({
-    where: { status: "open", discordMessageId: { not: null } },
-    include: eventInclude,
-  });
-
-  for (const event of openEvents) {
-    const hasVotes = event.timeOptions.some((t) => t.votes.length > 0);
-    const isOld = Date.now() - event.createdAt.getTime() >= AUTO_LOCK_AFTER_MS;
-    if (hasVotes && isOld) {
-      await lockEvent(client, event);
-    }
-  }
-}
-
 // 24h after an event's own date (not creation date) has passed, auto-cancel
 // it — same cleanup as clicking "Cancel group" (Discord thread/post
 // deleted via syncEventMessage), except the DB row is kept as a cancelled
@@ -1240,4 +1267,223 @@ export async function runEventExpiry(client: Client<true>): Promise<void> {
     await db.event.update({ where: { id }, data: { status: "cancelled" } });
     await syncEventMessage(client, id);
   }
+}
+
+export const EVENT_CREATE_BUTTON_ID = "event-create-button";
+
+const EVENT_BUTTON_MESSAGE_TEXT =
+  "Click below to create a new event signup in this channel.\nYou can always use the `/guildthing event` command as well.";
+
+function buildEventCreateButtonMessage() {
+  return {
+    content: EVENT_BUTTON_MESSAGE_TEXT,
+    components: [
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setCustomId(EVENT_CREATE_BUTTON_ID)
+          .setLabel("Create new event")
+          .setStyle(ButtonStyle.Primary),
+      ),
+    ],
+  };
+}
+
+// Same idea as ensureOnboardingButtons — keeps a standing "Create new
+// event" button message current in every channel that's had it enabled
+// (see EventChannelPreset.buttonEnabled), posting one if missing and
+// cleaning up if it gets disabled. Idempotent, called on ready/GuildCreate
+// and on a short interval (see index.ts) so an admin toggling it on the
+// site lands quickly without a bot restart.
+export async function ensureEventCreateButtons(
+  client: Client<true>,
+): Promise<void> {
+  const presets = await db.eventChannelPreset.findMany({
+    include: { guild: { select: { discordGuildId: true } } },
+  });
+
+  for (const preset of presets) {
+    const discordGuild = client.guilds.cache.get(preset.guild.discordGuildId);
+    if (!discordGuild) continue;
+
+    if (!preset.buttonEnabled) {
+      if (preset.buttonMessageId) {
+        const channel = await discordGuild.channels
+          .fetch(preset.discordChannelId)
+          .catch(() => null);
+        if (channel?.isTextBased()) {
+          const existing = await channel.messages
+            .fetch(preset.buttonMessageId)
+            .catch(() => null);
+          await existing?.delete().catch(() => {});
+        }
+        await db.eventChannelPreset.update({
+          where: { id: preset.id },
+          data: { buttonMessageId: null },
+        });
+      }
+      continue;
+    }
+
+    try {
+      const channel = await discordGuild.channels.fetch(
+        preset.discordChannelId,
+      );
+      if (!channel?.isTextBased()) continue;
+
+      if (preset.buttonMessageId) {
+        const existing = await channel.messages
+          .fetch(preset.buttonMessageId)
+          .catch(() => null);
+        if (existing) continue; // already posted, nothing to change
+      }
+
+      const message = await channel.send(buildEventCreateButtonMessage());
+      await db.eventChannelPreset.update({
+        where: { id: preset.id },
+        data: { buttonMessageId: message.id },
+      });
+    } catch (err) {
+      console.error(
+        `[bot] failed to ensure event-create button for channel ${preset.discordChannelId}:`,
+        err,
+      );
+    }
+  }
+}
+
+// Checks whether each channel's create-event button is still the last
+// message there — if someone's posted since, drops the bookkeeping (and
+// best-effort deletes the now-stale button) so the next
+// ensureEventCreateButtons pass reposts a fresh one at the current bottom.
+// Cheap (one message fetch per button-enabled channel) but deliberately
+// NOT run on a short/eager interval like the rest of the event tick — see
+// EVENT_BUTTON_DRIFT_CHECK_INTERVAL_MS in index.ts. Reactive to actual
+// activity rather than reposting (and re-notifying the channel) on a fixed
+// clock regardless of whether anything's happened.
+export async function repostDriftedEventButtons(
+  client: Client<true>,
+): Promise<void> {
+  const presets = await db.eventChannelPreset.findMany({
+    where: { buttonEnabled: true, buttonMessageId: { not: null } },
+    include: { guild: { select: { discordGuildId: true } } },
+  });
+
+  for (const preset of presets) {
+    const discordGuild = client.guilds.cache.get(preset.guild.discordGuildId);
+    if (!discordGuild || !preset.buttonMessageId) continue;
+
+    try {
+      const channel = await discordGuild.channels.fetch(
+        preset.discordChannelId,
+      );
+      if (!channel?.isTextBased()) continue;
+
+      const latest = (await channel.messages.fetch({ limit: 1 })).first();
+      if (!latest || latest.id === preset.buttonMessageId) continue;
+
+      const stale = await channel.messages
+        .fetch(preset.buttonMessageId)
+        .catch(() => null);
+      await stale?.delete().catch(() => {});
+      await db.eventChannelPreset.update({
+        where: { id: preset.id },
+        data: { buttonMessageId: null },
+      });
+    } catch (err) {
+      console.error(
+        `[bot] failed to check event-create button drift for channel ${preset.discordChannelId}:`,
+        err,
+      );
+    }
+  }
+}
+
+const BUTTON_REPOST_DEBOUNCE_MS = 5_000;
+// Per-channel-preset debounce timers — a burst of messages in the same
+// channel should only trigger one repost, not one per message.
+const pendingButtonReposts = new Map<string, NodeJS.Timeout>();
+
+async function repostSingleEventButton(
+  client: Client<true>,
+  presetId: string,
+): Promise<void> {
+  const preset = await db.eventChannelPreset.findUnique({
+    where: { id: presetId },
+    include: { guild: { select: { discordGuildId: true } } },
+  });
+  if (!preset?.buttonEnabled) return;
+
+  const discordGuild = client.guilds.cache.get(preset.guild.discordGuildId);
+  if (!discordGuild) return;
+
+  try {
+    const channel = await discordGuild.channels.fetch(preset.discordChannelId);
+    if (!channel?.isTextBased()) return;
+
+    if (preset.buttonMessageId) {
+      const stale = await channel.messages
+        .fetch(preset.buttonMessageId)
+        .catch(() => null);
+      await stale?.delete().catch(() => {});
+    }
+
+    const message = await channel.send(buildEventCreateButtonMessage());
+    await db.eventChannelPreset.update({
+      where: { id: preset.id },
+      data: { buttonMessageId: message.id },
+    });
+  } catch (err) {
+    console.error(
+      `[bot] failed to reposition event-create button for channel ${preset.discordChannelId}:`,
+      err,
+    );
+  }
+}
+
+// Reacts to a new message in real time instead of waiting for the next
+// poll (see repostDriftedEventButtons, kept as a slower fallback for
+// anything this misses — e.g. a bot restart losing an in-flight debounce
+// timer): if the channel has an enabled create-event button that isn't
+// already the last message, wait a few seconds (in case more messages are
+// about to land in the same burst) and then move it back to the bottom.
+export function scheduleEventButtonRepostOnMessage(
+  client: Client<true>,
+  message: { guildId: string | null; channelId: string; id: string },
+): void {
+  if (!message.guildId) return;
+
+  void db.eventChannelPreset
+    .findFirst({
+      where: {
+        discordChannelId: message.channelId,
+        buttonEnabled: true,
+        buttonMessageId: { not: null },
+        guild: { discordGuildId: message.guildId },
+      },
+    })
+    .then((preset) => {
+      if (!preset || message.id === preset.buttonMessageId) return;
+
+      const existing = pendingButtonReposts.get(preset.id);
+      if (existing) clearTimeout(existing);
+
+      pendingButtonReposts.set(
+        preset.id,
+        setTimeout(() => {
+          pendingButtonReposts.delete(preset.id);
+          repostSingleEventButton(client, preset.id).catch((err: unknown) => {
+            console.error(
+              `[bot] failed to reposition event-create button for channel ${message.channelId}:`,
+              err,
+            );
+          });
+        }, BUTTON_REPOST_DEBOUNCE_MS),
+      );
+    })
+    .catch((err: unknown) => {
+      console.error(
+        `[bot] failed to check event-create button preset for channel ${message.channelId}:`,
+        err,
+      );
+    });
 }

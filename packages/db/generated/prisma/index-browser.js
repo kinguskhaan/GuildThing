@@ -294,12 +294,22 @@ exports.Prisma.GuildRoleRuleConditionScalarFieldEnum = {
   maxNumber: 'maxNumber'
 };
 
+exports.Prisma.EventChannelPresetScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  discordChannelId: 'discordChannelId',
+  roles: 'roles',
+  buttonEnabled: 'buttonEnabled',
+  buttonMessageId: 'buttonMessageId'
+};
+
 exports.Prisma.EventScalarFieldEnum = {
   id: 'id',
   guildId: 'guildId',
   title: 'title',
   imageUrl: 'imageUrl',
   date: 'date',
+  description: 'description',
   createdByDiscordUserId: 'createdByDiscordUserId',
   createdByDiscordTag: 'createdByDiscordTag',
   discordChannelId: 'discordChannelId',
@@ -427,6 +437,7 @@ exports.Prisma.ModelName = {
   GuildRoleRuleGrantedRole: 'GuildRoleRuleGrantedRole',
   GuildRoleRuleGrantedChannel: 'GuildRoleRuleGrantedChannel',
   GuildRoleRuleCondition: 'GuildRoleRuleCondition',
+  EventChannelPreset: 'EventChannelPreset',
   Event: 'Event',
   EventTimeOption: 'EventTimeOption',
   EventTimeVote: 'EventTimeVote',
