@@ -1403,6 +1403,16 @@ const BUTTON_REPOST_DEBOUNCE_MS = 5_000;
 // channel should only trigger one repost, not one per message.
 const pendingButtonReposts = new Map<string, NodeJS.Timeout>();
 
+// Guards against the repost triggering itself: sending the new button
+// message is its own MessageCreate event, and — before the buttonMessageId
+// DB update below has landed — that fresh message doesn't look like the
+// recorded button yet, so scheduleEventButtonRepostOnMessage would treat it
+// as "something new" and schedule *another* repost, forever, once per
+// debounce interval. Held only for the couple seconds this race is
+// possible, not permanently — a genuinely different bot-authored message
+// (e.g. a newly posted event embed) still triggers a reposition normally.
+const selfRepostGuard = new Set<string>();
+
 async function repostSingleEventButton(
   client: Client<true>,
   presetId: string,
@@ -1416,6 +1426,7 @@ async function repostSingleEventButton(
   const discordGuild = client.guilds.cache.get(preset.guild.discordGuildId);
   if (!discordGuild) return;
 
+  selfRepostGuard.add(presetId);
   try {
     const channel = await discordGuild.channels.fetch(preset.discordChannelId);
     if (!channel?.isTextBased()) return;
@@ -1437,6 +1448,8 @@ async function repostSingleEventButton(
       `[bot] failed to reposition event-create button for channel ${preset.discordChannelId}:`,
       err,
     );
+  } finally {
+    setTimeout(() => selfRepostGuard.delete(presetId), 2_000);
   }
 }
 
@@ -1446,6 +1459,9 @@ async function repostSingleEventButton(
 // timer): if the channel has an enabled create-event button that isn't
 // already the last message, wait a few seconds (in case more messages are
 // about to land in the same burst) and then move it back to the bottom.
+// Reacts to bot-authored messages too (e.g. a newly posted event embed
+// should push the button down) — selfRepostGuard is what specifically
+// stops the repost from re-triggering itself, not a blanket bot filter.
 export function scheduleEventButtonRepostOnMessage(
   client: Client<true>,
   message: { guildId: string | null; channelId: string; id: string },
@@ -1462,7 +1478,13 @@ export function scheduleEventButtonRepostOnMessage(
       },
     })
     .then((preset) => {
-      if (!preset || message.id === preset.buttonMessageId) return;
+      if (
+        !preset ||
+        message.id === preset.buttonMessageId ||
+        selfRepostGuard.has(preset.id)
+      ) {
+        return;
+      }
 
       const existing = pendingButtonReposts.get(preset.id);
       if (existing) clearTimeout(existing);
