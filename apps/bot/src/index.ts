@@ -29,6 +29,7 @@ import {
   handleEventComponentInteraction,
   handleEventCreateCommand,
   runEventAutoLock,
+  runEventExpiry,
   syncPendingWebEvents,
 } from "./events.js";
 import { syncPendingRosterMatches } from "./pendingMatches.js";
@@ -180,6 +181,9 @@ client.once(Events.ClientReady, (readyClient) => {
     });
     runEventAutoLock(readyClient).catch((err: unknown) => {
       console.error("[bot] event auto-lock failed:", err);
+    });
+    runEventExpiry(readyClient).catch((err: unknown) => {
+      console.error("[bot] event expiry failed:", err);
     });
   };
   checkEvents();

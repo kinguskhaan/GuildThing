@@ -1218,3 +1218,26 @@ export async function runEventAutoLock(client: Client<true>): Promise<void> {
     }
   }
 }
+
+// 24h after an event's own date (not creation date) has passed, auto-cancel
+// it — same cleanup as clicking "Cancel group" (Discord thread/post
+// deleted via syncEventMessage), except the DB row is kept as a cancelled
+// record for history instead of being touched by whoever happens to notice
+// and click it themselves. Events with no date set never expire this way —
+// nothing to compare against.
+export async function runEventExpiry(client: Client<true>): Promise<void> {
+  const candidates = await db.event.findMany({
+    where: { status: { not: "cancelled" }, date: { not: null } },
+    select: { id: true, date: true },
+  });
+
+  for (const { id, date } of candidates) {
+    if (!date || !ISO_DATE_PATTERN.test(date)) continue;
+    const expiresAt =
+      new Date(`${date}T00:00:00Z`).getTime() + 24 * 60 * 60_000;
+    if (Date.now() < expiresAt) continue;
+
+    await db.event.update({ where: { id }, data: { status: "cancelled" } });
+    await syncEventMessage(client, id);
+  }
+}
