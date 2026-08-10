@@ -22,3 +22,20 @@ const CLASS_COLORS: Record<string, string> = {
 export function classColor(classToken: string | null | undefined): string {
   return (classToken && CLASS_COLORS[classToken.toUpperCase()]) ?? "#B9BBBE";
 }
+
+// Coarse relative time for "last active" columns — doesn't need
+// second-level precision, so this deliberately steps down through minutes
+// / hours / days rather than pulling in a date library for it. Falls back
+// to a plain date once it's old enough that "N days ago" stops being a
+// useful unit.
+export function relativeTime(date: Date): string {
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return date.toLocaleDateString();
+}

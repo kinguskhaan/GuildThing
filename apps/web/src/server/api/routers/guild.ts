@@ -1020,9 +1020,45 @@ export const guildRouter = createTRPCRouter({
         orderBy: [{ level: "desc" }, { name: "asc" }],
       });
 
+      const claimedIds = members
+        .map((m) => m.claimedByDiscordUserId)
+        .filter((id): id is string => id != null);
+      const activityRows =
+        claimedIds.length > 0
+          ? await ctx.db.guildMemberActivity.findMany({
+              where: { guildId: input.guildId, discordUserId: { in: claimedIds } },
+              select: { discordUserId: true, lastActiveAt: true },
+            })
+          : [];
+      const lastActiveByDiscordId = new Map(
+        activityRows.map((r) => [r.discordUserId, r.lastActiveAt]),
+      );
+
+      // Professions are self-reported separately (manual entry or the
+      // old addon flow — see GuildCharacter), matched onto a roster row by
+      // character name so "who can craft what" shows up on the same row
+      // as the live roster data, without the two systems needing to share
+      // a key beyond the name itself.
+      const characterRows = await ctx.db.guildCharacter.findMany({
+        where: { guildId: input.guildId },
+        select: { name: true, professions: { select: { name: true } } },
+      });
+      const professionsByName = new Map<string, Set<string>>();
+      for (const c of characterRows) {
+        if (c.professions.length === 0) continue;
+        const key = c.name.toLowerCase();
+        const set = professionsByName.get(key) ?? new Set<string>();
+        for (const p of c.professions) set.add(p.name);
+        professionsByName.set(key, set);
+      }
+
       const withConflictFlag = members.map(({ claimConflicts, ...m }) => ({
         ...m,
         hasClaimConflict: claimConflicts.length > 0,
+        lastActiveAt: m.claimedByDiscordUserId
+          ? (lastActiveByDiscordId.get(m.claimedByDiscordUserId) ?? null)
+          : null,
+        professions: [...(professionsByName.get(m.name.toLowerCase()) ?? [])],
       }));
 
       if (isAdmin) return withConflictFlag;
@@ -1031,6 +1067,7 @@ export const guildRouter = createTRPCRouter({
         officerNote: null,
         claimedByDiscordUserId: null,
         claimedByDiscordTag: null,
+        lastActiveAt: null,
       }));
     }),
 

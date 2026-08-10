@@ -14,16 +14,19 @@ import { db } from "@guildthing/db";
 const ACTIVITY_UPDATE_THROTTLE_MS = 12 * 60 * 60_000;
 
 // Updates GuildMemberActivity.lastActiveAt for whoever just sent a
-// message, throttled. Only bothers at all if the guild has the inactivity
-// filter turned on — no point tracking data nobody's using.
+// message, throttled. Tracked for every registered guild regardless of
+// whether the inactivity filter itself is enabled — the roster page's
+// "last active" column consumes this too, so tracking can't be gated
+// behind that one feature's toggle. Only *acting* on it (runInactivityFilter)
+// checks inactivityFilterEnabled.
 export async function trackMessageActivity(message: Message): Promise<void> {
   if (message.author.bot || !message.guild) return;
 
   const guild = await db.guild.findUnique({
     where: { discordGuildId: message.guild.id },
-    select: { id: true, inactivityFilterEnabled: true },
+    select: { id: true },
   });
-  if (!guild?.inactivityFilterEnabled) return;
+  if (!guild) return;
 
   const existing = await db.guildMemberActivity.findUnique({
     where: {
@@ -56,13 +59,14 @@ export async function trackMessageActivity(message: Message): Promise<void> {
 
 // Seeds an activity row on join so a brand-new member is protected by
 // their own joinedAt (see runInactivityFilter's skip condition) even
-// before they've sent a single message.
+// before they've sent a single message. Tracked unconditionally — see
+// trackMessageActivity above for why this isn't gated on the filter toggle.
 export async function initializeMemberActivity(member: GuildMember): Promise<void> {
   const guild = await db.guild.findUnique({
     where: { discordGuildId: member.guild.id },
-    select: { id: true, inactivityFilterEnabled: true },
+    select: { id: true },
   });
-  if (!guild?.inactivityFilterEnabled) return;
+  if (!guild) return;
 
   await db.guildMemberActivity.upsert({
     where: {

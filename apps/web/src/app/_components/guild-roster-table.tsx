@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import { classColor } from "~/lib/format";
+import { classColor, relativeTime } from "~/lib/format";
 import { api } from "~/trpc/react";
 import type { RouterOutputs } from "~/trpc/react";
 
@@ -168,33 +168,53 @@ export function GuildRosterTable({
           No members match these filters.
         </div>
       ) : (
-        <div className="w-full overflow-hidden rounded-xl bg-discord-elevated">
-          <table className="w-full text-left text-sm">
+        // A bounded box that scrolls on both axes, not a container that
+        // just grows the whole page taller — max-h caps vertical growth
+        // (long rosters were stretching the page indefinitely), overflow-
+        // auto scrolls whichever axis actually overflows, and the table
+        // drops w-full so it can size to its content and exceed this box's
+        // width when it needs to (a width-capped table has nowhere to grow
+        // but into its own cells). Header cells are sticky so they stay
+        // visible while scrolling down through a long roster.
+        <div className="w-full max-h-[70vh] overflow-auto rounded-xl bg-discord-elevated">
+          <table className="text-left text-sm">
             <thead>
-              <tr className="border-b border-black/20 text-xs uppercase text-discord-text-muted">
+              <tr className="border-b border-black/20 text-xs whitespace-nowrap text-discord-text-muted uppercase">
                 <th
-                  className="cursor-pointer select-none px-4 py-2 font-semibold"
+                  className="sticky top-0 cursor-pointer bg-discord-elevated px-4 py-2 font-semibold select-none"
                   onClick={() => toggleSort("name")}
                 >
                   Name{sortIndicator(sortKey, "name", sortDesc)}
                 </th>
                 <th
-                  className="cursor-pointer select-none px-4 py-2 font-semibold"
+                  className="sticky top-0 cursor-pointer bg-discord-elevated px-4 py-2 font-semibold select-none"
                   onClick={() => toggleSort("rank")}
                 >
                   Rank{sortIndicator(sortKey, "rank", sortDesc)}
                 </th>
                 <th
-                  className="cursor-pointer select-none px-4 py-2 font-semibold"
+                  className="sticky top-0 cursor-pointer bg-discord-elevated px-4 py-2 font-semibold select-none"
                   onClick={() => toggleSort("level")}
                 >
                   Level{sortIndicator(sortKey, "level", sortDesc)}
                 </th>
-                <th className="px-4 py-2 font-semibold">Note</th>
+                <th className="sticky top-0 bg-discord-elevated px-4 py-2 font-semibold">
+                  Professions
+                </th>
+                <th className="sticky top-0 bg-discord-elevated px-4 py-2 font-semibold">
+                  Note
+                </th>
                 {isAdmin && (
                   <>
-                    <th className="px-4 py-2 font-semibold">Officer note</th>
-                    <th className="px-4 py-2 font-semibold">Claimed by</th>
+                    <th className="sticky top-0 bg-discord-elevated px-4 py-2 font-semibold">
+                      Officer note
+                    </th>
+                    <th className="sticky top-0 bg-discord-elevated px-4 py-2 font-semibold">
+                      Claimed by
+                    </th>
+                    <th className="sticky top-0 bg-discord-elevated px-4 py-2 font-semibold">
+                      Last active
+                    </th>
                   </>
                 )}
               </tr>
@@ -206,7 +226,7 @@ export function GuildRosterTable({
                   className="border-b border-black/10 last:border-0"
                 >
                   <td
-                    className="px-4 py-2 font-semibold"
+                    className="px-4 py-2 font-semibold whitespace-nowrap"
                     style={{ color: classColor(member.class) }}
                   >
                     {member.name}
@@ -227,21 +247,35 @@ export function GuildRosterTable({
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-2 text-discord-text-muted">
+                  <td className="px-4 py-2 whitespace-nowrap text-discord-text-muted">
                     {member.rank}
                   </td>
-                  <td className="px-4 py-2 text-discord-text-muted">
+                  <td className="px-4 py-2 whitespace-nowrap text-discord-text-muted">
                     {member.level}
                   </td>
-                  <td className="px-4 py-2 text-discord-text-muted">
+                  <td
+                    className="max-w-[200px] truncate px-4 py-2 text-discord-text-muted"
+                    title={member.professions.join(", ")}
+                  >
+                    {member.professions.length > 0
+                      ? member.professions.join(", ")
+                      : "—"}
+                  </td>
+                  <td
+                    className="max-w-[200px] truncate px-4 py-2 text-discord-text-muted"
+                    title={member.note ?? undefined}
+                  >
                     {member.note}
                   </td>
                   {isAdmin && (
                     <>
-                      <td className="px-4 py-2 text-discord-text-muted">
+                      <td
+                        className="max-w-[200px] truncate px-4 py-2 text-discord-text-muted"
+                        title={member.officerNote ?? undefined}
+                      >
                         {member.officerNote}
                       </td>
-                      <td className="px-4 py-2 text-discord-text-muted">
+                      <td className="px-4 py-2 whitespace-nowrap text-discord-text-muted">
                         {member.claimedByDiscordTag ? (
                           <div className="flex items-center gap-2">
                             <span>{member.claimedByDiscordTag}</span>
@@ -263,6 +297,11 @@ export function GuildRosterTable({
                         ) : (
                           "—"
                         )}
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap text-discord-text-muted">
+                        {member.lastActiveAt
+                          ? relativeTime(new Date(member.lastActiveAt))
+                          : "—"}
                       </td>
                     </>
                   )}
