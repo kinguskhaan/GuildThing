@@ -109,9 +109,9 @@ export function GuildEventChannelPresets({ guildId }: { guildId: string }) {
             A dungeon-specific channel (e.g. Wailing Caverns) can have a default
             role composition — pre-fills the Roles field in{" "}
             <code>/guildthing event</code> when run there, instead of retyping
-            it every time (still editable per event) — and/or a standing "Create
-            new event" button for people who'd rather click than type a command.
-            Either part is optional.
+            it every time (still editable per event) — and/or a standing
+            &quot;Create new event&quot; button for people who&apos;d rather
+            click than type a command. Either part is optional.
           </p>
 
           {presets.data && presets.data.length > 0 && (
@@ -187,7 +187,7 @@ export function GuildEventChannelPresets({ guildId }: { guildId: string }) {
               checked={buttonEnabled}
               onChange={(e) => setButtonEnabled(e.target.checked)}
             />
-            Show a "Create new event" button in this channel
+            Show a &quot;Create new event&quot; button in this channel
           </label>
           <button
             type="button"
