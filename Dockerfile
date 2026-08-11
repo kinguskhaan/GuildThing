@@ -53,10 +53,14 @@ RUN mkdir -p apps/web/.next && chown nextjs:nodejs apps/web/.next
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 
-# prisma CLI (needed at runtime for `db push`, not part of the standalone trace).
-# pnpm hoists via a symlinked .pnpm store, so the whole node_modules is copied
-# rather than cherry-picking prisma/@prisma (their symlinks would dangle otherwise).
+# prisma CLI (needed at runtime for `db push`, not part of the standalone
+# trace) — pnpm puts its .bin shim under packages/db/node_modules (prisma's
+# a devDependency of that package specifically, not the workspace root), so
+# root node_modules alone isn't enough; the shim script also needs the
+# .pnpm virtual store it resolves into, hence copying the whole root
+# node_modules too rather than cherry-picking.
 COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=deps --chown=nextjs:nodejs /app/packages/db/node_modules ./packages/db/node_modules
 
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh && chown nextjs:nodejs docker-entrypoint.sh
@@ -69,3 +73,42 @@ ENV HOSTNAME="0.0.0.0"
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["node", "apps/web/server.js"]
+
+# ---- bot-runner: minimal production image for apps/bot ----
+# discord.js bot has no build step (no bundler, no compiled JS output) — it
+# runs its TypeScript source directly via tsx (a real `dependencies` entry
+# in apps/bot/package.json for exactly this reason, not just a dev tool
+# here). So instead of tracing a build like the web runner does, this just
+# copies the source plus the node_modules pnpm actually installed for it.
+FROM base AS bot-runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 bot
+
+COPY --from=builder /app/packages/db/prisma ./packages/db/prisma
+COPY --from=builder /app/packages/db/generated ./packages/db/generated
+COPY --from=builder /app/packages/db/src ./packages/db/src
+COPY --from=builder /app/packages/db/package.json ./packages/db/package.json
+COPY --from=builder /app/apps/bot/src ./apps/bot/src
+COPY --from=builder /app/apps/bot/package.json ./apps/bot/package.json
+
+# Root node_modules for its .pnpm virtual store (the packages/db and
+# apps/bot bin shims below both resolve into it) and root-level tsx;
+# packages/db/node_modules for the prisma CLI (db push at startup, same
+# reasoning as the web runner); apps/bot/node_modules for discord.js and
+# the @guildthing/db workspace symlink, which pnpm's isolated layout only
+# exposes at the package's own node_modules, not the root.
+COPY --from=deps --chown=bot:nodejs /app/node_modules ./node_modules
+COPY --from=deps --chown=bot:nodejs /app/packages/db/node_modules ./packages/db/node_modules
+COPY --from=deps --chown=bot:nodejs /app/apps/bot/node_modules ./apps/bot/node_modules
+
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh && chown bot:nodejs docker-entrypoint.sh
+
+USER bot
+
+ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["node_modules/.bin/tsx", "apps/bot/src/index.ts"]

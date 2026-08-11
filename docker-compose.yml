@@ -1,6 +1,8 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      target: runner
     ports:
       - "3000:3000"
     env_file:
@@ -12,6 +14,25 @@ services:
       DATABASE_URL: "file:/app/packages/db/prisma/db.sqlite"
     volumes:
       - sqlite-data:/app/packages/db/prisma
+    restart: unless-stopped
+
+  bot:
+    build:
+      context: .
+      target: bot-runner
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "file:/app/packages/db/prisma/db.sqlite"
+    volumes:
+      - sqlite-data:/app/packages/db/prisma
+    # Soft ordering, not a guarantee — both containers' entrypoints run
+    # `prisma db push` against the same file on startup (harmless if it
+    # races, worst case a transient "database is locked" that a restart
+    # clears), this just makes the collision unlikely rather than common.
+    depends_on:
+      - app
+    restart: unless-stopped
 
 volumes:
   sqlite-data:
