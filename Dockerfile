@@ -41,7 +41,12 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/apps/web/public ./apps/web/public
-COPY --from=builder /app/packages/db/prisma ./packages/db/prisma
+# --chown matters here specifically: this directory is also the
+# sqlite-data volume's mount point (see docker-compose.yml) — Docker seeds
+# a fresh named volume from the image content at that path, ownership
+# included, and the container runs as the non-root `nextjs` user below, so
+# a root-owned seed means it can never create/open db.sqlite there.
+COPY --from=builder --chown=nextjs:nodejs /app/packages/db/prisma ./packages/db/prisma
 COPY --from=builder /app/packages/db/generated ./packages/db/generated
 
 RUN mkdir -p apps/web/.next && chown nextjs:nodejs apps/web/.next
@@ -88,7 +93,9 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 bot
 
-COPY --from=builder /app/packages/db/prisma ./packages/db/prisma
+# --chown matters here specifically — see the matching comment on the
+# runner stage above (same sqlite-data volume, mounted at this same path).
+COPY --from=builder --chown=bot:nodejs /app/packages/db/prisma ./packages/db/prisma
 COPY --from=builder /app/packages/db/generated ./packages/db/generated
 COPY --from=builder /app/packages/db/src ./packages/db/src
 COPY --from=builder /app/packages/db/package.json ./packages/db/package.json
