@@ -7,6 +7,7 @@ import {
   ChannelType,
   type ChatInputCommandInteraction,
   type Client,
+  ComponentType,
   EmbedBuilder,
   type ForumChannel,
   type Message,
@@ -33,6 +34,9 @@ const THREAD_AUTO_ARCHIVE_MINUTES = 1440;
 const eventInclude = {
   timeOptions: { include: { votes: true } },
   roleSlots: { include: { signups: true } },
+  // Absence entries have no roleSlotId, so they'd never show up via
+  // roleSlots.signups above — fetched separately here instead.
+  signups: { where: { status: "absence" } },
 } as const;
 
 interface EventWithRelations {
@@ -42,6 +46,7 @@ interface EventWithRelations {
   imageUrl: string | null;
   date: string | null;
   description: string | null;
+  allowTimeSuggestions: boolean;
   createdByDiscordUserId: string;
   createdByDiscordTag: string;
   discordChannelId: string;
@@ -64,8 +69,12 @@ interface EventWithRelations {
       discordUserId: string;
       characterName: string | null;
       class: string | null;
-      isLeader: boolean;
+      status: string;
     }[];
+  }[];
+  signups: {
+    discordUserId: string;
+    characterName: string | null;
   }[];
 }
 
@@ -98,24 +107,69 @@ function parseRoleSlots(
   return slots;
 }
 
-function parseTimeOptions(input: string | null): string[] {
-  if (!input) return [];
+function todayISODate(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// Best-effort, not strict like parseEventDateTime below — these are extra
+// alternatives someone types straight into chat, not the anchor time, so a
+// stray typo shouldn't blow up the whole list.
+function parseTimeOptions(input: string): string[] {
   return input
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
 }
 
-function todayISODate(): string {
-  return new Date().toISOString().slice(0, 10);
+// Strict on purpose (unlike parseRoleSlots/parseEventDate's best-effort
+// fallbacks) — this becomes the event's actual first time option, so
+// silently accepting garbage would just produce a confusing "TBD"-looking
+// time later instead of telling the user right away what's wrong.
+// "YYYY-MM-DD HH:MM" (24h; a literal "T" separator works too), with real
+// calendar validation (rejects e.g. 2026-02-30, not just wrong digit
+// counts) and hour/minute range checks baked into the regex itself.
+const DATE_TIME_PATTERN =
+  /^(\d{4})-(\d{2})-(\d{2})[ T]([01]\d|2[0-3]):([0-5]\d)$/;
+
+function parseEventDateTime(
+  input: string,
+): { date: string; time: string } | null {
+  const match = DATE_TIME_PATTERN.exec(input.trim());
+  if (!match) return null;
+  const [, year, month, day, hour, minute] = match;
+  const y = Number(year);
+  const m = Number(month);
+  const d = Number(day);
+  const asDate = new Date(y, m - 1, d);
+  if (
+    asDate.getFullYear() !== y ||
+    asDate.getMonth() !== m - 1 ||
+    asDate.getDate() !== d
+  ) {
+    return null;
+  }
+  return { date: `${year}-${month}-${day}`, time: `${hour}:${minute}` };
+}
+
+const TIME_ONLY_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+// Strict, same spirit as parseEventDateTime above — this is the "+ Add time
+// option" button, so garbage like "26:00" shouldn't silently become a
+// votable option. Comma-separated so one submission can add several start
+// times at once; returns null (reject the whole batch) if ANY entry is
+// invalid, rather than silently dropping the bad one.
+function parseTimeList(input: string): string[] | null {
+  const parts = input
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (parts.length === 0) return null;
+  return parts.every((p) => TIME_ONLY_PATTERN.test(p)) ? parts : null;
 }
 
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
-// Falls back to today rather than accepting garbage — same "best effort,
-// don't reject the whole thing" spirit as parseRoleSlots, but a date field
-// is meant to default to today anyway, so an unparsable value might as
-// well just become that instead of null.
+// Date-only version for the Edit modal, which doesn't touch time options.
 function parseEventDate(input: string): string {
   const trimmed = input.trim();
   return ISO_DATE_PATTERN.test(trimmed) ? trimmed : todayISODate();
@@ -139,6 +193,13 @@ function voteBar(count: number, maxCount: number): string {
   return "█".repeat(filled) + "░".repeat(10 - filled);
 }
 
+// Tentative signups don't consume slot capacity — a "maybe" shouldn't hold
+// the last spot and block someone who can actually commit, e.g. a single
+// tentative tank locking out every other tank from a 1-capacity slot.
+function confirmedSignupCount(slot: { signups: { status: string }[] }): number {
+  return slot.signups.filter((su) => su.status !== "tentative").length;
+}
+
 // One single embed — a message with multiple embeds always renders each as
 // its own separately-bordered card with a visible gap between them, no
 // matter how well the colors match, so splitting the image out into its
@@ -156,8 +217,13 @@ function buildEventEmbeds(event: EventWithRelations): EmbedBuilder[] {
         : 0x5865_f2;
 
   const totalCapacity = event.roleSlots.reduce((sum, s) => sum + s.capacity, 0);
-  const totalSignups = event.roleSlots.reduce(
-    (sum, s) => sum + s.signups.length,
+  const totalConfirmed = event.roleSlots.reduce(
+    (sum, s) => sum + confirmedSignupCount(s),
+    0,
+  );
+  const totalTentative = event.roleSlots.reduce(
+    (sum, s) =>
+      sum + s.signups.filter((su) => su.status === "tentative").length,
     0,
   );
   const maxVotes = Math.max(0, ...event.timeOptions.map((t) => t.votes.length));
@@ -175,7 +241,10 @@ function buildEventEmbeds(event: EventWithRelations): EmbedBuilder[] {
       { name: "📅 Date", value: event.date ?? "—", inline: true },
       {
         name: "👥 Signed up",
-        value: `${totalSignups}/${totalCapacity}`,
+        value:
+          totalTentative > 0
+            ? `${totalConfirmed}/${totalCapacity} (${totalTentative} tentative)`
+            : `${totalConfirmed}/${totalCapacity}`,
         inline: true,
       },
     );
@@ -192,7 +261,15 @@ function buildEventEmbeds(event: EventWithRelations): EmbedBuilder[] {
     embed.addFields({ name: "Status", value: "❌ Cancelled", inline: true });
   }
 
-  if (event.timeOptions.length > 0) {
+  if (event.timeOptions.length === 1 && !event.allowTimeSuggestions) {
+    // Exactly one fixed time, suggestions off — nothing to vote on, so
+    // showing a vote bar for the only option is just noise. Plain display
+    // instead.
+    embed.addFields(spacer, {
+      name: "Time",
+      value: event.timeOptions[0]!.label,
+    });
+  } else if (event.timeOptions.length > 0) {
     embed.addFields(spacer, {
       name: "Proposed times (vote for what works for you)",
       value: event.timeOptions
@@ -220,13 +297,28 @@ function buildEventEmbeds(event: EventWithRelations): EmbedBuilder[] {
             // Discord mention when nobody's claimed a character (nothing
             // else to show), instead of always showing both.
             const displayName = s.characterName ?? `<@${s.discordUserId}>`;
-            return `\`${i + 1}\` ${s.isLeader ? "👑 " : ""}${displayName}${classSuffix}`;
+            const tentativeSuffix =
+              s.status === "tentative" ? " *(tentative)*" : "";
+            return `\`${i + 1}\` ${displayName}${classSuffix}${tentativeSuffix}`;
           })
           .join("\n")
       : "_empty_";
     embed.addFields({
-      name: `${slot.emoji ? `${slot.emoji} ` : ""}${slot.roleName} (${slot.signups.length}/${slot.capacity})`,
+      name: `${slot.emoji ? `${slot.emoji} ` : ""}${slot.roleName} (${confirmedSignupCount(slot)}/${slot.capacity})`,
       value: lines,
+      inline: false,
+    });
+  }
+
+  if (event.signups.length > 0) {
+    embed.addFields({
+      name: `🚫 Absence (${event.signups.length})`,
+      value: event.signups
+        .map(
+          (s, i) =>
+            `\`${i + 1}\` ${s.characterName ?? `<@${s.discordUserId}>`}`,
+        )
+        .join("\n"),
       inline: false,
     });
   }
@@ -268,7 +360,7 @@ function buildEventComponents(event: EventWithRelations) {
   )[] = [];
 
   const openSlots = event.roleSlots.filter(
-    (s) => s.signups.length < s.capacity,
+    (s) => confirmedSignupCount(s) < s.capacity,
   );
   if (openSlots.length > 0) {
     rows.push(
@@ -278,7 +370,7 @@ function buildEventComponents(event: EventWithRelations) {
           .setPlaceholder("Sign up for a role...")
           .addOptions(
             openSlots.map((s) => ({
-              label: `${s.roleName} (${s.signups.length}/${s.capacity} taken)`,
+              label: `${s.roleName} (${confirmedSignupCount(s)}/${s.capacity} taken)`,
               value: s.id,
               emoji: toSelectEmoji(s.emoji),
             })),
@@ -306,7 +398,12 @@ function buildEventComponents(event: EventWithRelations) {
     ),
   );
 
-  if (isOpen && event.timeOptions.length > 0) {
+  // A single fixed time (suggestions off) has nothing to vote between —
+  // skip the select entirely instead of offering a one-option "vote".
+  const votingMeaningful =
+    event.timeOptions.length > 1 ||
+    (event.timeOptions.length === 1 && event.allowTimeSuggestions);
+  if (isOpen && votingMeaningful) {
     rows.push(
       new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
         new StringSelectMenuBuilder()
@@ -317,30 +414,65 @@ function buildEventComponents(event: EventWithRelations) {
           ),
       ),
     );
-    // No automatic timer decides when voting's "done" — the creator locks
-    // it in manually once they judge everyone's voted. Picking a mistaken
-    // time (e.g. a typo) also has no direct "edit" — remove it and add the
-    // corrected one instead. Both gated to the creator (same as Edit/
-    // Cancel) via an ephemeral picker for removal, so a wrong click can't
-    // nuke someone's proposal or lock things in early.
-    rows.push(
-      new ActionRowBuilder<ButtonBuilder>().addComponents(
+  }
+
+  if (isOpen) {
+    // No lock-in step — voting just stays open, and whoever's looking can
+    // see which time has the most votes right on the embed. Picking a
+    // mistaken time (e.g. a typo) also has no direct "edit" — remove it and
+    // add the corrected one instead. allowTimeSuggestions off hides "+ Add
+    // time option" entirely — for a fixed time with no discussion wanted,
+    // rather than fighting off randoms tacking on alternatives. All gated
+    // to the creator except adding, same as Edit/Cancel.
+    const timeButtons: ButtonBuilder[] = [];
+    if (event.allowTimeSuggestions) {
+      timeButtons.push(
         new ButtonBuilder()
-          .setCustomId(`event:${event.id}:lockin`)
-          .setLabel("Lock in the time")
-          .setStyle(ButtonStyle.Success),
+          .setCustomId(`event:${event.id}:addtime`)
+          .setLabel("+ Add time option")
+          .setStyle(ButtonStyle.Secondary),
+      );
+    }
+    // Always keep at least one time — an event with zero times has nothing
+    // to show as its date/time at all.
+    if (event.timeOptions.length > 1) {
+      timeButtons.push(
         new ButtonBuilder()
           .setCustomId(`event:${event.id}:removetime`)
           .setLabel("Remove a time option")
           .setStyle(ButtonStyle.Secondary),
-      ),
+      );
+    }
+    timeButtons.push(
+      new ButtonBuilder()
+        .setCustomId(`event:${event.id}:toggletimesuggest`)
+        .setLabel(
+          event.allowTimeSuggestions
+            ? "🔕 Disable time suggestions"
+            : "🔔 Enable time suggestions",
+        )
+        .setStyle(ButtonStyle.Secondary),
     );
+    rows.push(new ActionRowBuilder<ButtonBuilder>().addComponents(timeButtons));
   }
 
   const actionButtons = [
+    // Marks the clicker absent — clears any role signup they had and puts
+    // them in the dedicated Absence list instead of just removing them
+    // silently, so the roster shows who's confirmed NOT coming, not just
+    // who never answered. Clicking again while already absent clears it
+    // entirely (back to no signup at all).
     new ButtonBuilder()
-      .setCustomId(`event:${event.id}:leave`)
-      .setLabel("Leave")
+      .setCustomId(`event:${event.id}:absence`)
+      .setLabel("Absence")
+      .setStyle(ButtonStyle.Secondary),
+    // Flips the clicker's own signup between confirmed/tentative — usable
+    // any time after signing up, lock included (still meaningful then:
+    // "actually not sure I can make it anymore" doesn't stop being true
+    // just because the time's decided).
+    new ButtonBuilder()
+      .setCustomId(`event:${event.id}:tentative`)
+      .setLabel("Toggle tentative")
       .setStyle(ButtonStyle.Secondary),
     // Visible to everyone (Discord has no per-viewer component
     // visibility) but only usable by the creator — same permission check
@@ -354,14 +486,6 @@ function buildEventComponents(event: EventWithRelations) {
       .setLabel("Cancel group")
       .setStyle(ButtonStyle.Danger),
   ];
-  if (isOpen) {
-    actionButtons.unshift(
-      new ButtonBuilder()
-        .setCustomId(`event:${event.id}:addtime`)
-        .setLabel("+ Add time option")
-        .setStyle(ButtonStyle.Secondary),
-    );
-  }
   rows.push(new ActionRowBuilder<ButtonBuilder>().addComponents(actionButtons));
 
   return rows;
@@ -459,6 +583,12 @@ export async function handleEventCreateCommand(
     },
   });
 
+  // One modal, 5 fields — Discord's hard server-side cap (confirmed live,
+  // both the classic ActionRow<TextInput> system and the newer Label one
+  // hit the same "must be 5 or fewer" error). Extra time options and
+  // toggling "allow suggestions" both stay reachable after posting, via
+  // the "+ Add time option" / "🔕 Disable time suggestions" buttons — no
+  // multi-step question chain needed for those.
   const modal = new ModalBuilder()
     .setCustomId(`event-create-${interaction.id}`)
     .setTitle("Create an event")
@@ -473,12 +603,12 @@ export async function handleEventCreateCommand(
       ),
       new ActionRowBuilder<TextInputBuilder>().addComponents(
         new TextInputBuilder()
-          .setCustomId("date")
-          .setLabel("Date (YYYY-MM-DD)")
+          .setCustomId("dateTime")
+          .setLabel("Date & time (YYYY-MM-DD HH:MM)")
           .setStyle(TextInputStyle.Short)
-          .setRequired(false)
-          .setMaxLength(10)
-          .setValue(todayISODate()),
+          .setRequired(true)
+          .setMaxLength(16)
+          .setPlaceholder("e.g. 2026-08-15 20:00"),
       ),
       new ActionRowBuilder<TextInputBuilder>().addComponents(
         new TextInputBuilder()
@@ -498,8 +628,8 @@ export async function handleEventCreateCommand(
       ),
       new ActionRowBuilder<TextInputBuilder>().addComponents(
         new TextInputBuilder()
-          .setCustomId("timeOptions")
-          .setLabel("Time options, comma-separated (optional)")
+          .setCustomId("imageUrl")
+          .setLabel("GIF/Image URL to be shown (optional)")
           .setStyle(TextInputStyle.Short)
           .setRequired(false),
       ),
@@ -527,26 +657,114 @@ export async function handleEventCreateCommand(
     });
     return;
   }
-  const timeOptionLabels = parseTimeOptions(
-    submitted.fields.getTextInputValue("timeOptions") || null,
+
+  const dateTime = parseEventDateTime(
+    submitted.fields.getTextInputValue("dateTime"),
   );
-  const date = parseEventDate(
-    submitted.fields.getTextInputValue("date") || todayISODate(),
-  );
+  if (!dateTime) {
+    await submitted.reply({
+      content:
+        "Couldn't parse that date/time — use YYYY-MM-DD HH:MM (24h), e.g. 2026-08-15 20:00. Try again.",
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+  if (new Date(`${dateTime.date}T${dateTime.time}:00`).getTime() < Date.now()) {
+    await submitted.reply({
+      content:
+        "That date/time has already passed — pick something in the future. Try again.",
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const title = submitted.fields.getTextInputValue("title").trim();
   const description =
     submitted.fields.getTextInputValue("description").trim() || null;
+  const imageUrlInput = submitted.fields.getTextInputValue("imageUrl").trim();
+  const imageUrl = /^https?:\/\//.test(imageUrlInput) ? imageUrlInput : null;
+
+  // The date/time field is always the first (and, unless more get added
+  // below or later via "+ Add time option", only) time option.
+  const timeLabels: string[] = [dateTime.time];
+
+  // Cursor for whichever interaction is currently "live" — askYesNo below
+  // is smart about reply vs update vs followUp based on its state, so this
+  // doesn't need to track "is it still fresh" itself.
+  let cursor: ModalSubmitInteraction | ButtonInteraction = submitted;
+
+  const moreTimes = await askYesNo(
+    cursor,
+    "Would you like to add more time options for people to vote on?",
+    "Yes",
+    "No",
+  );
+  if (moreTimes?.value) {
+    // moreTimes.interaction is a freshly-clicked, not-yet-acknowledged
+    // ButtonInteraction (askYesNo/notify never reply/update/defer it before
+    // returning it) — showModal() is a valid first response on it, same as
+    // any slash-command or button interaction elsewhere in this file.
+    const timesModal = new ModalBuilder()
+      .setCustomId(`event-moretimes-${moreTimes.interaction.id}`)
+      .setTitle("Add more times")
+      .addComponents(
+        new ActionRowBuilder<TextInputBuilder>().addComponents(
+          new TextInputBuilder()
+            .setCustomId("times")
+            .setLabel("Times, comma-separated (e.g. 22:00, 23:00)")
+            .setStyle(TextInputStyle.Short)
+            .setRequired(true)
+            .setMaxLength(200),
+        ),
+      );
+    await moreTimes.interaction.showModal(timesModal);
+    try {
+      const timesSubmitted = await moreTimes.interaction.awaitModalSubmit({
+        time: MODAL_TIMEOUT_MS,
+        filter: (i) =>
+          i.user.id === interaction.user.id &&
+          i.customId === timesModal.data.custom_id,
+      });
+      timeLabels.push(
+        ...parseTimeOptions(timesSubmitted.fields.getTextInputValue("times")),
+      );
+      // Now the live interaction for anything that follows — unlike the
+      // showModal()-consumed button interaction above, this one hasn't
+      // been replied to yet.
+      cursor = timesSubmitted;
+    } catch {
+      // Modal dismissed or timed out — no extra times. `cursor` stays
+      // `submitted`, which notify() already replied to earlier in
+      // askYesNo, so later calls fall through to followUp() safely
+      // instead of trying to reply/update the now-consumed button
+      // interaction above.
+    }
+  } else if (moreTimes) {
+    cursor = moreTimes.interaction;
+  }
+
+  const allowSuggestions = await askYesNo(
+    cursor,
+    "Do you want to allow people to add their own time suggestions that others can vote on?",
+    "Yes",
+    "No",
+  );
+  if (allowSuggestions) cursor = allowSuggestions.interaction;
+  const allowTimeSuggestions = allowSuggestions?.value ?? true;
 
   const created = await db.event.create({
     data: {
       guildId: guild.id,
-      title: submitted.fields.getTextInputValue("title").trim(),
-      date,
+      title,
+      date: dateTime.date,
       description,
+      imageUrl,
+      allowTimeSuggestions,
       createdByDiscordUserId: interaction.user.id,
       createdByDiscordTag: interaction.user.tag,
       discordChannelId: interaction.channelId,
       roleSlots: { create: roleSlots },
-      timeOptions: { create: timeOptionLabels.map((label) => ({ label })) },
+      timeOptions: { create: timeLabels.map((label) => ({ label })) },
     },
     include: eventInclude,
   });
@@ -556,18 +774,87 @@ export async function handleEventCreateCommand(
   // one place that knows how to stand up an event's thread.
   await syncEventMessage(submitted.client, created.id);
   const posted = await fetchEventWithRelations(created.id);
-  await submitted.reply({
-    content: posted?.discordThreadId
-      ? `Created **${created.title}** — head to <#${posted.discordThreadId}> to sign up!`
-      : `Created **${created.title}**, but I couldn't create its thread — check my permissions in this channel.`,
-    flags: MessageFlags.Ephemeral,
-  });
+  const confirmation = posted?.discordThreadId
+    ? `Created **${created.title}** — head to <#${posted.discordThreadId}> to sign up!`
+    : `Created **${created.title}**, but I couldn't create its thread — check my permissions in this channel.`;
+  await notify(cursor, confirmation);
+}
+
+// Ephemeral Yes/No question via buttons. Smart about how to respond to
+// `interaction` — reply (unacknowledged modal submit), update (unacknowledged
+// button), or followUp (already acknowledged either way) — so callers can
+// just chain these one after another without tracking acknowledgment state
+// themselves.
+async function askYesNo(
+  interaction: ModalSubmitInteraction | ButtonInteraction,
+  content: string,
+  yesLabel: string,
+  noLabel: string,
+): Promise<{ value: boolean; interaction: ButtonInteraction } | null> {
+  const yesId = `yn-yes-${interaction.id}`;
+  const noId = `yn-no-${interaction.id}`;
+  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(yesId)
+      .setLabel(yesLabel)
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId(noId)
+      .setLabel(noLabel)
+      .setStyle(ButtonStyle.Secondary),
+  );
+
+  const message = await notify(interaction, content, [row]);
+  if (!message) return null;
+
+  try {
+    const clicked = await message.awaitMessageComponent({
+      componentType: ComponentType.Button,
+      time: MODAL_TIMEOUT_MS,
+      filter: (i) => i.user.id === interaction.user.id,
+    });
+    return { value: clicked.customId === yesId, interaction: clicked };
+  } catch {
+    return null;
+  }
+}
+
+// Sends `content` via whichever response method `interaction` still
+// accepts — reply, update, or followUp — and returns the resulting
+// message, or null if even that failed (interaction expired entirely).
+async function notify(
+  interaction: ModalSubmitInteraction | ButtonInteraction,
+  content: string,
+  components: ActionRowBuilder<ButtonBuilder>[] = [],
+): Promise<Message | null> {
+  try {
+    if (interaction.replied || interaction.deferred) {
+      return await interaction.followUp({
+        content,
+        components,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+    if (interaction.isButton()) {
+      await interaction.update({ content, components });
+    } else {
+      await interaction.reply({
+        content,
+        components,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+    return await interaction.fetchReply();
+  } catch (err) {
+    console.error(`[bot] failed to notify ${interaction.user.tag}:`, err);
+    return null;
+  }
 }
 
 async function promptTimeLabel(
   interaction: ButtonInteraction,
   eventId: string,
-): Promise<string | null> {
+): Promise<void> {
   const modal = new ModalBuilder()
     .setCustomId(`event-addtime-${interaction.id}`)
     .setTitle("Add a time option")
@@ -575,10 +862,11 @@ async function promptTimeLabel(
       new ActionRowBuilder<TextInputBuilder>().addComponents(
         new TextInputBuilder()
           .setCustomId("label")
-          .setLabel("Time (e.g. 19:00-21:00)")
+          .setLabel("Start time(s) — HH:MM, comma for more")
           .setStyle(TextInputStyle.Short)
           .setRequired(true)
-          .setMaxLength(50),
+          .setMaxLength(100)
+          .setPlaceholder("e.g. 19:00 or 19:00, 20:30"),
       ),
     );
   await interaction.showModal(modal);
@@ -589,8 +877,18 @@ async function promptTimeLabel(
         i.user.id === interaction.user.id &&
         i.customId === modal.data.custom_id,
     });
-    const label = submitted.fields.getTextInputValue("label").trim();
-    await db.eventTimeOption.create({ data: { eventId, label } });
+    const times = parseTimeList(submitted.fields.getTextInputValue("label"));
+    if (!times) {
+      await submitted.reply({
+        content:
+          "Couldn't parse that — use 24h HH:MM, comma-separated for more than one, e.g. `19:00, 20:30`. Try again.",
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+    await db.eventTimeOption.createMany({
+      data: times.map((label) => ({ eventId, label })),
+    });
     const updated = await fetchEventWithRelations(eventId);
     // Always true here — this modal only ever comes from the "+ Add time
     // option" button — but isFromMessage() is what narrows the type enough
@@ -601,9 +899,8 @@ async function promptTimeLabel(
         components: buildEventComponents(updated),
       });
     }
-    return label;
   } catch {
-    return null;
+    // Modal dismissed or timed out — nothing to add.
   }
 }
 
@@ -781,16 +1078,16 @@ export async function handleEventComponentInteraction(
     return;
   }
 
-  // Locked only settles the TIME, not who's signed up — role changes and
-  // leaving stay allowed after lock (see buildEventComponents), but voting
-  // or editing the time options themselves no longer makes sense once
-  // it's decided.
+  // No manual lock-in step anymore — voting just stays open for the
+  // event's whole life. This only still matters for events locked before
+  // that feature was removed (their status is stuck at "locked" rather
+  // than "open"), so those don't suddenly reopen voting.
   const TIME_LOCKED_ACTIONS = new Set([
     "vote",
     "addtime",
     "removetime",
     "removetimeselect",
-    "lockin",
+    "toggletimesuggest",
   ]);
   if (event.status !== "open" && TIME_LOCKED_ACTIONS.has(action)) {
     await interaction
@@ -805,7 +1102,7 @@ export async function handleEventComponentInteraction(
   if (action === "role" && interaction.isStringSelectMenu()) {
     const roleSlotId = interaction.values[0]!;
     const slot = event.roleSlots.find((s) => s.id === roleSlotId);
-    if (!slot || slot.signups.length >= slot.capacity) {
+    if (!slot || confirmedSignupCount(slot) >= slot.capacity) {
       await interaction.reply({
         content: "That role just filled up — pick another.",
         flags: MessageFlags.Ephemeral,
@@ -858,15 +1155,17 @@ export async function handleEventComponentInteraction(
         discordUserTag: interaction.user.tag,
         characterName: rosterCharacter?.name ?? null,
         class: rosterCharacter?.class ?? null,
-        isLeader: interaction.user.id === event.createdByDiscordUserId,
       },
-      update: { roleSlotId },
+      // Picking a role is a fresh, deliberate "I'm doing this" — always
+      // resets status to confirmed, overriding a prior tentative or
+      // absence state rather than leaving it stuck.
+      update: { roleSlotId, status: "confirmed" },
     });
   } else if (action === "rolechar" && interaction.isStringSelectMenu()) {
     const roleSlotId = extra;
     const characterId = interaction.values[0]!;
     const slot = event.roleSlots.find((s) => s.id === roleSlotId);
-    if (!roleSlotId || !slot || slot.signups.length >= slot.capacity) {
+    if (!roleSlotId || !slot || confirmedSignupCount(slot) >= slot.capacity) {
       await interaction.update({
         content: "That role just filled up — pick another from the main menu.",
         components: [],
@@ -889,12 +1188,12 @@ export async function handleEventComponentInteraction(
         discordUserTag: interaction.user.tag,
         characterName: character?.name ?? null,
         class: character?.class ?? null,
-        isLeader: interaction.user.id === event.createdByDiscordUserId,
       },
       update: {
         roleSlotId,
         characterName: character?.name,
         class: character?.class,
+        status: "confirmed",
       },
     });
 
@@ -917,9 +1216,69 @@ export async function handleEventComponentInteraction(
       create: { eventId, timeOptionId, discordUserId: interaction.user.id },
       update: { timeOptionId },
     });
-  } else if (action === "leave" && interaction.isButton()) {
-    await db.eventSignup.deleteMany({
-      where: { eventId, discordUserId: interaction.user.id },
+  } else if (action === "absence" && interaction.isButton()) {
+    // event.signups only ever holds status:"absence" rows (see
+    // eventInclude) — present means this user's already marked absent, so
+    // clicking again clears it instead of being stuck absent forever.
+    const alreadyAbsent = event.signups.some(
+      (s) => s.discordUserId === interaction.user.id,
+    );
+    if (alreadyAbsent) {
+      await db.eventSignup.deleteMany({
+        where: { eventId, discordUserId: interaction.user.id },
+      });
+    } else {
+      await db.eventSignup.upsert({
+        where: {
+          eventId_discordUserId: {
+            eventId,
+            discordUserId: interaction.user.id,
+          },
+        },
+        // Clears any role signup they had — being absent means not doing
+        // any role, not just stepping back from this particular one.
+        create: {
+          eventId,
+          discordUserId: interaction.user.id,
+          discordUserTag: interaction.user.tag,
+          status: "absence",
+        },
+        update: { roleSlotId: null, status: "absence" },
+      });
+    }
+  } else if (action === "tentative" && interaction.isButton()) {
+    const signup = event.roleSlots
+      .flatMap((s) => s.signups.map((su) => ({ ...su, roleSlotId: s.id })))
+      .find((su) => su.discordUserId === interaction.user.id);
+    if (!signup) {
+      await interaction.reply({
+        content: "Sign up for a role first, then you can toggle tentative.",
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+    // Going tentative always frees the spot, no capacity check needed. Going
+    // back to confirmed can run into a slot someone else filled in the
+    // meantime (that's the whole point of freeing it up) — block that
+    // instead of silently overbooking the role.
+    if (signup.status === "tentative") {
+      const slot = event.roleSlots.find((s) => s.id === signup.roleSlotId);
+      if (slot && confirmedSignupCount(slot) >= slot.capacity) {
+        await interaction.reply({
+          content:
+            "That role's full now — someone else took the spot while you were tentative. Pick another role from the menu instead.",
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+    }
+    await db.eventSignup.update({
+      where: {
+        eventId_discordUserId: { eventId, discordUserId: interaction.user.id },
+      },
+      data: {
+        status: signup.status === "tentative" ? "confirmed" : "tentative",
+      },
     });
   } else if (action === "cancel" && interaction.isButton()) {
     if (interaction.user.id !== event.createdByDiscordUserId) {
@@ -960,25 +1319,32 @@ export async function handleEventComponentInteraction(
     }
     await promptEditModal(interaction, event);
     return; // promptEditModal already rendered via the modal submit interaction
-  } else if (action === "lockin" && interaction.isButton()) {
+  } else if (action === "toggletimesuggest" && interaction.isButton()) {
     if (interaction.user.id !== event.createdByDiscordUserId) {
       await interaction.reply({
-        content: "Only the person who created this event can lock in the time.",
+        content:
+          "Only the person who created this event can toggle time suggestions.",
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
-    // lockEvent already edits the real message via syncEventMessage, so
-    // this just needs to close out the interaction without a second,
-    // redundant edit.
-    await lockEvent(interaction.client, event);
-    await interaction.deferUpdate().catch(() => {});
-    return;
+    await db.event.update({
+      where: { id: eventId },
+      data: { allowTimeSuggestions: !event.allowTimeSuggestions },
+    });
   } else if (action === "removetime" && interaction.isButton()) {
     if (interaction.user.id !== event.createdByDiscordUserId) {
       await interaction.reply({
         content:
           "Only the person who created this event can remove a time option.",
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+    if (event.timeOptions.length <= 1) {
+      await interaction.reply({
+        content:
+          "Can't remove the only time option — add another one first, or edit this one instead.",
         flags: MessageFlags.Ephemeral,
       });
       return;
@@ -1006,6 +1372,18 @@ export async function handleEventComponentInteraction(
     interaction.isStringSelectMenu()
   ) {
     const timeOptionId = interaction.values[0]!;
+    // Re-checked fresh from the DB rather than trusting the `event` object
+    // from before this picker was shown — someone else could've removed a
+    // different option in the meantime, and there must always be at least
+    // one left.
+    const remaining = await db.eventTimeOption.count({ where: { eventId } });
+    if (remaining <= 1) {
+      await interaction.update({
+        content: "Can't remove that — it's the only time option left.",
+        components: [],
+      });
+      return;
+    }
     await db.eventTimeOption
       .delete({ where: { id: timeOptionId } })
       .catch(() => {
@@ -1083,33 +1461,6 @@ export async function handleEventComponentInteraction(
 
   const updated = await fetchEventWithRelations(eventId);
   if (updated) await renderToInteraction(interaction, updated);
-}
-
-// Picks the winning time option (most votes; ties go to whichever was added
-// first) and locks the event, or locks with no winner if nobody proposed a
-// time at all — either way, "locked" just means signups/votes stop. Only
-// triggered manually now (the "Lock in the time" button, creator-only) —
-// there's no automatic timer, since guessing "everyone's voted" from a
-// fixed timeout was never actually right for every event's size/urgency.
-async function lockEvent(
-  client: Client<true>,
-  event: EventWithRelations,
-): Promise<void> {
-  const winner = event.timeOptions.reduce<{ id: string; votes: number } | null>(
-    (best, t) => {
-      if (!best || t.votes.length > best.votes)
-        return { id: t.id, votes: t.votes.length };
-      return best;
-    },
-    null,
-  );
-
-  await db.event.update({
-    where: { id: event.id },
-    data: { status: "locked", lockedTimeOptionId: winner?.id ?? null },
-  });
-
-  await syncEventMessage(client, event.id);
 }
 
 // Re-fetches an event and brings its Discord thread/message in line with

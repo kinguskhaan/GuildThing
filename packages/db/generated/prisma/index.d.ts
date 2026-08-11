@@ -25290,6 +25290,7 @@ export namespace Prisma {
     imageUrl: string | null
     date: string | null
     description: string | null
+    allowTimeSuggestions: boolean | null
     createdByDiscordUserId: string | null
     createdByDiscordTag: string | null
     discordChannelId: string | null
@@ -25308,6 +25309,7 @@ export namespace Prisma {
     imageUrl: string | null
     date: string | null
     description: string | null
+    allowTimeSuggestions: boolean | null
     createdByDiscordUserId: string | null
     createdByDiscordTag: string | null
     discordChannelId: string | null
@@ -25326,6 +25328,7 @@ export namespace Prisma {
     imageUrl: number
     date: number
     description: number
+    allowTimeSuggestions: number
     createdByDiscordUserId: number
     createdByDiscordTag: number
     discordChannelId: number
@@ -25346,6 +25349,7 @@ export namespace Prisma {
     imageUrl?: true
     date?: true
     description?: true
+    allowTimeSuggestions?: true
     createdByDiscordUserId?: true
     createdByDiscordTag?: true
     discordChannelId?: true
@@ -25364,6 +25368,7 @@ export namespace Prisma {
     imageUrl?: true
     date?: true
     description?: true
+    allowTimeSuggestions?: true
     createdByDiscordUserId?: true
     createdByDiscordTag?: true
     discordChannelId?: true
@@ -25382,6 +25387,7 @@ export namespace Prisma {
     imageUrl?: true
     date?: true
     description?: true
+    allowTimeSuggestions?: true
     createdByDiscordUserId?: true
     createdByDiscordTag?: true
     discordChannelId?: true
@@ -25473,6 +25479,7 @@ export namespace Prisma {
     imageUrl: string | null
     date: string | null
     description: string | null
+    allowTimeSuggestions: boolean
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -25508,6 +25515,7 @@ export namespace Prisma {
     imageUrl?: boolean
     date?: boolean
     description?: boolean
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId?: boolean
     createdByDiscordTag?: boolean
     discordChannelId?: boolean
@@ -25532,6 +25540,7 @@ export namespace Prisma {
     imageUrl?: boolean
     date?: boolean
     description?: boolean
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId?: boolean
     createdByDiscordTag?: boolean
     discordChannelId?: boolean
@@ -25551,6 +25560,7 @@ export namespace Prisma {
     imageUrl?: boolean
     date?: boolean
     description?: boolean
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId?: boolean
     createdByDiscordTag?: boolean
     discordChannelId?: boolean
@@ -25570,6 +25580,7 @@ export namespace Prisma {
     imageUrl?: boolean
     date?: boolean
     description?: boolean
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId?: boolean
     createdByDiscordTag?: boolean
     discordChannelId?: boolean
@@ -25581,7 +25592,7 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
-  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "title" | "imageUrl" | "date" | "description" | "createdByDiscordUserId" | "createdByDiscordTag" | "discordChannelId" | "discordThreadId" | "discordMessageId" | "status" | "lockedTimeOptionId" | "pendingWebUpdate" | "createdAt", ExtArgs["result"]["event"]>
+  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "title" | "imageUrl" | "date" | "description" | "allowTimeSuggestions" | "createdByDiscordUserId" | "createdByDiscordTag" | "discordChannelId" | "discordThreadId" | "discordMessageId" | "status" | "lockedTimeOptionId" | "pendingWebUpdate" | "createdAt", ExtArgs["result"]["event"]>
   export type EventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     guild?: boolean | GuildDefaultArgs<ExtArgs>
     timeOptions?: boolean | Event$timeOptionsArgs<ExtArgs>
@@ -25613,6 +25624,7 @@ export namespace Prisma {
       imageUrl: string | null
       date: string | null
       description: string | null
+      allowTimeSuggestions: boolean
       createdByDiscordUserId: string
       createdByDiscordTag: string
       discordChannelId: string
@@ -26056,6 +26068,7 @@ export namespace Prisma {
     readonly imageUrl: FieldRef<"Event", 'String'>
     readonly date: FieldRef<"Event", 'String'>
     readonly description: FieldRef<"Event", 'String'>
+    readonly allowTimeSuggestions: FieldRef<"Event", 'Boolean'>
     readonly createdByDiscordUserId: FieldRef<"Event", 'String'>
     readonly createdByDiscordTag: FieldRef<"Event", 'String'>
     readonly discordChannelId: FieldRef<"Event", 'String'>
@@ -29835,7 +29848,7 @@ export namespace Prisma {
     discordUserTag: string | null
     characterName: string | null
     class: string | null
-    isLeader: boolean | null
+    status: string | null
     signedUpAt: Date | null
   }
 
@@ -29847,7 +29860,7 @@ export namespace Prisma {
     discordUserTag: string | null
     characterName: string | null
     class: string | null
-    isLeader: boolean | null
+    status: string | null
     signedUpAt: Date | null
   }
 
@@ -29859,7 +29872,7 @@ export namespace Prisma {
     discordUserTag: number
     characterName: number
     class: number
-    isLeader: number
+    status: number
     signedUpAt: number
     _all: number
   }
@@ -29873,7 +29886,7 @@ export namespace Prisma {
     discordUserTag?: true
     characterName?: true
     class?: true
-    isLeader?: true
+    status?: true
     signedUpAt?: true
   }
 
@@ -29885,7 +29898,7 @@ export namespace Prisma {
     discordUserTag?: true
     characterName?: true
     class?: true
-    isLeader?: true
+    status?: true
     signedUpAt?: true
   }
 
@@ -29897,7 +29910,7 @@ export namespace Prisma {
     discordUserTag?: true
     characterName?: true
     class?: true
-    isLeader?: true
+    status?: true
     signedUpAt?: true
     _all?: true
   }
@@ -29977,12 +29990,12 @@ export namespace Prisma {
   export type EventSignupGroupByOutputType = {
     id: string
     eventId: string
-    roleSlotId: string
+    roleSlotId: string | null
     discordUserId: string
     discordUserTag: string
     characterName: string | null
     class: string | null
-    isLeader: boolean
+    status: string
     signedUpAt: Date
     _count: EventSignupCountAggregateOutputType | null
     _min: EventSignupMinAggregateOutputType | null
@@ -30011,10 +30024,10 @@ export namespace Prisma {
     discordUserTag?: boolean
     characterName?: boolean
     class?: boolean
-    isLeader?: boolean
+    status?: boolean
     signedUpAt?: boolean
     event?: boolean | EventDefaultArgs<ExtArgs>
-    roleSlot?: boolean | EventRoleSlotDefaultArgs<ExtArgs>
+    roleSlot?: boolean | EventSignup$roleSlotArgs<ExtArgs>
   }, ExtArgs["result"]["eventSignup"]>
 
   export type EventSignupSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -30025,10 +30038,10 @@ export namespace Prisma {
     discordUserTag?: boolean
     characterName?: boolean
     class?: boolean
-    isLeader?: boolean
+    status?: boolean
     signedUpAt?: boolean
     event?: boolean | EventDefaultArgs<ExtArgs>
-    roleSlot?: boolean | EventRoleSlotDefaultArgs<ExtArgs>
+    roleSlot?: boolean | EventSignup$roleSlotArgs<ExtArgs>
   }, ExtArgs["result"]["eventSignup"]>
 
   export type EventSignupSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -30039,10 +30052,10 @@ export namespace Prisma {
     discordUserTag?: boolean
     characterName?: boolean
     class?: boolean
-    isLeader?: boolean
+    status?: boolean
     signedUpAt?: boolean
     event?: boolean | EventDefaultArgs<ExtArgs>
-    roleSlot?: boolean | EventRoleSlotDefaultArgs<ExtArgs>
+    roleSlot?: boolean | EventSignup$roleSlotArgs<ExtArgs>
   }, ExtArgs["result"]["eventSignup"]>
 
   export type EventSignupSelectScalar = {
@@ -30053,39 +30066,39 @@ export namespace Prisma {
     discordUserTag?: boolean
     characterName?: boolean
     class?: boolean
-    isLeader?: boolean
+    status?: boolean
     signedUpAt?: boolean
   }
 
-  export type EventSignupOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "eventId" | "roleSlotId" | "discordUserId" | "discordUserTag" | "characterName" | "class" | "isLeader" | "signedUpAt", ExtArgs["result"]["eventSignup"]>
+  export type EventSignupOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "eventId" | "roleSlotId" | "discordUserId" | "discordUserTag" | "characterName" | "class" | "status" | "signedUpAt", ExtArgs["result"]["eventSignup"]>
   export type EventSignupInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     event?: boolean | EventDefaultArgs<ExtArgs>
-    roleSlot?: boolean | EventRoleSlotDefaultArgs<ExtArgs>
+    roleSlot?: boolean | EventSignup$roleSlotArgs<ExtArgs>
   }
   export type EventSignupIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     event?: boolean | EventDefaultArgs<ExtArgs>
-    roleSlot?: boolean | EventRoleSlotDefaultArgs<ExtArgs>
+    roleSlot?: boolean | EventSignup$roleSlotArgs<ExtArgs>
   }
   export type EventSignupIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     event?: boolean | EventDefaultArgs<ExtArgs>
-    roleSlot?: boolean | EventRoleSlotDefaultArgs<ExtArgs>
+    roleSlot?: boolean | EventSignup$roleSlotArgs<ExtArgs>
   }
 
   export type $EventSignupPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "EventSignup"
     objects: {
       event: Prisma.$EventPayload<ExtArgs>
-      roleSlot: Prisma.$EventRoleSlotPayload<ExtArgs>
+      roleSlot: Prisma.$EventRoleSlotPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       eventId: string
-      roleSlotId: string
+      roleSlotId: string | null
       discordUserId: string
       discordUserTag: string
       characterName: string | null
       class: string | null
-      isLeader: boolean
+      status: string
       signedUpAt: Date
     }, ExtArgs["result"]["eventSignup"]>
     composites: {}
@@ -30482,7 +30495,7 @@ export namespace Prisma {
   export interface Prisma__EventSignupClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     event<T extends EventDefaultArgs<ExtArgs> = {}>(args?: Subset<T, EventDefaultArgs<ExtArgs>>): Prisma__EventClient<$Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    roleSlot<T extends EventRoleSlotDefaultArgs<ExtArgs> = {}>(args?: Subset<T, EventRoleSlotDefaultArgs<ExtArgs>>): Prisma__EventRoleSlotClient<$Result.GetResult<Prisma.$EventRoleSlotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    roleSlot<T extends EventSignup$roleSlotArgs<ExtArgs> = {}>(args?: Subset<T, EventSignup$roleSlotArgs<ExtArgs>>): Prisma__EventRoleSlotClient<$Result.GetResult<Prisma.$EventRoleSlotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -30519,7 +30532,7 @@ export namespace Prisma {
     readonly discordUserTag: FieldRef<"EventSignup", 'String'>
     readonly characterName: FieldRef<"EventSignup", 'String'>
     readonly class: FieldRef<"EventSignup", 'String'>
-    readonly isLeader: FieldRef<"EventSignup", 'Boolean'>
+    readonly status: FieldRef<"EventSignup", 'String'>
     readonly signedUpAt: FieldRef<"EventSignup", 'DateTime'>
   }
     
@@ -30912,6 +30925,25 @@ export namespace Prisma {
      * Limit how many EventSignups to delete.
      */
     limit?: number
+  }
+
+  /**
+   * EventSignup.roleSlot
+   */
+  export type EventSignup$roleSlotArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventRoleSlot
+     */
+    select?: EventRoleSlotSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventRoleSlot
+     */
+    omit?: EventRoleSlotOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventRoleSlotInclude<ExtArgs> | null
+    where?: EventRoleSlotWhereInput
   }
 
   /**
@@ -38513,6 +38545,7 @@ export namespace Prisma {
     imageUrl: 'imageUrl',
     date: 'date',
     description: 'description',
+    allowTimeSuggestions: 'allowTimeSuggestions',
     createdByDiscordUserId: 'createdByDiscordUserId',
     createdByDiscordTag: 'createdByDiscordTag',
     discordChannelId: 'discordChannelId',
@@ -38566,7 +38599,7 @@ export namespace Prisma {
     discordUserTag: 'discordUserTag',
     characterName: 'characterName',
     class: 'class',
-    isLeader: 'isLeader',
+    status: 'status',
     signedUpAt: 'signedUpAt'
   };
 
@@ -40009,6 +40042,7 @@ export namespace Prisma {
     imageUrl?: StringNullableFilter<"Event"> | string | null
     date?: StringNullableFilter<"Event"> | string | null
     description?: StringNullableFilter<"Event"> | string | null
+    allowTimeSuggestions?: BoolFilter<"Event"> | boolean
     createdByDiscordUserId?: StringFilter<"Event"> | string
     createdByDiscordTag?: StringFilter<"Event"> | string
     discordChannelId?: StringFilter<"Event"> | string
@@ -40032,6 +40066,7 @@ export namespace Prisma {
     imageUrl?: SortOrderInput | SortOrder
     date?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
+    allowTimeSuggestions?: SortOrder
     createdByDiscordUserId?: SortOrder
     createdByDiscordTag?: SortOrder
     discordChannelId?: SortOrder
@@ -40058,6 +40093,7 @@ export namespace Prisma {
     imageUrl?: StringNullableFilter<"Event"> | string | null
     date?: StringNullableFilter<"Event"> | string | null
     description?: StringNullableFilter<"Event"> | string | null
+    allowTimeSuggestions?: BoolFilter<"Event"> | boolean
     createdByDiscordUserId?: StringFilter<"Event"> | string
     createdByDiscordTag?: StringFilter<"Event"> | string
     discordChannelId?: StringFilter<"Event"> | string
@@ -40081,6 +40117,7 @@ export namespace Prisma {
     imageUrl?: SortOrderInput | SortOrder
     date?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
+    allowTimeSuggestions?: SortOrder
     createdByDiscordUserId?: SortOrder
     createdByDiscordTag?: SortOrder
     discordChannelId?: SortOrder
@@ -40105,6 +40142,7 @@ export namespace Prisma {
     imageUrl?: StringNullableWithAggregatesFilter<"Event"> | string | null
     date?: StringNullableWithAggregatesFilter<"Event"> | string | null
     description?: StringNullableWithAggregatesFilter<"Event"> | string | null
+    allowTimeSuggestions?: BoolWithAggregatesFilter<"Event"> | boolean
     createdByDiscordUserId?: StringWithAggregatesFilter<"Event"> | string
     createdByDiscordTag?: StringWithAggregatesFilter<"Event"> | string
     discordChannelId?: StringWithAggregatesFilter<"Event"> | string
@@ -40289,26 +40327,26 @@ export namespace Prisma {
     NOT?: EventSignupWhereInput | EventSignupWhereInput[]
     id?: StringFilter<"EventSignup"> | string
     eventId?: StringFilter<"EventSignup"> | string
-    roleSlotId?: StringFilter<"EventSignup"> | string
+    roleSlotId?: StringNullableFilter<"EventSignup"> | string | null
     discordUserId?: StringFilter<"EventSignup"> | string
     discordUserTag?: StringFilter<"EventSignup"> | string
     characterName?: StringNullableFilter<"EventSignup"> | string | null
     class?: StringNullableFilter<"EventSignup"> | string | null
-    isLeader?: BoolFilter<"EventSignup"> | boolean
+    status?: StringFilter<"EventSignup"> | string
     signedUpAt?: DateTimeFilter<"EventSignup"> | Date | string
     event?: XOR<EventScalarRelationFilter, EventWhereInput>
-    roleSlot?: XOR<EventRoleSlotScalarRelationFilter, EventRoleSlotWhereInput>
+    roleSlot?: XOR<EventRoleSlotNullableScalarRelationFilter, EventRoleSlotWhereInput> | null
   }
 
   export type EventSignupOrderByWithRelationInput = {
     id?: SortOrder
     eventId?: SortOrder
-    roleSlotId?: SortOrder
+    roleSlotId?: SortOrderInput | SortOrder
     discordUserId?: SortOrder
     discordUserTag?: SortOrder
     characterName?: SortOrderInput | SortOrder
     class?: SortOrderInput | SortOrder
-    isLeader?: SortOrder
+    status?: SortOrder
     signedUpAt?: SortOrder
     event?: EventOrderByWithRelationInput
     roleSlot?: EventRoleSlotOrderByWithRelationInput
@@ -40321,26 +40359,26 @@ export namespace Prisma {
     OR?: EventSignupWhereInput[]
     NOT?: EventSignupWhereInput | EventSignupWhereInput[]
     eventId?: StringFilter<"EventSignup"> | string
-    roleSlotId?: StringFilter<"EventSignup"> | string
+    roleSlotId?: StringNullableFilter<"EventSignup"> | string | null
     discordUserId?: StringFilter<"EventSignup"> | string
     discordUserTag?: StringFilter<"EventSignup"> | string
     characterName?: StringNullableFilter<"EventSignup"> | string | null
     class?: StringNullableFilter<"EventSignup"> | string | null
-    isLeader?: BoolFilter<"EventSignup"> | boolean
+    status?: StringFilter<"EventSignup"> | string
     signedUpAt?: DateTimeFilter<"EventSignup"> | Date | string
     event?: XOR<EventScalarRelationFilter, EventWhereInput>
-    roleSlot?: XOR<EventRoleSlotScalarRelationFilter, EventRoleSlotWhereInput>
+    roleSlot?: XOR<EventRoleSlotNullableScalarRelationFilter, EventRoleSlotWhereInput> | null
   }, "id" | "eventId_discordUserId">
 
   export type EventSignupOrderByWithAggregationInput = {
     id?: SortOrder
     eventId?: SortOrder
-    roleSlotId?: SortOrder
+    roleSlotId?: SortOrderInput | SortOrder
     discordUserId?: SortOrder
     discordUserTag?: SortOrder
     characterName?: SortOrderInput | SortOrder
     class?: SortOrderInput | SortOrder
-    isLeader?: SortOrder
+    status?: SortOrder
     signedUpAt?: SortOrder
     _count?: EventSignupCountOrderByAggregateInput
     _max?: EventSignupMaxOrderByAggregateInput
@@ -40353,12 +40391,12 @@ export namespace Prisma {
     NOT?: EventSignupScalarWhereWithAggregatesInput | EventSignupScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"EventSignup"> | string
     eventId?: StringWithAggregatesFilter<"EventSignup"> | string
-    roleSlotId?: StringWithAggregatesFilter<"EventSignup"> | string
+    roleSlotId?: StringNullableWithAggregatesFilter<"EventSignup"> | string | null
     discordUserId?: StringWithAggregatesFilter<"EventSignup"> | string
     discordUserTag?: StringWithAggregatesFilter<"EventSignup"> | string
     characterName?: StringNullableWithAggregatesFilter<"EventSignup"> | string | null
     class?: StringNullableWithAggregatesFilter<"EventSignup"> | string | null
-    isLeader?: BoolWithAggregatesFilter<"EventSignup"> | boolean
+    status?: StringWithAggregatesFilter<"EventSignup"> | string
     signedUpAt?: DateTimeWithAggregatesFilter<"EventSignup"> | Date | string
   }
 
@@ -42115,6 +42153,7 @@ export namespace Prisma {
     imageUrl?: string | null
     date?: string | null
     description?: string | null
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -42138,6 +42177,7 @@ export namespace Prisma {
     imageUrl?: string | null
     date?: string | null
     description?: string | null
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -42159,6 +42199,7 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -42182,6 +42223,7 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -42204,6 +42246,7 @@ export namespace Prisma {
     imageUrl?: string | null
     date?: string | null
     description?: string | null
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -42221,6 +42264,7 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -42239,6 +42283,7 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -42414,21 +42459,21 @@ export namespace Prisma {
     discordUserTag: string
     characterName?: string | null
     class?: string | null
-    isLeader?: boolean
+    status?: string
     signedUpAt?: Date | string
     event: EventCreateNestedOneWithoutSignupsInput
-    roleSlot: EventRoleSlotCreateNestedOneWithoutSignupsInput
+    roleSlot?: EventRoleSlotCreateNestedOneWithoutSignupsInput
   }
 
   export type EventSignupUncheckedCreateInput = {
     id?: string
     eventId: string
-    roleSlotId: string
+    roleSlotId?: string | null
     discordUserId: string
     discordUserTag: string
     characterName?: string | null
     class?: string | null
-    isLeader?: boolean
+    status?: string
     signedUpAt?: Date | string
   }
 
@@ -42438,33 +42483,33 @@ export namespace Prisma {
     discordUserTag?: StringFieldUpdateOperationsInput | string
     characterName?: NullableStringFieldUpdateOperationsInput | string | null
     class?: NullableStringFieldUpdateOperationsInput | string | null
-    isLeader?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
     signedUpAt?: DateTimeFieldUpdateOperationsInput | Date | string
     event?: EventUpdateOneRequiredWithoutSignupsNestedInput
-    roleSlot?: EventRoleSlotUpdateOneRequiredWithoutSignupsNestedInput
+    roleSlot?: EventRoleSlotUpdateOneWithoutSignupsNestedInput
   }
 
   export type EventSignupUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     eventId?: StringFieldUpdateOperationsInput | string
-    roleSlotId?: StringFieldUpdateOperationsInput | string
+    roleSlotId?: NullableStringFieldUpdateOperationsInput | string | null
     discordUserId?: StringFieldUpdateOperationsInput | string
     discordUserTag?: StringFieldUpdateOperationsInput | string
     characterName?: NullableStringFieldUpdateOperationsInput | string | null
     class?: NullableStringFieldUpdateOperationsInput | string | null
-    isLeader?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
     signedUpAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type EventSignupCreateManyInput = {
     id?: string
     eventId: string
-    roleSlotId: string
+    roleSlotId?: string | null
     discordUserId: string
     discordUserTag: string
     characterName?: string | null
     class?: string | null
-    isLeader?: boolean
+    status?: string
     signedUpAt?: Date | string
   }
 
@@ -42474,19 +42519,19 @@ export namespace Prisma {
     discordUserTag?: StringFieldUpdateOperationsInput | string
     characterName?: NullableStringFieldUpdateOperationsInput | string | null
     class?: NullableStringFieldUpdateOperationsInput | string | null
-    isLeader?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
     signedUpAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type EventSignupUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     eventId?: StringFieldUpdateOperationsInput | string
-    roleSlotId?: StringFieldUpdateOperationsInput | string
+    roleSlotId?: NullableStringFieldUpdateOperationsInput | string | null
     discordUserId?: StringFieldUpdateOperationsInput | string
     discordUserTag?: StringFieldUpdateOperationsInput | string
     characterName?: NullableStringFieldUpdateOperationsInput | string | null
     class?: NullableStringFieldUpdateOperationsInput | string | null
-    isLeader?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
     signedUpAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -43923,6 +43968,7 @@ export namespace Prisma {
     imageUrl?: SortOrder
     date?: SortOrder
     description?: SortOrder
+    allowTimeSuggestions?: SortOrder
     createdByDiscordUserId?: SortOrder
     createdByDiscordTag?: SortOrder
     discordChannelId?: SortOrder
@@ -43941,6 +43987,7 @@ export namespace Prisma {
     imageUrl?: SortOrder
     date?: SortOrder
     description?: SortOrder
+    allowTimeSuggestions?: SortOrder
     createdByDiscordUserId?: SortOrder
     createdByDiscordTag?: SortOrder
     discordChannelId?: SortOrder
@@ -43959,6 +44006,7 @@ export namespace Prisma {
     imageUrl?: SortOrder
     date?: SortOrder
     description?: SortOrder
+    allowTimeSuggestions?: SortOrder
     createdByDiscordUserId?: SortOrder
     createdByDiscordTag?: SortOrder
     discordChannelId?: SortOrder
@@ -44059,9 +44107,9 @@ export namespace Prisma {
     capacity?: SortOrder
   }
 
-  export type EventRoleSlotScalarRelationFilter = {
-    is?: EventRoleSlotWhereInput
-    isNot?: EventRoleSlotWhereInput
+  export type EventRoleSlotNullableScalarRelationFilter = {
+    is?: EventRoleSlotWhereInput | null
+    isNot?: EventRoleSlotWhereInput | null
   }
 
   export type EventSignupEventIdDiscordUserIdCompoundUniqueInput = {
@@ -44077,7 +44125,7 @@ export namespace Prisma {
     discordUserTag?: SortOrder
     characterName?: SortOrder
     class?: SortOrder
-    isLeader?: SortOrder
+    status?: SortOrder
     signedUpAt?: SortOrder
   }
 
@@ -44089,7 +44137,7 @@ export namespace Prisma {
     discordUserTag?: SortOrder
     characterName?: SortOrder
     class?: SortOrder
-    isLeader?: SortOrder
+    status?: SortOrder
     signedUpAt?: SortOrder
   }
 
@@ -44101,7 +44149,7 @@ export namespace Prisma {
     discordUserTag?: SortOrder
     characterName?: SortOrder
     class?: SortOrder
-    isLeader?: SortOrder
+    status?: SortOrder
     signedUpAt?: SortOrder
   }
 
@@ -45984,10 +46032,12 @@ export namespace Prisma {
     update?: XOR<XOR<EventUpdateToOneWithWhereWithoutSignupsInput, EventUpdateWithoutSignupsInput>, EventUncheckedUpdateWithoutSignupsInput>
   }
 
-  export type EventRoleSlotUpdateOneRequiredWithoutSignupsNestedInput = {
+  export type EventRoleSlotUpdateOneWithoutSignupsNestedInput = {
     create?: XOR<EventRoleSlotCreateWithoutSignupsInput, EventRoleSlotUncheckedCreateWithoutSignupsInput>
     connectOrCreate?: EventRoleSlotCreateOrConnectWithoutSignupsInput
     upsert?: EventRoleSlotUpsertWithoutSignupsInput
+    disconnect?: EventRoleSlotWhereInput | boolean
+    delete?: EventRoleSlotWhereInput | boolean
     connect?: EventRoleSlotWhereUniqueInput
     update?: XOR<XOR<EventRoleSlotUpdateToOneWithWhereWithoutSignupsInput, EventRoleSlotUpdateWithoutSignupsInput>, EventRoleSlotUncheckedUpdateWithoutSignupsInput>
   }
@@ -47608,6 +47658,7 @@ export namespace Prisma {
     imageUrl?: string | null
     date?: string | null
     description?: string | null
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -47629,6 +47680,7 @@ export namespace Prisma {
     imageUrl?: string | null
     date?: string | null
     description?: string | null
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -48095,6 +48147,7 @@ export namespace Prisma {
     imageUrl?: StringNullableFilter<"Event"> | string | null
     date?: StringNullableFilter<"Event"> | string | null
     description?: StringNullableFilter<"Event"> | string | null
+    allowTimeSuggestions?: BoolFilter<"Event"> | boolean
     createdByDiscordUserId?: StringFilter<"Event"> | string
     createdByDiscordTag?: StringFilter<"Event"> | string
     discordChannelId?: StringFilter<"Event"> | string
@@ -49969,19 +50022,19 @@ export namespace Prisma {
     discordUserTag: string
     characterName?: string | null
     class?: string | null
-    isLeader?: boolean
+    status?: string
     signedUpAt?: Date | string
-    roleSlot: EventRoleSlotCreateNestedOneWithoutSignupsInput
+    roleSlot?: EventRoleSlotCreateNestedOneWithoutSignupsInput
   }
 
   export type EventSignupUncheckedCreateWithoutEventInput = {
     id?: string
-    roleSlotId: string
+    roleSlotId?: string | null
     discordUserId: string
     discordUserTag: string
     characterName?: string | null
     class?: string | null
-    isLeader?: boolean
+    status?: string
     signedUpAt?: Date | string
   }
 
@@ -50170,12 +50223,12 @@ export namespace Prisma {
     NOT?: EventSignupScalarWhereInput | EventSignupScalarWhereInput[]
     id?: StringFilter<"EventSignup"> | string
     eventId?: StringFilter<"EventSignup"> | string
-    roleSlotId?: StringFilter<"EventSignup"> | string
+    roleSlotId?: StringNullableFilter<"EventSignup"> | string | null
     discordUserId?: StringFilter<"EventSignup"> | string
     discordUserTag?: StringFilter<"EventSignup"> | string
     characterName?: StringNullableFilter<"EventSignup"> | string | null
     class?: StringNullableFilter<"EventSignup"> | string | null
-    isLeader?: BoolFilter<"EventSignup"> | boolean
+    status?: StringFilter<"EventSignup"> | string
     signedUpAt?: DateTimeFilter<"EventSignup"> | Date | string
   }
 
@@ -50212,6 +50265,7 @@ export namespace Prisma {
     imageUrl?: string | null
     date?: string | null
     description?: string | null
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -50234,6 +50288,7 @@ export namespace Prisma {
     imageUrl?: string | null
     date?: string | null
     description?: string | null
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -50293,6 +50348,7 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -50315,6 +50371,7 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -50351,6 +50408,7 @@ export namespace Prisma {
     imageUrl?: string | null
     date?: string | null
     description?: string | null
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -50373,6 +50431,7 @@ export namespace Prisma {
     imageUrl?: string | null
     date?: string | null
     description?: string | null
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -50426,6 +50485,7 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -50448,6 +50508,7 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -50491,6 +50552,7 @@ export namespace Prisma {
     imageUrl?: string | null
     date?: string | null
     description?: string | null
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -50513,6 +50575,7 @@ export namespace Prisma {
     imageUrl?: string | null
     date?: string | null
     description?: string | null
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -50538,7 +50601,7 @@ export namespace Prisma {
     discordUserTag: string
     characterName?: string | null
     class?: string | null
-    isLeader?: boolean
+    status?: string
     signedUpAt?: Date | string
     event: EventCreateNestedOneWithoutSignupsInput
   }
@@ -50550,7 +50613,7 @@ export namespace Prisma {
     discordUserTag: string
     characterName?: string | null
     class?: string | null
-    isLeader?: boolean
+    status?: string
     signedUpAt?: Date | string
   }
 
@@ -50580,6 +50643,7 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -50602,6 +50666,7 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -50638,6 +50703,7 @@ export namespace Prisma {
     imageUrl?: string | null
     date?: string | null
     description?: string | null
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -50660,6 +50726,7 @@ export namespace Prisma {
     imageUrl?: string | null
     date?: string | null
     description?: string | null
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -50717,6 +50784,7 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -50739,6 +50807,7 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -52132,6 +52201,7 @@ export namespace Prisma {
     imageUrl?: string | null
     date?: string | null
     description?: string | null
+    allowTimeSuggestions?: boolean
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -52395,6 +52465,7 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -52416,6 +52487,7 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -52437,6 +52509,7 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -52598,12 +52671,12 @@ export namespace Prisma {
 
   export type EventSignupCreateManyEventInput = {
     id?: string
-    roleSlotId: string
+    roleSlotId?: string | null
     discordUserId: string
     discordUserTag: string
     characterName?: string | null
     class?: string | null
-    isLeader?: boolean
+    status?: string
     signedUpAt?: Date | string
   }
 
@@ -52660,30 +52733,30 @@ export namespace Prisma {
     discordUserTag?: StringFieldUpdateOperationsInput | string
     characterName?: NullableStringFieldUpdateOperationsInput | string | null
     class?: NullableStringFieldUpdateOperationsInput | string | null
-    isLeader?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
     signedUpAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    roleSlot?: EventRoleSlotUpdateOneRequiredWithoutSignupsNestedInput
+    roleSlot?: EventRoleSlotUpdateOneWithoutSignupsNestedInput
   }
 
   export type EventSignupUncheckedUpdateWithoutEventInput = {
     id?: StringFieldUpdateOperationsInput | string
-    roleSlotId?: StringFieldUpdateOperationsInput | string
+    roleSlotId?: NullableStringFieldUpdateOperationsInput | string | null
     discordUserId?: StringFieldUpdateOperationsInput | string
     discordUserTag?: StringFieldUpdateOperationsInput | string
     characterName?: NullableStringFieldUpdateOperationsInput | string | null
     class?: NullableStringFieldUpdateOperationsInput | string | null
-    isLeader?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
     signedUpAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type EventSignupUncheckedUpdateManyWithoutEventInput = {
     id?: StringFieldUpdateOperationsInput | string
-    roleSlotId?: StringFieldUpdateOperationsInput | string
+    roleSlotId?: NullableStringFieldUpdateOperationsInput | string | null
     discordUserId?: StringFieldUpdateOperationsInput | string
     discordUserTag?: StringFieldUpdateOperationsInput | string
     characterName?: NullableStringFieldUpdateOperationsInput | string | null
     class?: NullableStringFieldUpdateOperationsInput | string | null
-    isLeader?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
     signedUpAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -52743,7 +52816,7 @@ export namespace Prisma {
     discordUserTag: string
     characterName?: string | null
     class?: string | null
-    isLeader?: boolean
+    status?: string
     signedUpAt?: Date | string
   }
 
@@ -52753,7 +52826,7 @@ export namespace Prisma {
     discordUserTag?: StringFieldUpdateOperationsInput | string
     characterName?: NullableStringFieldUpdateOperationsInput | string | null
     class?: NullableStringFieldUpdateOperationsInput | string | null
-    isLeader?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
     signedUpAt?: DateTimeFieldUpdateOperationsInput | Date | string
     event?: EventUpdateOneRequiredWithoutSignupsNestedInput
   }
@@ -52765,7 +52838,7 @@ export namespace Prisma {
     discordUserTag?: StringFieldUpdateOperationsInput | string
     characterName?: NullableStringFieldUpdateOperationsInput | string | null
     class?: NullableStringFieldUpdateOperationsInput | string | null
-    isLeader?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
     signedUpAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -52776,7 +52849,7 @@ export namespace Prisma {
     discordUserTag?: StringFieldUpdateOperationsInput | string
     characterName?: NullableStringFieldUpdateOperationsInput | string | null
     class?: NullableStringFieldUpdateOperationsInput | string | null
-    isLeader?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
     signedUpAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

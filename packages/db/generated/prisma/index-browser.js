@@ -310,6 +310,7 @@ exports.Prisma.EventScalarFieldEnum = {
   imageUrl: 'imageUrl',
   date: 'date',
   description: 'description',
+  allowTimeSuggestions: 'allowTimeSuggestions',
   createdByDiscordUserId: 'createdByDiscordUserId',
   createdByDiscordTag: 'createdByDiscordTag',
   discordChannelId: 'discordChannelId',
@@ -351,7 +352,7 @@ exports.Prisma.EventSignupScalarFieldEnum = {
   discordUserTag: 'discordUserTag',
   characterName: 'characterName',
   class: 'class',
-  isLeader: 'isLeader',
+  status: 'status',
   signedUpAt: 'signedUpAt'
 };
 

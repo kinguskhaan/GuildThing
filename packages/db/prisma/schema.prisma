@@ -443,6 +443,14 @@ model Event {
   // create modal (already at Discord's 5-text-input cap) — set via the web
   // form at creation, or the bot's Edit modal afterward.
   description String?
+  // Whether the "+ Add time option" button shows at all — off lets a
+  // creator post one or more FIXED times (e.g. "just tonight at 20:00, no
+  // discussion") without randoms tacking on more alternatives to vote
+  // on. Toggled via a button on the posted event (no room for a checkbox
+  // in the create modal — Discord modals don't support that component
+  // type at all, not just a field-count limit). Voting on whatever options
+  // already exist still works regardless of this.
+  allowTimeSuggestions Boolean @default(true)
 
   createdByDiscordUserId String
   createdByDiscordTag    String
@@ -528,17 +536,26 @@ model EventRoleSlot {
 // GuildRosterMember when one exists, left null otherwise — nothing here
 // re-asks for data the roster already has.
 model EventSignup {
-  id             String        @id @default(cuid())
+  id             String         @id @default(cuid())
   eventId        String
-  event          Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  roleSlotId     String
-  roleSlot       EventRoleSlot @relation(fields: [roleSlotId], references: [id], onDelete: Cascade)
+  event          Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  // Null for an "absence" entry (see status below) — someone marking
+  // themselves absent isn't claiming any role, so there's nothing to point
+  // this at.
+  roleSlotId     String?
+  roleSlot       EventRoleSlot? @relation(fields: [roleSlotId], references: [id], onDelete: Cascade)
   discordUserId  String
   discordUserTag String
   characterName  String?
   class          String?
-  isLeader       Boolean       @default(false)
-  signedUpAt     DateTime      @default(now())
+  // "confirmed" | "tentative" | "absence" — confirmed/tentative toggle via
+  // "Toggle tentative" and require a role slot; a tentative signup doesn't
+  // count toward the slot's capacity (shown with a marker instead), so
+  // someone unsure doesn't block someone who can commit. "absence" comes
+  // from the "Absence" button instead, has no role slot, and is shown in
+  // its own list on the embed rather than under any role.
+  status         String         @default("confirmed")
+  signedUpAt     DateTime       @default(now())
 
   @@unique([eventId, discordUserId])
 }

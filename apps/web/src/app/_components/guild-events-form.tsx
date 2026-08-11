@@ -64,6 +64,7 @@ export function GuildEventsForm({ guildId }: { guildId: string }) {
   const [imageUrl, setImageUrl] = useState("");
   const [date, setDate] = useState(todayISODate);
   const [description, setDescription] = useState("");
+  const [allowTimeSuggestions, setAllowTimeSuggestions] = useState(true);
   const [channelId, setChannelId] = useState("");
   const [roleSlots, setRoleSlots] = useState<RoleSlotDraft[]>([
     emptyRoleSlot(),
@@ -83,6 +84,7 @@ export function GuildEventsForm({ guildId }: { guildId: string }) {
       setImageUrl("");
       setDate(todayISODate());
       setDescription("");
+      setAllowTimeSuggestions(true);
       setRoleSlots([emptyRoleSlot()]);
       setTimeOptions([""]);
       setCollapsed(true);
@@ -115,6 +117,7 @@ export function GuildEventsForm({ guildId }: { guildId: string }) {
       imageUrl: imageUrl.trim() || undefined,
       date: date || undefined,
       description: description.trim() || undefined,
+      allowTimeSuggestions,
       discordChannelId: channelId.trim(),
       roleSlots: parsedRoleSlots,
       timeOptionLabels: timeOptions.map((t) => t.trim()).filter(Boolean),
@@ -243,6 +246,14 @@ export function GuildEventsForm({ guildId }: { guildId: string }) {
             >
               + Add time option
             </button>
+            <label className="text-discord-text-muted flex items-center gap-1.5 text-sm">
+              <input
+                type="checkbox"
+                checked={allowTimeSuggestions}
+                onChange={(e) => setAllowTimeSuggestions(e.target.checked)}
+              />
+              Allow people to suggest additional time options
+            </label>
           </div>
 
           <button

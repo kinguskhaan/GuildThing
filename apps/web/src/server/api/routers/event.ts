@@ -100,6 +100,7 @@ export const eventRouter = createTRPCRouter({
           .regex(/^\d{4}-\d{2}-\d{2}$/)
           .optional(),
         description: z.string().max(1000).optional(),
+        allowTimeSuggestions: z.boolean().default(true),
         discordChannelId: z.string().min(1),
         roleSlots: z.array(roleSlotSchema).min(1),
         timeOptionLabels: z.array(z.string().min(1)).default([]),
@@ -129,6 +130,7 @@ export const eventRouter = createTRPCRouter({
           imageUrl: input.imageUrl ?? null,
           date: input.date ?? null,
           description: input.description ?? null,
+          allowTimeSuggestions: input.allowTimeSuggestions,
           createdByDiscordUserId: discordUserId,
           createdByDiscordTag: ctx.session.user.name,
           discordChannelId: input.discordChannelId,
