@@ -473,19 +473,20 @@ export async function handleEventCreateCommand(
       ),
       new ActionRowBuilder<TextInputBuilder>().addComponents(
         new TextInputBuilder()
-          .setCustomId("imageUrl")
-          .setLabel("Image URL (optional)")
-          .setStyle(TextInputStyle.Short)
-          .setRequired(false),
-      ),
-      new ActionRowBuilder<TextInputBuilder>().addComponents(
-        new TextInputBuilder()
           .setCustomId("date")
           .setLabel("Date (YYYY-MM-DD)")
           .setStyle(TextInputStyle.Short)
           .setRequired(false)
           .setMaxLength(10)
           .setValue(todayISODate()),
+      ),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("description")
+          .setLabel("Description (optional)")
+          .setStyle(TextInputStyle.Paragraph)
+          .setRequired(false)
+          .setMaxLength(1000),
       ),
       new ActionRowBuilder<TextInputBuilder>().addComponents(
         new TextInputBuilder()
@@ -529,18 +530,18 @@ export async function handleEventCreateCommand(
   const timeOptionLabels = parseTimeOptions(
     submitted.fields.getTextInputValue("timeOptions") || null,
   );
-  const imageUrl =
-    submitted.fields.getTextInputValue("imageUrl").trim() || null;
   const date = parseEventDate(
     submitted.fields.getTextInputValue("date") || todayISODate(),
   );
+  const description =
+    submitted.fields.getTextInputValue("description").trim() || null;
 
   const created = await db.event.create({
     data: {
       guildId: guild.id,
       title: submitted.fields.getTextInputValue("title").trim(),
-      imageUrl,
       date,
+      description,
       createdByDiscordUserId: interaction.user.id,
       createdByDiscordTag: interaction.user.tag,
       discordChannelId: interaction.channelId,
