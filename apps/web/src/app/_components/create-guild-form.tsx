@@ -60,7 +60,7 @@ export function CreateGuildForm() {
           className="rounded-full bg-discord-elevated px-4 py-2 text-discord-text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="E.g. Tankkingen's Crew"
+          placeholder="Insert cool guild name here"
           required
         />
       </label>
