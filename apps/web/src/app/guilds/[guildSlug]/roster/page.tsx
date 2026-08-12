@@ -31,7 +31,7 @@ export default async function RosterPage({
       <h2 className="text-center text-2xl font-bold">Members</h2>
 
       <NicknameEditor initialNickname={me.nickname} fallback={me.name} />
-      <ImportPanel guildId={guildId} />
+      <ImportPanel guildId={guildId} guildSlug={guildSlug} />
       <GuildExportPanel guildId={guildId} />
 
       {guild.isAdmin && guild.rosterSource === "onboarding" && (

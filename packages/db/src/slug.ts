@@ -4,6 +4,14 @@ const DIACRITICS = /[̀-ͯ]/g;
 const NON_ALPHANUMERIC = /[^a-z0-9]+/g;
 const LEADING_TRAILING_HYPHENS = /^-+|-+$/g;
 
+// Top-level static routes under /guilds/ that a guild slug would otherwise
+// shadow — e.g. a guild slugged "settings" would make /guilds/settings
+// (the instance owner's settings page) unreachable, since Next.js resolves
+// the static route over the dynamic [guildSlug] one. Guild pages that live
+// *under* a slug (roster, events, addon, bot, admin/*, ...) don't need an
+// entry here — those are namespaced per-guild, so they can't collide.
+const RESERVED_SLUGS = new Set(["settings"]);
+
 // Turns a guild name into a URL-safe slug, e.g. "Wailing Caverns!" ->
 // "wailing-caverns". Falls back to "guild" if nothing alphanumeric survives
 // (e.g. a name that's entirely emoji or CJK, which the naive ASCII strip
@@ -28,7 +36,8 @@ export async function uniqueGuildSlug(
   name: string,
   excludeGuildId?: string,
 ): Promise<string> {
-  const base = slugify(name);
+  const rawBase = slugify(name);
+  const base = RESERVED_SLUGS.has(rawBase) ? `${rawBase}-guild` : rawBase;
   let candidate = base;
   let suffix = 2;
   while (

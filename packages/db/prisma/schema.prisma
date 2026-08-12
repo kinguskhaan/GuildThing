@@ -47,6 +47,7 @@ model User {
   lastRosterImportedGuilds Guild[]        @relation("GuildLastRosterImportedBy")
   guildCharacters         GuildCharacter[]
   addedGuildCreators      AllowedGuildCreator[]
+  createdApiKeys          GuildApiKey[]
 
   @@unique([email])
   @@map("user")
@@ -147,6 +148,7 @@ model Guild {
   pugMembers     GuildPugMember[]
   events         Event[]
   eventChannelPresets EventChannelPreset[]
+  apiKeys        GuildApiKey[]
   createdAt      DateTime @default(now())
 
   // "addon" (default) — the roster comes from pasting the GuildThing
@@ -221,6 +223,33 @@ model Guild {
   inactivityRoleId        String?
 
   @@index([discordGuildId])
+}
+
+// A secret bearer token that lets an external script (see apps/sync) push
+// roster/character data to /api/v1/roster and /api/v1/characters without a
+// Discord login — the key itself IS the auth, scoped to one guild, created
+// only by an admin. The raw value is shown exactly once at creation time and
+// never stored — only its hash, so a leaked database dump doesn't leak
+// usable keys.
+model GuildApiKey {
+  id          String    @id @default(cuid())
+  guildId     String
+  guild       Guild     @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  // Admin-given label so multiple keys (e.g. one per officer's PC) are
+  // distinguishable in the list.
+  name        String
+  keyHash     String    @unique
+  // First few characters of the raw key (e.g. "gt_a1b2c3d4") — shown next to
+  // the name so an admin can tell keys apart without ever seeing the secret
+  // again.
+  keyPrefix   String
+  createdById String
+  createdBy   User      @relation(fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now())
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+
+  @@index([guildId])
 }
 
 // One role that counts a member as trackable by the inactivity filter —

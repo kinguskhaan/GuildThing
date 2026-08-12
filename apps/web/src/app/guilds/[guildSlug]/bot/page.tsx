@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { env } from "~/env";
 
 // Manage Nicknames (0x08000000) + Manage Roles (0x10000000) +
@@ -13,11 +11,9 @@ export default function BotPage() {
   const inviteUrl = `https://discord.com/oauth2/authorize?client_id=${env.BETTER_AUTH_DISCORD_CLIENT_ID}&scope=bot&permissions=${BOT_PERMISSIONS}`;
 
   return (
-    <main className="flex min-h-screen flex-col items-center gap-10 px-4 py-16">
+    <div className="flex w-full max-w-xl flex-col items-center gap-10">
       <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-4xl font-extrabold tracking-tight">
-          GuildThing Roster bot
-        </h1>
+        <h2 className="text-2xl font-bold">GuildThing Roster bot</h2>
         <p className="max-w-md text-discord-text-muted">
           Asks new members for their in-game name and alts right in your
           server (privately, via ephemeral messages — not DMs), then sets
@@ -35,7 +31,7 @@ export default function BotPage() {
         Add to Discord server
       </a>
 
-      <ol className="flex w-full max-w-xl flex-col gap-4">
+      <ol className="flex w-full flex-col gap-4">
         {[
           "Add the bot to your Discord server above (you need Manage Server permission there).",
           <>
@@ -61,10 +57,6 @@ export default function BotPage() {
           </li>
         ))}
       </ol>
-
-      <Link href="/guilds" className="underline">
-        Back to guilds
-      </Link>
-    </main>
+    </div>
   );
 }

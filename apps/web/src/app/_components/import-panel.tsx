@@ -7,7 +7,13 @@ import { GuildImportForm } from "~/app/_components/guild-import-form";
 import { GuildMyCharacters } from "~/app/_components/guild-my-characters";
 import { ManualCharacterForm } from "~/app/_components/manual-character-form";
 
-export function ImportPanel({ guildId }: { guildId: string }) {
+export function ImportPanel({
+  guildId,
+  guildSlug,
+}: {
+  guildId: string;
+  guildSlug: string;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -23,7 +29,7 @@ export function ImportPanel({ guildId }: { guildId: string }) {
       {open && (
         <div className="flex flex-col gap-4 px-6 pb-6">
           <Link
-            href="/guilds/addon"
+            href={`/guilds/${guildSlug}/addon`}
             className="self-start text-sm text-discord-link hover:underline"
           >
             Get the GuildThing addon →

@@ -1,12 +1,8 @@
-import Link from "next/link";
-
 export default function AddonPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center gap-10 px-4 py-16">
+    <div className="flex w-full max-w-xl flex-col items-center gap-10">
       <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-4xl font-extrabold tracking-tight">
-          GuildThing addon
-        </h1>
+        <h2 className="text-2xl font-bold">GuildThing addon</h2>
         <p className="max-w-md text-discord-text-muted">
           A small in-game addon that scans your guild&apos;s roster (name,
           rank, level) and exports it as JSON.
@@ -21,7 +17,7 @@ export default function AddonPage() {
         Download GuildThing.zip
       </a>
 
-      <ol className="flex w-full max-w-xl flex-col gap-4">
+      <ol className="flex w-full flex-col gap-4">
         {[
           "Download the addon above.",
           <>
@@ -53,10 +49,6 @@ export default function AddonPage() {
           </li>
         ))}
       </ol>
-
-      <Link href="/guilds" className="underline">
-        Back to guilds
-      </Link>
-    </main>
+    </div>
   );
 }
