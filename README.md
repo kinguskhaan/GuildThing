@@ -1,29 +1,90 @@
-# Create T3 App
+# GuildThing
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+Guild management webtool + Discord bot for World of Warcraft guilds. T3 stack monorepo (Next.js, Prisma/SQLite, tRPC, Better Auth) with a companion Discord bot and an in-game addon.
 
-## What's next? How do I make an app with this?
+## Struktur
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+```
+apps/
+  web/     Next.js-appen (@guildthing/web)
+  bot/     Discord-bot (@guildthing/bot)
+  addon/   WoW-addon, paketeras separat (@guildthing/addon)
+packages/
+  db/               Prisma-schema + genererad klient, delas av web och bot
+  wowhead-data/     Data/synk mot Wowhead
+```
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+Delad SQLite-databas (`packages/db/prisma/db.sqlite`) mellan web och bot.
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+## Köra med Docker Compose
 
-## Learn More
+Snabbaste vägen, kräver ingen lokal Node/pnpm-installation.
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+1. Kopiera env-filen och fyll i värden:
+   ```bash
+   cp .env.example .env
+   ```
+   Sätt minst `BETTER_AUTH_SECRET`, `BETTER_AUTH_DISCORD_CLIENT_ID`/`SECRET`, `DISCORD_BOT_TOKEN` och `GUILD_CREATOR_EMAIL`. `DATABASE_URL` i `.env` används bara lokalt (pnpm dev) — i Docker sätts den redan i `docker-compose.yml` och pekar in i containerns filsystem, så du behöver inte ändra den för Docker-körning.
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+2. Bygg och starta:
+   ```bash
+   docker compose up --build
+   ```
+   Detta startar två tjänster:
+   - `app` — webbappen, exponerad på `http://localhost:3308`
+   - `bot` — Discord-boten
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+   Båda delar SQLite-databasen via volymen `sqlite-data`, och kör `prisma db push` mot den vid start (se `docker-entrypoint.sh`).
 
-## How do I deploy this?
+3. Stoppa:
+   ```bash
+   docker compose down
+   ```
+   (Lägg till `-v` om du även vill ta bort `sqlite-data`-volymen och nollställa databasen.)
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+Efterföljande starter kan köras utan `--build` (`docker compose up`) så länge inget i `Dockerfile`, dependencies eller källkod ändrats sedan senaste bygget.
+
+## Köra lokalt (utan Docker)
+
+Kräver Node 20+ och pnpm (version pinnad i `package.json` → `packageManager`, hämtas automatiskt via corepack).
+
+```bash
+corepack enable
+pnpm install
+cp .env.example .env   # fyll i värden, se ovan
+```
+
+`DATABASE_URL` i `.env` måste vara en absolut sökväg till `packages/db/prisma/db.sqlite` i din checkout (kommentaren i `.env.example` förklarar varför relativ path inte funkar i monorepot).
+
+Skapa databasen:
+```bash
+pnpm db:push
+```
+
+Starta webbappen (dev):
+```bash
+pnpm dev
+```
+
+Starta boten (dev, i ett annat terminalfönster):
+```bash
+pnpm --filter @guildthing/bot dev
+```
+
+## Övriga scripts
+
+| Kommando | Vad det gör |
+|---|---|
+| `pnpm build` | Bygger alla appar (turbo) |
+| `pnpm lint` / `pnpm lint:fix` | Lint över hela monorepot |
+| `pnpm typecheck` | Typkontroll över hela monorepot |
+| `pnpm check` | Lint + typecheck |
+| `pnpm db:generate` | Generera Prisma-klient |
+| `pnpm db:migrate` | Kör Prisma-migrationer |
+| `pnpm db:studio` | Öppna Prisma Studio |
+| `pnpm wowhead:sync` | Synka data från Wowhead |
+| `pnpm addon:package` | Paketera WoW-addonet |
+
+## Stack
+
+[Next.js](https://nextjs.org) · [Better Auth](https://www.better-auth.com/) · [Prisma](https://prisma.io) (SQLite) · [tRPC](https://trpc.io) · [Tailwind CSS](https://tailwindcss.com) · [discord.js](https://discord.js.org) · [Turborepo](https://turbo.build/repo)
