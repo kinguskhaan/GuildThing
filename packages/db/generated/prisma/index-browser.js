@@ -188,6 +188,7 @@ exports.Prisma.AllowedGuildCreatorScalarFieldEnum = {
 exports.Prisma.GuildScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  slug: 'slug',
   discordGuildId: 'discordGuildId',
   createdById: 'createdById',
   createdAt: 'createdAt',

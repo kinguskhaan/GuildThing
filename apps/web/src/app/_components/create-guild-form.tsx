@@ -35,7 +35,7 @@ export function CreateGuildForm() {
       setDiscordGuildId("");
       setRequiredRoleIds([""]);
       setAdminRoleIds([]);
-      router.push(`/guilds/${guild.id}`);
+      router.push(`/guilds/${guild.slug}`);
       router.refresh();
     },
   });

@@ -88,7 +88,7 @@ export function GuildSwitcher({
           {guilds.data?.map((g) => (
             <Link
               key={g.id}
-              href={`/guilds/${g.id}`}
+              href={`/guilds/${g.slug}`}
               onClick={() => setOpen(false)}
               className={`flex items-center gap-2 rounded-lg px-2 py-2 text-sm transition ${
                 g.id === currentGuild?.id

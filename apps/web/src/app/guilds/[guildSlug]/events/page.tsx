@@ -6,9 +6,10 @@ import { api } from "~/trpc/server";
 export default async function EventsPage({
   params,
 }: {
-  params: Promise<{ guildId: string }>;
+  params: Promise<{ guildSlug: string }>;
 }) {
-  const { guildId } = await params;
+  const { guildSlug } = await params;
+  const { id: guildId } = await api.guild.resolveSlug({ slug: guildSlug });
   const [guild, events] = await Promise.all([
     api.guild.get({ guildId }),
     api.event.list({ guildId }),

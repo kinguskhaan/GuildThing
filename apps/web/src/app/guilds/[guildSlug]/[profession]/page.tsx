@@ -1,11 +1,13 @@
 import { ProfessionRecipeBrowser } from "~/app/_components/profession-recipe-browser";
+import { api } from "~/trpc/server";
 
 export default async function ProfessionPage({
   params,
 }: {
-  params: Promise<{ guildId: string; profession: string }>;
+  params: Promise<{ guildSlug: string; profession: string }>;
 }) {
-  const { guildId, profession } = await params;
+  const { guildSlug, profession } = await params;
+  const { id: guildId } = await api.guild.resolveSlug({ slug: guildSlug });
 
   return (
     <div className="flex w-full max-w-4xl flex-col gap-6">

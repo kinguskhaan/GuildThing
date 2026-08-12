@@ -127,6 +127,11 @@ model AllowedGuildCreator {
 model Guild {
   id             String   @id @default(cuid())
   name           String
+  // URL-safe identifier derived from `name` at creation time (e.g. "My
+  // Guild" -> "my-guild") — used in routes instead of `id` so links are
+  // readable. Doesn't change if the guild is later renamed, so existing
+  // links keep working.
+  slug           String   @unique
   discordGuildId String   @unique
   createdById    String
   createdBy      User     @relation(fields: [createdById], references: [id])

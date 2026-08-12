@@ -29,7 +29,7 @@ export default async function GuildsPage() {
           {guilds.map((guild) => (
             <li key={guild.id}>
               <Link
-                href={`/guilds/${guild.id}`}
+                href={`/guilds/${guild.slug}`}
                 className="flex items-center gap-3 rounded-xl bg-discord-elevated p-4 transition hover:bg-discord-elevated-hover"
               >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-discord-elevated-hover text-sm font-semibold">

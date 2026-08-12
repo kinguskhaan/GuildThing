@@ -7,9 +7,10 @@ import { api } from "~/trpc/server";
 export default async function AdminRecipesPage({
   params,
 }: {
-  params: Promise<{ guildId: string }>;
+  params: Promise<{ guildSlug: string }>;
 }) {
-  const { guildId } = await params;
+  const { guildSlug } = await params;
+  const { id: guildId } = await api.guild.resolveSlug({ slug: guildSlug });
   const guild = await api.guild.get({ guildId });
 
   if (!guild.isAdmin) notFound();

@@ -11716,6 +11716,7 @@ export namespace Prisma {
   export type GuildMinAggregateOutputType = {
     id: string | null
     name: string | null
+    slug: string | null
     discordGuildId: string | null
     createdById: string | null
     createdAt: Date | null
@@ -11739,6 +11740,7 @@ export namespace Prisma {
   export type GuildMaxAggregateOutputType = {
     id: string | null
     name: string | null
+    slug: string | null
     discordGuildId: string | null
     createdById: string | null
     createdAt: Date | null
@@ -11762,6 +11764,7 @@ export namespace Prisma {
   export type GuildCountAggregateOutputType = {
     id: number
     name: number
+    slug: number
     discordGuildId: number
     createdById: number
     createdAt: number
@@ -11795,6 +11798,7 @@ export namespace Prisma {
   export type GuildMinAggregateInputType = {
     id?: true
     name?: true
+    slug?: true
     discordGuildId?: true
     createdById?: true
     createdAt?: true
@@ -11818,6 +11822,7 @@ export namespace Prisma {
   export type GuildMaxAggregateInputType = {
     id?: true
     name?: true
+    slug?: true
     discordGuildId?: true
     createdById?: true
     createdAt?: true
@@ -11841,6 +11846,7 @@ export namespace Prisma {
   export type GuildCountAggregateInputType = {
     id?: true
     name?: true
+    slug?: true
     discordGuildId?: true
     createdById?: true
     createdAt?: true
@@ -11951,6 +11957,7 @@ export namespace Prisma {
   export type GuildGroupByOutputType = {
     id: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt: Date
@@ -11993,6 +12000,7 @@ export namespace Prisma {
   export type GuildSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    slug?: boolean
     discordGuildId?: boolean
     createdById?: boolean
     createdAt?: boolean
@@ -12032,6 +12040,7 @@ export namespace Prisma {
   export type GuildSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    slug?: boolean
     discordGuildId?: boolean
     createdById?: boolean
     createdAt?: boolean
@@ -12058,6 +12067,7 @@ export namespace Prisma {
   export type GuildSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    slug?: boolean
     discordGuildId?: boolean
     createdById?: boolean
     createdAt?: boolean
@@ -12084,6 +12094,7 @@ export namespace Prisma {
   export type GuildSelectScalar = {
     id?: boolean
     name?: boolean
+    slug?: boolean
     discordGuildId?: boolean
     createdById?: boolean
     createdAt?: boolean
@@ -12104,7 +12115,7 @@ export namespace Prisma {
     inactivityRoleId?: boolean
   }
 
-  export type GuildOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "discordGuildId" | "createdById" | "createdAt" | "rosterSource" | "pugEnabled" | "pugRoleId" | "lastExportedAt" | "lastExportedById" | "lastRosterImportedAt" | "lastRosterImportedById" | "adminNotifyChannelId" | "onboardingChannelId" | "onboardingMessageId" | "onboardingMessageText" | "forceSyncRequestedAt" | "inactivityFilterEnabled" | "inactivityDays" | "inactivityRoleId", ExtArgs["result"]["guild"]>
+  export type GuildOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "slug" | "discordGuildId" | "createdById" | "createdAt" | "rosterSource" | "pugEnabled" | "pugRoleId" | "lastExportedAt" | "lastExportedById" | "lastRosterImportedAt" | "lastRosterImportedById" | "adminNotifyChannelId" | "onboardingChannelId" | "onboardingMessageId" | "onboardingMessageText" | "forceSyncRequestedAt" | "inactivityFilterEnabled" | "inactivityDays" | "inactivityRoleId", ExtArgs["result"]["guild"]>
   export type GuildInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     createdBy?: boolean | UserDefaultArgs<ExtArgs>
     characters?: boolean | Guild$charactersArgs<ExtArgs>
@@ -12156,6 +12167,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       name: string
+      slug: string
       discordGuildId: string
       createdById: string
       createdAt: Date
@@ -12614,6 +12626,7 @@ export namespace Prisma {
   interface GuildFieldRefs {
     readonly id: FieldRef<"Guild", 'String'>
     readonly name: FieldRef<"Guild", 'String'>
+    readonly slug: FieldRef<"Guild", 'String'>
     readonly discordGuildId: FieldRef<"Guild", 'String'>
     readonly createdById: FieldRef<"Guild", 'String'>
     readonly createdAt: FieldRef<"Guild", 'DateTime'>
@@ -38387,6 +38400,7 @@ export namespace Prisma {
   export const GuildScalarFieldEnum: {
     id: 'id',
     name: 'name',
+    slug: 'slug',
     discordGuildId: 'discordGuildId',
     createdById: 'createdById',
     createdAt: 'createdAt',
@@ -39199,6 +39213,7 @@ export namespace Prisma {
     NOT?: GuildWhereInput | GuildWhereInput[]
     id?: StringFilter<"Guild"> | string
     name?: StringFilter<"Guild"> | string
+    slug?: StringFilter<"Guild"> | string
     discordGuildId?: StringFilter<"Guild"> | string
     createdById?: StringFilter<"Guild"> | string
     createdAt?: DateTimeFilter<"Guild"> | Date | string
@@ -39237,6 +39252,7 @@ export namespace Prisma {
   export type GuildOrderByWithRelationInput = {
     id?: SortOrder
     name?: SortOrder
+    slug?: SortOrder
     discordGuildId?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
@@ -39274,6 +39290,7 @@ export namespace Prisma {
 
   export type GuildWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    slug?: string
     discordGuildId?: string
     AND?: GuildWhereInput | GuildWhereInput[]
     OR?: GuildWhereInput[]
@@ -39311,11 +39328,12 @@ export namespace Prisma {
     eventChannelPresets?: EventChannelPresetListRelationFilter
     lastExportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     lastRosterImportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
-  }, "id" | "discordGuildId">
+  }, "id" | "slug" | "discordGuildId">
 
   export type GuildOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrder
+    slug?: SortOrder
     discordGuildId?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
@@ -39347,6 +39365,7 @@ export namespace Prisma {
     NOT?: GuildScalarWhereWithAggregatesInput | GuildScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Guild"> | string
     name?: StringWithAggregatesFilter<"Guild"> | string
+    slug?: StringWithAggregatesFilter<"Guild"> | string
     discordGuildId?: StringWithAggregatesFilter<"Guild"> | string
     createdById?: StringWithAggregatesFilter<"Guild"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Guild"> | Date | string
@@ -41275,6 +41294,7 @@ export namespace Prisma {
   export type GuildCreateInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -41310,6 +41330,7 @@ export namespace Prisma {
   export type GuildUncheckedCreateInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -41345,6 +41366,7 @@ export namespace Prisma {
   export type GuildUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -41380,6 +41402,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -41415,6 +41438,7 @@ export namespace Prisma {
   export type GuildCreateManyInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -41438,6 +41462,7 @@ export namespace Prisma {
   export type GuildUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -41458,6 +41483,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -43426,6 +43452,7 @@ export namespace Prisma {
   export type GuildCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    slug?: SortOrder
     discordGuildId?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
@@ -43453,6 +43480,7 @@ export namespace Prisma {
   export type GuildMaxOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    slug?: SortOrder
     discordGuildId?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
@@ -43476,6 +43504,7 @@ export namespace Prisma {
   export type GuildMinOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    slug?: SortOrder
     discordGuildId?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
@@ -46593,6 +46622,7 @@ export namespace Prisma {
   export type GuildCreateWithoutCreatedByInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -46627,6 +46657,7 @@ export namespace Prisma {
   export type GuildUncheckedCreateWithoutCreatedByInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -46670,6 +46701,7 @@ export namespace Prisma {
   export type GuildCreateWithoutLastExportedByInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -46704,6 +46736,7 @@ export namespace Prisma {
   export type GuildUncheckedCreateWithoutLastExportedByInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -46747,6 +46780,7 @@ export namespace Prisma {
   export type GuildCreateWithoutLastRosterImportedByInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -46781,6 +46815,7 @@ export namespace Prisma {
   export type GuildUncheckedCreateWithoutLastRosterImportedByInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -46987,6 +47022,7 @@ export namespace Prisma {
     NOT?: GuildScalarWhereInput | GuildScalarWhereInput[]
     id?: StringFilter<"Guild"> | string
     name?: StringFilter<"Guild"> | string
+    slug?: StringFilter<"Guild"> | string
     discordGuildId?: StringFilter<"Guild"> | string
     createdById?: StringFilter<"Guild"> | string
     createdAt?: DateTimeFilter<"Guild"> | Date | string
@@ -48284,6 +48320,7 @@ export namespace Prisma {
   export type GuildCreateWithoutInactivityTargetRolesInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -48318,6 +48355,7 @@ export namespace Prisma {
   export type GuildUncheckedCreateWithoutInactivityTargetRolesInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -48368,6 +48406,7 @@ export namespace Prisma {
   export type GuildUpdateWithoutInactivityTargetRolesInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -48402,6 +48441,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateWithoutInactivityTargetRolesInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -48436,6 +48476,7 @@ export namespace Prisma {
   export type GuildCreateWithoutRosterMembersInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -48470,6 +48511,7 @@ export namespace Prisma {
   export type GuildUncheckedCreateWithoutRosterMembersInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -48545,6 +48587,7 @@ export namespace Prisma {
   export type GuildUpdateWithoutRosterMembersInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -48579,6 +48622,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateWithoutRosterMembersInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -48629,6 +48673,7 @@ export namespace Prisma {
   export type GuildCreateWithoutClaimConflictsInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -48663,6 +48708,7 @@ export namespace Prisma {
   export type GuildUncheckedCreateWithoutClaimConflictsInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -48744,6 +48790,7 @@ export namespace Prisma {
   export type GuildUpdateWithoutClaimConflictsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -48778,6 +48825,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateWithoutClaimConflictsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -48849,6 +48897,7 @@ export namespace Prisma {
   export type GuildCreateWithoutPendingRosterMatchesInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -48883,6 +48932,7 @@ export namespace Prisma {
   export type GuildUncheckedCreateWithoutPendingRosterMatchesInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -48933,6 +48983,7 @@ export namespace Prisma {
   export type GuildUpdateWithoutPendingRosterMatchesInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -48967,6 +49018,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateWithoutPendingRosterMatchesInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -49001,6 +49053,7 @@ export namespace Prisma {
   export type GuildCreateWithoutPugMembersInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -49035,6 +49088,7 @@ export namespace Prisma {
   export type GuildUncheckedCreateWithoutPugMembersInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -49085,6 +49139,7 @@ export namespace Prisma {
   export type GuildUpdateWithoutPugMembersInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -49119,6 +49174,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateWithoutPugMembersInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -49153,6 +49209,7 @@ export namespace Prisma {
   export type GuildCreateWithoutMemberActivityInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -49187,6 +49244,7 @@ export namespace Prisma {
   export type GuildUncheckedCreateWithoutMemberActivityInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -49237,6 +49295,7 @@ export namespace Prisma {
   export type GuildUpdateWithoutMemberActivityInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -49271,6 +49330,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateWithoutMemberActivityInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -49305,6 +49365,7 @@ export namespace Prisma {
   export type GuildCreateWithoutRoleRulesInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -49339,6 +49400,7 @@ export namespace Prisma {
   export type GuildUncheckedCreateWithoutRoleRulesInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -49456,6 +49518,7 @@ export namespace Prisma {
   export type GuildUpdateWithoutRoleRulesInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -49490,6 +49553,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateWithoutRoleRulesInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -49748,6 +49812,7 @@ export namespace Prisma {
   export type GuildCreateWithoutEventChannelPresetsInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -49782,6 +49847,7 @@ export namespace Prisma {
   export type GuildUncheckedCreateWithoutEventChannelPresetsInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -49832,6 +49898,7 @@ export namespace Prisma {
   export type GuildUpdateWithoutEventChannelPresetsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -49866,6 +49933,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateWithoutEventChannelPresetsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -49900,6 +49968,7 @@ export namespace Prisma {
   export type GuildCreateWithoutEventsInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -49934,6 +50003,7 @@ export namespace Prisma {
   export type GuildUncheckedCreateWithoutEventsInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -50084,6 +50154,7 @@ export namespace Prisma {
   export type GuildUpdateWithoutEventsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -50118,6 +50189,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateWithoutEventsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -50852,6 +50924,7 @@ export namespace Prisma {
   export type GuildCreateWithoutRequiredRolesInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -50886,6 +50959,7 @@ export namespace Prisma {
   export type GuildUncheckedCreateWithoutRequiredRolesInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -50936,6 +51010,7 @@ export namespace Prisma {
   export type GuildUpdateWithoutRequiredRolesInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -50970,6 +51045,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateWithoutRequiredRolesInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -51004,6 +51080,7 @@ export namespace Prisma {
   export type GuildCreateWithoutAdminRolesInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -51038,6 +51115,7 @@ export namespace Prisma {
   export type GuildUncheckedCreateWithoutAdminRolesInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -51088,6 +51166,7 @@ export namespace Prisma {
   export type GuildUpdateWithoutAdminRolesInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -51122,6 +51201,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateWithoutAdminRolesInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -51156,6 +51236,7 @@ export namespace Prisma {
   export type GuildCreateWithoutCharactersInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -51190,6 +51271,7 @@ export namespace Prisma {
   export type GuildUncheckedCreateWithoutCharactersInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -51302,6 +51384,7 @@ export namespace Prisma {
   export type GuildUpdateWithoutCharactersInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -51336,6 +51419,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateWithoutCharactersInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -51624,6 +51708,7 @@ export namespace Prisma {
   export type GuildCreateManyCreatedByInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdAt?: Date | string
     rosterSource?: string
@@ -51646,6 +51731,7 @@ export namespace Prisma {
   export type GuildCreateManyLastExportedByInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -51668,6 +51754,7 @@ export namespace Prisma {
   export type GuildCreateManyLastRosterImportedByInput = {
     id?: string
     name: string
+    slug: string
     discordGuildId: string
     createdById: string
     createdAt?: Date | string
@@ -51802,6 +51889,7 @@ export namespace Prisma {
   export type GuildUpdateWithoutCreatedByInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -51836,6 +51924,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateWithoutCreatedByInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -51870,6 +51959,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateManyWithoutCreatedByInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -51892,6 +51982,7 @@ export namespace Prisma {
   export type GuildUpdateWithoutLastExportedByInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -51926,6 +52017,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateWithoutLastExportedByInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -51960,6 +52052,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateManyWithoutLastExportedByInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -51982,6 +52075,7 @@ export namespace Prisma {
   export type GuildUpdateWithoutLastRosterImportedByInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -52016,6 +52110,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateWithoutLastRosterImportedByInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -52050,6 +52145,7 @@ export namespace Prisma {
   export type GuildUncheckedUpdateManyWithoutLastRosterImportedByInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string

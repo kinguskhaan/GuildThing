@@ -3,6 +3,7 @@ import { deflateSync } from "node:zlib";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
+import { uniqueGuildSlug } from "@guildthing/db";
 import { env } from "~/env";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import type { db as Db } from "~/server/db";
@@ -324,9 +325,12 @@ export const guildRouter = createTRPCRouter({
         });
       }
 
+      const slug = await uniqueGuildSlug(ctx.db, input.name);
+
       return ctx.db.guild.create({
         data: {
           name: input.name,
+          slug,
           discordGuildId: input.discordGuildId,
           createdById: ctx.session.user.id,
           requiredRoles: {
@@ -413,6 +417,28 @@ export const guildRouter = createTRPCRouter({
   // hold the specific required role. Membership just gets it to show up;
   // opening one you lack the role for shows the "you don't have the
   // required role" message instead of recipes.
+  // Resolves the slug in a /guilds/[guildSlug] URL to the guild's real id —
+  // every other procedure still takes the id (guildId), so this is the one
+  // place a route/page needs to bridge from "what's in the URL" to "what
+  // the rest of the API expects". No access check here: a slug->id mapping
+  // isn't sensitive (same information `list` already returns to anyone with
+  // guild access), the actual access check happens in `get`.
+  resolveSlug: protectedProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const guild = await ctx.db.guild.findUnique({
+        where: { slug: input.slug },
+        select: { id: true },
+      });
+      if (!guild) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No guild found for this URL.",
+        });
+      }
+      return { id: guild.id };
+    }),
+
   list: protectedProcedure.query(async ({ ctx }) => {
     const guilds = await ctx.db.guild.findMany({
       orderBy: { createdAt: "desc" },
@@ -438,6 +464,7 @@ export const guildRouter = createTRPCRouter({
         .filter((g): g is (typeof guilds)[number] => g !== null)
         .map(async (g) => ({
           id: g.id,
+          slug: g.slug,
           name: g.name,
           createdAt: g.createdAt,
           iconUrl: await safeGuildIconUrl(
