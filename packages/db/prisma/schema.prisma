@@ -619,8 +619,15 @@ model GuildCharacter {
   id          String   @id @default(cuid())
   guildId     String
   guild       Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Null means "unclaimed" — a peer-sourced row created from someone else's
+  // P2P recipe cache (see OurRecipes' P2PSync.lua), not a self-import. Gets
+  // claimed (set, and never unset again) the first time the real player
+  // self-imports this exact name+realm — see importCharacter's peers loop
+  // vs. its self-import branch. Character identity is guild+name+realm, not
+  // guild+user+name+realm: a WoW character name is already unique per
+  // realm, so two different users can never legitimately claim the same row.
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
   realm       String
   // WoW class token (e.g. "WARRIOR") — sent by the addon's export, null for
@@ -631,7 +638,7 @@ model GuildCharacter {
   updatedAt   DateTime @updatedAt
   professions Profession[]
 
-  @@unique([guildId, userId, name, realm])
+  @@unique([guildId, name, realm])
 }
 
 model Profession {

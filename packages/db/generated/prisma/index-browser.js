@@ -209,6 +209,18 @@ exports.Prisma.GuildScalarFieldEnum = {
   inactivityRoleId: 'inactivityRoleId'
 };
 
+exports.Prisma.GuildApiKeyScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  name: 'name',
+  keyHash: 'keyHash',
+  keyPrefix: 'keyPrefix',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  lastUsedAt: 'lastUsedAt',
+  revokedAt: 'revokedAt'
+};
+
 exports.Prisma.GuildInactivityTargetRoleScalarFieldEnum = {
   id: 'id',
   guildId: 'guildId',
@@ -429,6 +441,7 @@ exports.Prisma.ModelName = {
   InstanceSettings: 'InstanceSettings',
   AllowedGuildCreator: 'AllowedGuildCreator',
   Guild: 'Guild',
+  GuildApiKey: 'GuildApiKey',
   GuildInactivityTargetRole: 'GuildInactivityTargetRole',
   GuildRosterMember: 'GuildRosterMember',
   GuildRosterClaimConflict: 'GuildRosterClaimConflict',

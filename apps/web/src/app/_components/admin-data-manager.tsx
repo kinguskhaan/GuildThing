@@ -37,7 +37,9 @@ export function AdminDataManager({ guildId }: { guildId: string }) {
     <div className="flex w-full max-w-2xl flex-col gap-4">
       {characters.data.map((character) => {
         const label = characterLabel(character.name, character.realm);
-        const ownerLabel = character.user.nickname ?? character.user.name;
+        const ownerLabel = character.user
+          ? (character.user.nickname ?? character.user.name)
+          : "unclaimed (peer data)";
         return (
           <div
             key={character.id}

@@ -54,6 +54,11 @@ export type AllowedGuildCreator = $Result.DefaultSelection<Prisma.$AllowedGuildC
  */
 export type Guild = $Result.DefaultSelection<Prisma.$GuildPayload>
 /**
+ * Model GuildApiKey
+ * 
+ */
+export type GuildApiKey = $Result.DefaultSelection<Prisma.$GuildApiKeyPayload>
+/**
  * Model GuildInactivityTargetRole
  * 
  */
@@ -366,6 +371,16 @@ export class PrismaClient<
     * ```
     */
   get guild(): Prisma.GuildDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.guildApiKey`: Exposes CRUD operations for the **GuildApiKey** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GuildApiKeys
+    * const guildApiKeys = await prisma.guildApiKey.findMany()
+    * ```
+    */
+  get guildApiKey(): Prisma.GuildApiKeyDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.guildInactivityTargetRole`: Exposes CRUD operations for the **GuildInactivityTargetRole** model.
@@ -1045,6 +1060,7 @@ export namespace Prisma {
     InstanceSettings: 'InstanceSettings',
     AllowedGuildCreator: 'AllowedGuildCreator',
     Guild: 'Guild',
+    GuildApiKey: 'GuildApiKey',
     GuildInactivityTargetRole: 'GuildInactivityTargetRole',
     GuildRosterMember: 'GuildRosterMember',
     GuildRosterClaimConflict: 'GuildRosterClaimConflict',
@@ -1086,7 +1102,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "post" | "user" | "session" | "account" | "verification" | "instanceSettings" | "allowedGuildCreator" | "guild" | "guildInactivityTargetRole" | "guildRosterMember" | "guildRosterClaimConflict" | "guildPendingRosterMatch" | "guildPugMember" | "guildMemberActivity" | "guildRoleRule" | "guildRoleRuleGrantedRole" | "guildRoleRuleGrantedChannel" | "guildRoleRuleCondition" | "eventChannelPreset" | "event" | "eventTimeOption" | "eventTimeVote" | "eventRoleSlot" | "eventSignup" | "guildRequiredRole" | "guildAdminRole" | "guildCharacter" | "profession" | "recipe" | "discordMemberRoleCache" | "discordGuildInfoCache"
+      modelProps: "post" | "user" | "session" | "account" | "verification" | "instanceSettings" | "allowedGuildCreator" | "guild" | "guildApiKey" | "guildInactivityTargetRole" | "guildRosterMember" | "guildRosterClaimConflict" | "guildPendingRosterMatch" | "guildPugMember" | "guildMemberActivity" | "guildRoleRule" | "guildRoleRuleGrantedRole" | "guildRoleRuleGrantedChannel" | "guildRoleRuleCondition" | "eventChannelPreset" | "event" | "eventTimeOption" | "eventTimeVote" | "eventRoleSlot" | "eventSignup" | "guildRequiredRole" | "guildAdminRole" | "guildCharacter" | "profession" | "recipe" | "discordMemberRoleCache" | "discordGuildInfoCache"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1679,6 +1695,80 @@ export namespace Prisma {
           count: {
             args: Prisma.GuildCountArgs<ExtArgs>
             result: $Utils.Optional<GuildCountAggregateOutputType> | number
+          }
+        }
+      }
+      GuildApiKey: {
+        payload: Prisma.$GuildApiKeyPayload<ExtArgs>
+        fields: Prisma.GuildApiKeyFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GuildApiKeyFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildApiKeyPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GuildApiKeyFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildApiKeyPayload>
+          }
+          findFirst: {
+            args: Prisma.GuildApiKeyFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildApiKeyPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GuildApiKeyFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildApiKeyPayload>
+          }
+          findMany: {
+            args: Prisma.GuildApiKeyFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildApiKeyPayload>[]
+          }
+          create: {
+            args: Prisma.GuildApiKeyCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildApiKeyPayload>
+          }
+          createMany: {
+            args: Prisma.GuildApiKeyCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GuildApiKeyCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildApiKeyPayload>[]
+          }
+          delete: {
+            args: Prisma.GuildApiKeyDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildApiKeyPayload>
+          }
+          update: {
+            args: Prisma.GuildApiKeyUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildApiKeyPayload>
+          }
+          deleteMany: {
+            args: Prisma.GuildApiKeyDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GuildApiKeyUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.GuildApiKeyUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildApiKeyPayload>[]
+          }
+          upsert: {
+            args: Prisma.GuildApiKeyUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuildApiKeyPayload>
+          }
+          aggregate: {
+            args: Prisma.GuildApiKeyAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGuildApiKey>
+          }
+          groupBy: {
+            args: Prisma.GuildApiKeyGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GuildApiKeyGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GuildApiKeyCountArgs<ExtArgs>
+            result: $Utils.Optional<GuildApiKeyCountAggregateOutputType> | number
           }
         }
       }
@@ -3488,6 +3578,7 @@ export namespace Prisma {
     instanceSettings?: InstanceSettingsOmit
     allowedGuildCreator?: AllowedGuildCreatorOmit
     guild?: GuildOmit
+    guildApiKey?: GuildApiKeyOmit
     guildInactivityTargetRole?: GuildInactivityTargetRoleOmit
     guildRosterMember?: GuildRosterMemberOmit
     guildRosterClaimConflict?: GuildRosterClaimConflictOmit
@@ -3599,6 +3690,7 @@ export namespace Prisma {
     lastRosterImportedGuilds: number
     guildCharacters: number
     addedGuildCreators: number
+    createdApiKeys: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3610,6 +3702,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: boolean | UserCountOutputTypeCountLastRosterImportedGuildsArgs
     guildCharacters?: boolean | UserCountOutputTypeCountGuildCharactersArgs
     addedGuildCreators?: boolean | UserCountOutputTypeCountAddedGuildCreatorsArgs
+    createdApiKeys?: boolean | UserCountOutputTypeCountCreatedApiKeysArgs
   }
 
   // Custom InputTypes
@@ -3679,6 +3772,13 @@ export namespace Prisma {
     where?: AllowedGuildCreatorWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountCreatedApiKeysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GuildApiKeyWhereInput
+  }
+
 
   /**
    * Count Type GuildCountOutputType
@@ -3697,6 +3797,7 @@ export namespace Prisma {
     pugMembers: number
     events: number
     eventChannelPresets: number
+    apiKeys: number
   }
 
   export type GuildCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3712,6 +3813,7 @@ export namespace Prisma {
     pugMembers?: boolean | GuildCountOutputTypeCountPugMembersArgs
     events?: boolean | GuildCountOutputTypeCountEventsArgs
     eventChannelPresets?: boolean | GuildCountOutputTypeCountEventChannelPresetsArgs
+    apiKeys?: boolean | GuildCountOutputTypeCountApiKeysArgs
   }
 
   // Custom InputTypes
@@ -3807,6 +3909,13 @@ export namespace Prisma {
    */
   export type GuildCountOutputTypeCountEventChannelPresetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: EventChannelPresetWhereInput
+  }
+
+  /**
+   * GuildCountOutputType without action
+   */
+  export type GuildCountOutputTypeCountApiKeysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GuildApiKeyWhereInput
   }
 
 
@@ -5328,6 +5437,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: boolean | User$lastRosterImportedGuildsArgs<ExtArgs>
     guildCharacters?: boolean | User$guildCharactersArgs<ExtArgs>
     addedGuildCreators?: boolean | User$addedGuildCreatorsArgs<ExtArgs>
+    createdApiKeys?: boolean | User$createdApiKeysArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -5374,6 +5484,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: boolean | User$lastRosterImportedGuildsArgs<ExtArgs>
     guildCharacters?: boolean | User$guildCharactersArgs<ExtArgs>
     addedGuildCreators?: boolean | User$addedGuildCreatorsArgs<ExtArgs>
+    createdApiKeys?: boolean | User$createdApiKeysArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -5390,6 +5501,7 @@ export namespace Prisma {
       lastRosterImportedGuilds: Prisma.$GuildPayload<ExtArgs>[]
       guildCharacters: Prisma.$GuildCharacterPayload<ExtArgs>[]
       addedGuildCreators: Prisma.$AllowedGuildCreatorPayload<ExtArgs>[]
+      createdApiKeys: Prisma.$GuildApiKeyPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -5802,6 +5914,7 @@ export namespace Prisma {
     lastRosterImportedGuilds<T extends User$lastRosterImportedGuildsArgs<ExtArgs> = {}>(args?: Subset<T, User$lastRosterImportedGuildsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     guildCharacters<T extends User$guildCharactersArgs<ExtArgs> = {}>(args?: Subset<T, User$guildCharactersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildCharacterPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     addedGuildCreators<T extends User$addedGuildCreatorsArgs<ExtArgs> = {}>(args?: Subset<T, User$addedGuildCreatorsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AllowedGuildCreatorPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    createdApiKeys<T extends User$createdApiKeysArgs<ExtArgs> = {}>(args?: Subset<T, User$createdApiKeysArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildApiKeyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6414,6 +6527,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: AllowedGuildCreatorScalarFieldEnum | AllowedGuildCreatorScalarFieldEnum[]
+  }
+
+  /**
+   * User.createdApiKeys
+   */
+  export type User$createdApiKeysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildApiKey
+     */
+    select?: GuildApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildApiKey
+     */
+    omit?: GuildApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildApiKeyInclude<ExtArgs> | null
+    where?: GuildApiKeyWhereInput
+    orderBy?: GuildApiKeyOrderByWithRelationInput | GuildApiKeyOrderByWithRelationInput[]
+    cursor?: GuildApiKeyWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GuildApiKeyScalarFieldEnum | GuildApiKeyScalarFieldEnum[]
   }
 
   /**
@@ -12032,6 +12169,7 @@ export namespace Prisma {
     pugMembers?: boolean | Guild$pugMembersArgs<ExtArgs>
     events?: boolean | Guild$eventsArgs<ExtArgs>
     eventChannelPresets?: boolean | Guild$eventChannelPresetsArgs<ExtArgs>
+    apiKeys?: boolean | Guild$apiKeysArgs<ExtArgs>
     lastExportedBy?: boolean | Guild$lastExportedByArgs<ExtArgs>
     lastRosterImportedBy?: boolean | Guild$lastRosterImportedByArgs<ExtArgs>
     _count?: boolean | GuildCountOutputTypeDefaultArgs<ExtArgs>
@@ -12130,6 +12268,7 @@ export namespace Prisma {
     pugMembers?: boolean | Guild$pugMembersArgs<ExtArgs>
     events?: boolean | Guild$eventsArgs<ExtArgs>
     eventChannelPresets?: boolean | Guild$eventChannelPresetsArgs<ExtArgs>
+    apiKeys?: boolean | Guild$apiKeysArgs<ExtArgs>
     lastExportedBy?: boolean | Guild$lastExportedByArgs<ExtArgs>
     lastRosterImportedBy?: boolean | Guild$lastRosterImportedByArgs<ExtArgs>
     _count?: boolean | GuildCountOutputTypeDefaultArgs<ExtArgs>
@@ -12161,6 +12300,7 @@ export namespace Prisma {
       pugMembers: Prisma.$GuildPugMemberPayload<ExtArgs>[]
       events: Prisma.$EventPayload<ExtArgs>[]
       eventChannelPresets: Prisma.$EventChannelPresetPayload<ExtArgs>[]
+      apiKeys: Prisma.$GuildApiKeyPayload<ExtArgs>[]
       lastExportedBy: Prisma.$UserPayload<ExtArgs> | null
       lastRosterImportedBy: Prisma.$UserPayload<ExtArgs> | null
     }
@@ -12593,6 +12733,7 @@ export namespace Prisma {
     pugMembers<T extends Guild$pugMembersArgs<ExtArgs> = {}>(args?: Subset<T, Guild$pugMembersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildPugMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     events<T extends Guild$eventsArgs<ExtArgs> = {}>(args?: Subset<T, Guild$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     eventChannelPresets<T extends Guild$eventChannelPresetsArgs<ExtArgs> = {}>(args?: Subset<T, Guild$eventChannelPresetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventChannelPresetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    apiKeys<T extends Guild$apiKeysArgs<ExtArgs> = {}>(args?: Subset<T, Guild$apiKeysArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildApiKeyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     lastExportedBy<T extends Guild$lastExportedByArgs<ExtArgs> = {}>(args?: Subset<T, Guild$lastExportedByArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     lastRosterImportedBy<T extends Guild$lastRosterImportedByArgs<ExtArgs> = {}>(args?: Subset<T, Guild$lastRosterImportedByArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
@@ -13327,6 +13468,30 @@ export namespace Prisma {
   }
 
   /**
+   * Guild.apiKeys
+   */
+  export type Guild$apiKeysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildApiKey
+     */
+    select?: GuildApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildApiKey
+     */
+    omit?: GuildApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildApiKeyInclude<ExtArgs> | null
+    where?: GuildApiKeyWhereInput
+    orderBy?: GuildApiKeyOrderByWithRelationInput | GuildApiKeyOrderByWithRelationInput[]
+    cursor?: GuildApiKeyWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GuildApiKeyScalarFieldEnum | GuildApiKeyScalarFieldEnum[]
+  }
+
+  /**
    * Guild.lastExportedBy
    */
   export type Guild$lastExportedByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -13380,6 +13545,1122 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: GuildInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model GuildApiKey
+   */
+
+  export type AggregateGuildApiKey = {
+    _count: GuildApiKeyCountAggregateOutputType | null
+    _min: GuildApiKeyMinAggregateOutputType | null
+    _max: GuildApiKeyMaxAggregateOutputType | null
+  }
+
+  export type GuildApiKeyMinAggregateOutputType = {
+    id: string | null
+    guildId: string | null
+    name: string | null
+    keyHash: string | null
+    keyPrefix: string | null
+    createdById: string | null
+    createdAt: Date | null
+    lastUsedAt: Date | null
+    revokedAt: Date | null
+  }
+
+  export type GuildApiKeyMaxAggregateOutputType = {
+    id: string | null
+    guildId: string | null
+    name: string | null
+    keyHash: string | null
+    keyPrefix: string | null
+    createdById: string | null
+    createdAt: Date | null
+    lastUsedAt: Date | null
+    revokedAt: Date | null
+  }
+
+  export type GuildApiKeyCountAggregateOutputType = {
+    id: number
+    guildId: number
+    name: number
+    keyHash: number
+    keyPrefix: number
+    createdById: number
+    createdAt: number
+    lastUsedAt: number
+    revokedAt: number
+    _all: number
+  }
+
+
+  export type GuildApiKeyMinAggregateInputType = {
+    id?: true
+    guildId?: true
+    name?: true
+    keyHash?: true
+    keyPrefix?: true
+    createdById?: true
+    createdAt?: true
+    lastUsedAt?: true
+    revokedAt?: true
+  }
+
+  export type GuildApiKeyMaxAggregateInputType = {
+    id?: true
+    guildId?: true
+    name?: true
+    keyHash?: true
+    keyPrefix?: true
+    createdById?: true
+    createdAt?: true
+    lastUsedAt?: true
+    revokedAt?: true
+  }
+
+  export type GuildApiKeyCountAggregateInputType = {
+    id?: true
+    guildId?: true
+    name?: true
+    keyHash?: true
+    keyPrefix?: true
+    createdById?: true
+    createdAt?: true
+    lastUsedAt?: true
+    revokedAt?: true
+    _all?: true
+  }
+
+  export type GuildApiKeyAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GuildApiKey to aggregate.
+     */
+    where?: GuildApiKeyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuildApiKeys to fetch.
+     */
+    orderBy?: GuildApiKeyOrderByWithRelationInput | GuildApiKeyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GuildApiKeyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuildApiKeys from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuildApiKeys.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GuildApiKeys
+    **/
+    _count?: true | GuildApiKeyCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GuildApiKeyMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GuildApiKeyMaxAggregateInputType
+  }
+
+  export type GetGuildApiKeyAggregateType<T extends GuildApiKeyAggregateArgs> = {
+        [P in keyof T & keyof AggregateGuildApiKey]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGuildApiKey[P]>
+      : GetScalarType<T[P], AggregateGuildApiKey[P]>
+  }
+
+
+
+
+  export type GuildApiKeyGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GuildApiKeyWhereInput
+    orderBy?: GuildApiKeyOrderByWithAggregationInput | GuildApiKeyOrderByWithAggregationInput[]
+    by: GuildApiKeyScalarFieldEnum[] | GuildApiKeyScalarFieldEnum
+    having?: GuildApiKeyScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GuildApiKeyCountAggregateInputType | true
+    _min?: GuildApiKeyMinAggregateInputType
+    _max?: GuildApiKeyMaxAggregateInputType
+  }
+
+  export type GuildApiKeyGroupByOutputType = {
+    id: string
+    guildId: string
+    name: string
+    keyHash: string
+    keyPrefix: string
+    createdById: string
+    createdAt: Date
+    lastUsedAt: Date | null
+    revokedAt: Date | null
+    _count: GuildApiKeyCountAggregateOutputType | null
+    _min: GuildApiKeyMinAggregateOutputType | null
+    _max: GuildApiKeyMaxAggregateOutputType | null
+  }
+
+  type GetGuildApiKeyGroupByPayload<T extends GuildApiKeyGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GuildApiKeyGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GuildApiKeyGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GuildApiKeyGroupByOutputType[P]>
+            : GetScalarType<T[P], GuildApiKeyGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GuildApiKeySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    guildId?: boolean
+    name?: boolean
+    keyHash?: boolean
+    keyPrefix?: boolean
+    createdById?: boolean
+    createdAt?: boolean
+    lastUsedAt?: boolean
+    revokedAt?: boolean
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guildApiKey"]>
+
+  export type GuildApiKeySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    guildId?: boolean
+    name?: boolean
+    keyHash?: boolean
+    keyPrefix?: boolean
+    createdById?: boolean
+    createdAt?: boolean
+    lastUsedAt?: boolean
+    revokedAt?: boolean
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guildApiKey"]>
+
+  export type GuildApiKeySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    guildId?: boolean
+    name?: boolean
+    keyHash?: boolean
+    keyPrefix?: boolean
+    createdById?: boolean
+    createdAt?: boolean
+    lastUsedAt?: boolean
+    revokedAt?: boolean
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guildApiKey"]>
+
+  export type GuildApiKeySelectScalar = {
+    id?: boolean
+    guildId?: boolean
+    name?: boolean
+    keyHash?: boolean
+    keyPrefix?: boolean
+    createdById?: boolean
+    createdAt?: boolean
+    lastUsedAt?: boolean
+    revokedAt?: boolean
+  }
+
+  export type GuildApiKeyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "name" | "keyHash" | "keyPrefix" | "createdById" | "createdAt" | "lastUsedAt" | "revokedAt", ExtArgs["result"]["guildApiKey"]>
+  export type GuildApiKeyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type GuildApiKeyIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type GuildApiKeyIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    guild?: boolean | GuildDefaultArgs<ExtArgs>
+    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $GuildApiKeyPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GuildApiKey"
+    objects: {
+      guild: Prisma.$GuildPayload<ExtArgs>
+      createdBy: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      guildId: string
+      name: string
+      keyHash: string
+      keyPrefix: string
+      createdById: string
+      createdAt: Date
+      lastUsedAt: Date | null
+      revokedAt: Date | null
+    }, ExtArgs["result"]["guildApiKey"]>
+    composites: {}
+  }
+
+  type GuildApiKeyGetPayload<S extends boolean | null | undefined | GuildApiKeyDefaultArgs> = $Result.GetResult<Prisma.$GuildApiKeyPayload, S>
+
+  type GuildApiKeyCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<GuildApiKeyFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: GuildApiKeyCountAggregateInputType | true
+    }
+
+  export interface GuildApiKeyDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GuildApiKey'], meta: { name: 'GuildApiKey' } }
+    /**
+     * Find zero or one GuildApiKey that matches the filter.
+     * @param {GuildApiKeyFindUniqueArgs} args - Arguments to find a GuildApiKey
+     * @example
+     * // Get one GuildApiKey
+     * const guildApiKey = await prisma.guildApiKey.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GuildApiKeyFindUniqueArgs>(args: SelectSubset<T, GuildApiKeyFindUniqueArgs<ExtArgs>>): Prisma__GuildApiKeyClient<$Result.GetResult<Prisma.$GuildApiKeyPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one GuildApiKey that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {GuildApiKeyFindUniqueOrThrowArgs} args - Arguments to find a GuildApiKey
+     * @example
+     * // Get one GuildApiKey
+     * const guildApiKey = await prisma.guildApiKey.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GuildApiKeyFindUniqueOrThrowArgs>(args: SelectSubset<T, GuildApiKeyFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GuildApiKeyClient<$Result.GetResult<Prisma.$GuildApiKeyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GuildApiKey that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildApiKeyFindFirstArgs} args - Arguments to find a GuildApiKey
+     * @example
+     * // Get one GuildApiKey
+     * const guildApiKey = await prisma.guildApiKey.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GuildApiKeyFindFirstArgs>(args?: SelectSubset<T, GuildApiKeyFindFirstArgs<ExtArgs>>): Prisma__GuildApiKeyClient<$Result.GetResult<Prisma.$GuildApiKeyPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GuildApiKey that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildApiKeyFindFirstOrThrowArgs} args - Arguments to find a GuildApiKey
+     * @example
+     * // Get one GuildApiKey
+     * const guildApiKey = await prisma.guildApiKey.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GuildApiKeyFindFirstOrThrowArgs>(args?: SelectSubset<T, GuildApiKeyFindFirstOrThrowArgs<ExtArgs>>): Prisma__GuildApiKeyClient<$Result.GetResult<Prisma.$GuildApiKeyPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more GuildApiKeys that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildApiKeyFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GuildApiKeys
+     * const guildApiKeys = await prisma.guildApiKey.findMany()
+     * 
+     * // Get first 10 GuildApiKeys
+     * const guildApiKeys = await prisma.guildApiKey.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const guildApiKeyWithIdOnly = await prisma.guildApiKey.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GuildApiKeyFindManyArgs>(args?: SelectSubset<T, GuildApiKeyFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildApiKeyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a GuildApiKey.
+     * @param {GuildApiKeyCreateArgs} args - Arguments to create a GuildApiKey.
+     * @example
+     * // Create one GuildApiKey
+     * const GuildApiKey = await prisma.guildApiKey.create({
+     *   data: {
+     *     // ... data to create a GuildApiKey
+     *   }
+     * })
+     * 
+     */
+    create<T extends GuildApiKeyCreateArgs>(args: SelectSubset<T, GuildApiKeyCreateArgs<ExtArgs>>): Prisma__GuildApiKeyClient<$Result.GetResult<Prisma.$GuildApiKeyPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many GuildApiKeys.
+     * @param {GuildApiKeyCreateManyArgs} args - Arguments to create many GuildApiKeys.
+     * @example
+     * // Create many GuildApiKeys
+     * const guildApiKey = await prisma.guildApiKey.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GuildApiKeyCreateManyArgs>(args?: SelectSubset<T, GuildApiKeyCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GuildApiKeys and returns the data saved in the database.
+     * @param {GuildApiKeyCreateManyAndReturnArgs} args - Arguments to create many GuildApiKeys.
+     * @example
+     * // Create many GuildApiKeys
+     * const guildApiKey = await prisma.guildApiKey.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GuildApiKeys and only return the `id`
+     * const guildApiKeyWithIdOnly = await prisma.guildApiKey.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GuildApiKeyCreateManyAndReturnArgs>(args?: SelectSubset<T, GuildApiKeyCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildApiKeyPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a GuildApiKey.
+     * @param {GuildApiKeyDeleteArgs} args - Arguments to delete one GuildApiKey.
+     * @example
+     * // Delete one GuildApiKey
+     * const GuildApiKey = await prisma.guildApiKey.delete({
+     *   where: {
+     *     // ... filter to delete one GuildApiKey
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GuildApiKeyDeleteArgs>(args: SelectSubset<T, GuildApiKeyDeleteArgs<ExtArgs>>): Prisma__GuildApiKeyClient<$Result.GetResult<Prisma.$GuildApiKeyPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one GuildApiKey.
+     * @param {GuildApiKeyUpdateArgs} args - Arguments to update one GuildApiKey.
+     * @example
+     * // Update one GuildApiKey
+     * const guildApiKey = await prisma.guildApiKey.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GuildApiKeyUpdateArgs>(args: SelectSubset<T, GuildApiKeyUpdateArgs<ExtArgs>>): Prisma__GuildApiKeyClient<$Result.GetResult<Prisma.$GuildApiKeyPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more GuildApiKeys.
+     * @param {GuildApiKeyDeleteManyArgs} args - Arguments to filter GuildApiKeys to delete.
+     * @example
+     * // Delete a few GuildApiKeys
+     * const { count } = await prisma.guildApiKey.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GuildApiKeyDeleteManyArgs>(args?: SelectSubset<T, GuildApiKeyDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GuildApiKeys.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildApiKeyUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GuildApiKeys
+     * const guildApiKey = await prisma.guildApiKey.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GuildApiKeyUpdateManyArgs>(args: SelectSubset<T, GuildApiKeyUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GuildApiKeys and returns the data updated in the database.
+     * @param {GuildApiKeyUpdateManyAndReturnArgs} args - Arguments to update many GuildApiKeys.
+     * @example
+     * // Update many GuildApiKeys
+     * const guildApiKey = await prisma.guildApiKey.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more GuildApiKeys and only return the `id`
+     * const guildApiKeyWithIdOnly = await prisma.guildApiKey.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends GuildApiKeyUpdateManyAndReturnArgs>(args: SelectSubset<T, GuildApiKeyUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuildApiKeyPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one GuildApiKey.
+     * @param {GuildApiKeyUpsertArgs} args - Arguments to update or create a GuildApiKey.
+     * @example
+     * // Update or create a GuildApiKey
+     * const guildApiKey = await prisma.guildApiKey.upsert({
+     *   create: {
+     *     // ... data to create a GuildApiKey
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GuildApiKey we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GuildApiKeyUpsertArgs>(args: SelectSubset<T, GuildApiKeyUpsertArgs<ExtArgs>>): Prisma__GuildApiKeyClient<$Result.GetResult<Prisma.$GuildApiKeyPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of GuildApiKeys.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildApiKeyCountArgs} args - Arguments to filter GuildApiKeys to count.
+     * @example
+     * // Count the number of GuildApiKeys
+     * const count = await prisma.guildApiKey.count({
+     *   where: {
+     *     // ... the filter for the GuildApiKeys we want to count
+     *   }
+     * })
+    **/
+    count<T extends GuildApiKeyCountArgs>(
+      args?: Subset<T, GuildApiKeyCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GuildApiKeyCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GuildApiKey.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildApiKeyAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GuildApiKeyAggregateArgs>(args: Subset<T, GuildApiKeyAggregateArgs>): Prisma.PrismaPromise<GetGuildApiKeyAggregateType<T>>
+
+    /**
+     * Group by GuildApiKey.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuildApiKeyGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GuildApiKeyGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GuildApiKeyGroupByArgs['orderBy'] }
+        : { orderBy?: GuildApiKeyGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GuildApiKeyGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGuildApiKeyGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GuildApiKey model
+   */
+  readonly fields: GuildApiKeyFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GuildApiKey.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GuildApiKeyClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    guild<T extends GuildDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GuildDefaultArgs<ExtArgs>>): Prisma__GuildClient<$Result.GetResult<Prisma.$GuildPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    createdBy<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GuildApiKey model
+   */
+  interface GuildApiKeyFieldRefs {
+    readonly id: FieldRef<"GuildApiKey", 'String'>
+    readonly guildId: FieldRef<"GuildApiKey", 'String'>
+    readonly name: FieldRef<"GuildApiKey", 'String'>
+    readonly keyHash: FieldRef<"GuildApiKey", 'String'>
+    readonly keyPrefix: FieldRef<"GuildApiKey", 'String'>
+    readonly createdById: FieldRef<"GuildApiKey", 'String'>
+    readonly createdAt: FieldRef<"GuildApiKey", 'DateTime'>
+    readonly lastUsedAt: FieldRef<"GuildApiKey", 'DateTime'>
+    readonly revokedAt: FieldRef<"GuildApiKey", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GuildApiKey findUnique
+   */
+  export type GuildApiKeyFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildApiKey
+     */
+    select?: GuildApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildApiKey
+     */
+    omit?: GuildApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildApiKeyInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildApiKey to fetch.
+     */
+    where: GuildApiKeyWhereUniqueInput
+  }
+
+  /**
+   * GuildApiKey findUniqueOrThrow
+   */
+  export type GuildApiKeyFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildApiKey
+     */
+    select?: GuildApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildApiKey
+     */
+    omit?: GuildApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildApiKeyInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildApiKey to fetch.
+     */
+    where: GuildApiKeyWhereUniqueInput
+  }
+
+  /**
+   * GuildApiKey findFirst
+   */
+  export type GuildApiKeyFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildApiKey
+     */
+    select?: GuildApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildApiKey
+     */
+    omit?: GuildApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildApiKeyInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildApiKey to fetch.
+     */
+    where?: GuildApiKeyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuildApiKeys to fetch.
+     */
+    orderBy?: GuildApiKeyOrderByWithRelationInput | GuildApiKeyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GuildApiKeys.
+     */
+    cursor?: GuildApiKeyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuildApiKeys from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuildApiKeys.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GuildApiKeys.
+     */
+    distinct?: GuildApiKeyScalarFieldEnum | GuildApiKeyScalarFieldEnum[]
+  }
+
+  /**
+   * GuildApiKey findFirstOrThrow
+   */
+  export type GuildApiKeyFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildApiKey
+     */
+    select?: GuildApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildApiKey
+     */
+    omit?: GuildApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildApiKeyInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildApiKey to fetch.
+     */
+    where?: GuildApiKeyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuildApiKeys to fetch.
+     */
+    orderBy?: GuildApiKeyOrderByWithRelationInput | GuildApiKeyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GuildApiKeys.
+     */
+    cursor?: GuildApiKeyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuildApiKeys from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuildApiKeys.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GuildApiKeys.
+     */
+    distinct?: GuildApiKeyScalarFieldEnum | GuildApiKeyScalarFieldEnum[]
+  }
+
+  /**
+   * GuildApiKey findMany
+   */
+  export type GuildApiKeyFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildApiKey
+     */
+    select?: GuildApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildApiKey
+     */
+    omit?: GuildApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildApiKeyInclude<ExtArgs> | null
+    /**
+     * Filter, which GuildApiKeys to fetch.
+     */
+    where?: GuildApiKeyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuildApiKeys to fetch.
+     */
+    orderBy?: GuildApiKeyOrderByWithRelationInput | GuildApiKeyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GuildApiKeys.
+     */
+    cursor?: GuildApiKeyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuildApiKeys from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuildApiKeys.
+     */
+    skip?: number
+    distinct?: GuildApiKeyScalarFieldEnum | GuildApiKeyScalarFieldEnum[]
+  }
+
+  /**
+   * GuildApiKey create
+   */
+  export type GuildApiKeyCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildApiKey
+     */
+    select?: GuildApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildApiKey
+     */
+    omit?: GuildApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildApiKeyInclude<ExtArgs> | null
+    /**
+     * The data needed to create a GuildApiKey.
+     */
+    data: XOR<GuildApiKeyCreateInput, GuildApiKeyUncheckedCreateInput>
+  }
+
+  /**
+   * GuildApiKey createMany
+   */
+  export type GuildApiKeyCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GuildApiKeys.
+     */
+    data: GuildApiKeyCreateManyInput | GuildApiKeyCreateManyInput[]
+  }
+
+  /**
+   * GuildApiKey createManyAndReturn
+   */
+  export type GuildApiKeyCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildApiKey
+     */
+    select?: GuildApiKeySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildApiKey
+     */
+    omit?: GuildApiKeyOmit<ExtArgs> | null
+    /**
+     * The data used to create many GuildApiKeys.
+     */
+    data: GuildApiKeyCreateManyInput | GuildApiKeyCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildApiKeyIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GuildApiKey update
+   */
+  export type GuildApiKeyUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildApiKey
+     */
+    select?: GuildApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildApiKey
+     */
+    omit?: GuildApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildApiKeyInclude<ExtArgs> | null
+    /**
+     * The data needed to update a GuildApiKey.
+     */
+    data: XOR<GuildApiKeyUpdateInput, GuildApiKeyUncheckedUpdateInput>
+    /**
+     * Choose, which GuildApiKey to update.
+     */
+    where: GuildApiKeyWhereUniqueInput
+  }
+
+  /**
+   * GuildApiKey updateMany
+   */
+  export type GuildApiKeyUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GuildApiKeys.
+     */
+    data: XOR<GuildApiKeyUpdateManyMutationInput, GuildApiKeyUncheckedUpdateManyInput>
+    /**
+     * Filter which GuildApiKeys to update
+     */
+    where?: GuildApiKeyWhereInput
+    /**
+     * Limit how many GuildApiKeys to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * GuildApiKey updateManyAndReturn
+   */
+  export type GuildApiKeyUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildApiKey
+     */
+    select?: GuildApiKeySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildApiKey
+     */
+    omit?: GuildApiKeyOmit<ExtArgs> | null
+    /**
+     * The data used to update GuildApiKeys.
+     */
+    data: XOR<GuildApiKeyUpdateManyMutationInput, GuildApiKeyUncheckedUpdateManyInput>
+    /**
+     * Filter which GuildApiKeys to update
+     */
+    where?: GuildApiKeyWhereInput
+    /**
+     * Limit how many GuildApiKeys to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildApiKeyIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GuildApiKey upsert
+   */
+  export type GuildApiKeyUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildApiKey
+     */
+    select?: GuildApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildApiKey
+     */
+    omit?: GuildApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildApiKeyInclude<ExtArgs> | null
+    /**
+     * The filter to search for the GuildApiKey to update in case it exists.
+     */
+    where: GuildApiKeyWhereUniqueInput
+    /**
+     * In case the GuildApiKey found by the `where` argument doesn't exist, create a new GuildApiKey with this data.
+     */
+    create: XOR<GuildApiKeyCreateInput, GuildApiKeyUncheckedCreateInput>
+    /**
+     * In case the GuildApiKey was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GuildApiKeyUpdateInput, GuildApiKeyUncheckedUpdateInput>
+  }
+
+  /**
+   * GuildApiKey delete
+   */
+  export type GuildApiKeyDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildApiKey
+     */
+    select?: GuildApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildApiKey
+     */
+    omit?: GuildApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildApiKeyInclude<ExtArgs> | null
+    /**
+     * Filter which GuildApiKey to delete.
+     */
+    where: GuildApiKeyWhereUniqueInput
+  }
+
+  /**
+   * GuildApiKey deleteMany
+   */
+  export type GuildApiKeyDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GuildApiKeys to delete
+     */
+    where?: GuildApiKeyWhereInput
+    /**
+     * Limit how many GuildApiKeys to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * GuildApiKey without action
+   */
+  export type GuildApiKeyDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuildApiKey
+     */
+    select?: GuildApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuildApiKey
+     */
+    omit?: GuildApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuildApiKeyInclude<ExtArgs> | null
   }
 
 
@@ -33192,7 +34473,7 @@ export namespace Prisma {
   export type GuildCharacterGroupByOutputType = {
     id: string
     guildId: string
-    userId: string
+    userId: string | null
     name: string
     realm: string
     class: string | null
@@ -33227,7 +34508,7 @@ export namespace Prisma {
     importedAt?: boolean
     updatedAt?: boolean
     guild?: boolean | GuildDefaultArgs<ExtArgs>
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | GuildCharacter$userArgs<ExtArgs>
     professions?: boolean | GuildCharacter$professionsArgs<ExtArgs>
     _count?: boolean | GuildCharacterCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["guildCharacter"]>
@@ -33242,7 +34523,7 @@ export namespace Prisma {
     importedAt?: boolean
     updatedAt?: boolean
     guild?: boolean | GuildDefaultArgs<ExtArgs>
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | GuildCharacter$userArgs<ExtArgs>
   }, ExtArgs["result"]["guildCharacter"]>
 
   export type GuildCharacterSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -33255,7 +34536,7 @@ export namespace Prisma {
     importedAt?: boolean
     updatedAt?: boolean
     guild?: boolean | GuildDefaultArgs<ExtArgs>
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | GuildCharacter$userArgs<ExtArgs>
   }, ExtArgs["result"]["guildCharacter"]>
 
   export type GuildCharacterSelectScalar = {
@@ -33272,30 +34553,30 @@ export namespace Prisma {
   export type GuildCharacterOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "userId" | "name" | "realm" | "class" | "importedAt" | "updatedAt", ExtArgs["result"]["guildCharacter"]>
   export type GuildCharacterInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     guild?: boolean | GuildDefaultArgs<ExtArgs>
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | GuildCharacter$userArgs<ExtArgs>
     professions?: boolean | GuildCharacter$professionsArgs<ExtArgs>
     _count?: boolean | GuildCharacterCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type GuildCharacterIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     guild?: boolean | GuildDefaultArgs<ExtArgs>
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | GuildCharacter$userArgs<ExtArgs>
   }
   export type GuildCharacterIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     guild?: boolean | GuildDefaultArgs<ExtArgs>
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | GuildCharacter$userArgs<ExtArgs>
   }
 
   export type $GuildCharacterPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "GuildCharacter"
     objects: {
       guild: Prisma.$GuildPayload<ExtArgs>
-      user: Prisma.$UserPayload<ExtArgs>
+      user: Prisma.$UserPayload<ExtArgs> | null
       professions: Prisma.$ProfessionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       guildId: string
-      userId: string
+      userId: string | null
       name: string
       realm: string
       class: string | null
@@ -33696,7 +34977,7 @@ export namespace Prisma {
   export interface Prisma__GuildCharacterClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     guild<T extends GuildDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GuildDefaultArgs<ExtArgs>>): Prisma__GuildClient<$Result.GetResult<Prisma.$GuildPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    user<T extends GuildCharacter$userArgs<ExtArgs> = {}>(args?: Subset<T, GuildCharacter$userArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     professions<T extends GuildCharacter$professionsArgs<ExtArgs> = {}>(args?: Subset<T, GuildCharacter$professionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProfessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -34126,6 +35407,25 @@ export namespace Prisma {
      * Limit how many GuildCharacters to delete.
      */
     limit?: number
+  }
+
+  /**
+   * GuildCharacter.user
+   */
+  export type GuildCharacter$userArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
   }
 
   /**
@@ -38424,6 +39724,21 @@ export namespace Prisma {
   export type GuildScalarFieldEnum = (typeof GuildScalarFieldEnum)[keyof typeof GuildScalarFieldEnum]
 
 
+  export const GuildApiKeyScalarFieldEnum: {
+    id: 'id',
+    guildId: 'guildId',
+    name: 'name',
+    keyHash: 'keyHash',
+    keyPrefix: 'keyPrefix',
+    createdById: 'createdById',
+    createdAt: 'createdAt',
+    lastUsedAt: 'lastUsedAt',
+    revokedAt: 'revokedAt'
+  };
+
+  export type GuildApiKeyScalarFieldEnum = (typeof GuildApiKeyScalarFieldEnum)[keyof typeof GuildApiKeyScalarFieldEnum]
+
+
   export const GuildInactivityTargetRoleScalarFieldEnum: {
     id: 'id',
     guildId: 'guildId',
@@ -38827,6 +40142,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildListRelationFilter
     guildCharacters?: GuildCharacterListRelationFilter
     addedGuildCreators?: AllowedGuildCreatorListRelationFilter
+    createdApiKeys?: GuildApiKeyListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -38846,6 +40162,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildOrderByRelationAggregateInput
     guildCharacters?: GuildCharacterOrderByRelationAggregateInput
     addedGuildCreators?: AllowedGuildCreatorOrderByRelationAggregateInput
+    createdApiKeys?: GuildApiKeyOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -38868,6 +40185,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildListRelationFilter
     guildCharacters?: GuildCharacterListRelationFilter
     addedGuildCreators?: AllowedGuildCreatorListRelationFilter
+    createdApiKeys?: GuildApiKeyListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -39245,6 +40563,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberListRelationFilter
     events?: EventListRelationFilter
     eventChannelPresets?: EventChannelPresetListRelationFilter
+    apiKeys?: GuildApiKeyListRelationFilter
     lastExportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     lastRosterImportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }
@@ -39284,6 +40603,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberOrderByRelationAggregateInput
     events?: EventOrderByRelationAggregateInput
     eventChannelPresets?: EventChannelPresetOrderByRelationAggregateInput
+    apiKeys?: GuildApiKeyOrderByRelationAggregateInput
     lastExportedBy?: UserOrderByWithRelationInput
     lastRosterImportedBy?: UserOrderByWithRelationInput
   }
@@ -39326,6 +40646,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberListRelationFilter
     events?: EventListRelationFilter
     eventChannelPresets?: EventChannelPresetListRelationFilter
+    apiKeys?: GuildApiKeyListRelationFilter
     lastExportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     lastRosterImportedBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }, "id" | "slug" | "discordGuildId">
@@ -39384,6 +40705,84 @@ export namespace Prisma {
     inactivityFilterEnabled?: BoolWithAggregatesFilter<"Guild"> | boolean
     inactivityDays?: IntNullableWithAggregatesFilter<"Guild"> | number | null
     inactivityRoleId?: StringNullableWithAggregatesFilter<"Guild"> | string | null
+  }
+
+  export type GuildApiKeyWhereInput = {
+    AND?: GuildApiKeyWhereInput | GuildApiKeyWhereInput[]
+    OR?: GuildApiKeyWhereInput[]
+    NOT?: GuildApiKeyWhereInput | GuildApiKeyWhereInput[]
+    id?: StringFilter<"GuildApiKey"> | string
+    guildId?: StringFilter<"GuildApiKey"> | string
+    name?: StringFilter<"GuildApiKey"> | string
+    keyHash?: StringFilter<"GuildApiKey"> | string
+    keyPrefix?: StringFilter<"GuildApiKey"> | string
+    createdById?: StringFilter<"GuildApiKey"> | string
+    createdAt?: DateTimeFilter<"GuildApiKey"> | Date | string
+    lastUsedAt?: DateTimeNullableFilter<"GuildApiKey"> | Date | string | null
+    revokedAt?: DateTimeNullableFilter<"GuildApiKey"> | Date | string | null
+    guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
+    createdBy?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type GuildApiKeyOrderByWithRelationInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    name?: SortOrder
+    keyHash?: SortOrder
+    keyPrefix?: SortOrder
+    createdById?: SortOrder
+    createdAt?: SortOrder
+    lastUsedAt?: SortOrderInput | SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    guild?: GuildOrderByWithRelationInput
+    createdBy?: UserOrderByWithRelationInput
+  }
+
+  export type GuildApiKeyWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    keyHash?: string
+    AND?: GuildApiKeyWhereInput | GuildApiKeyWhereInput[]
+    OR?: GuildApiKeyWhereInput[]
+    NOT?: GuildApiKeyWhereInput | GuildApiKeyWhereInput[]
+    guildId?: StringFilter<"GuildApiKey"> | string
+    name?: StringFilter<"GuildApiKey"> | string
+    keyPrefix?: StringFilter<"GuildApiKey"> | string
+    createdById?: StringFilter<"GuildApiKey"> | string
+    createdAt?: DateTimeFilter<"GuildApiKey"> | Date | string
+    lastUsedAt?: DateTimeNullableFilter<"GuildApiKey"> | Date | string | null
+    revokedAt?: DateTimeNullableFilter<"GuildApiKey"> | Date | string | null
+    guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
+    createdBy?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "keyHash">
+
+  export type GuildApiKeyOrderByWithAggregationInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    name?: SortOrder
+    keyHash?: SortOrder
+    keyPrefix?: SortOrder
+    createdById?: SortOrder
+    createdAt?: SortOrder
+    lastUsedAt?: SortOrderInput | SortOrder
+    revokedAt?: SortOrderInput | SortOrder
+    _count?: GuildApiKeyCountOrderByAggregateInput
+    _max?: GuildApiKeyMaxOrderByAggregateInput
+    _min?: GuildApiKeyMinOrderByAggregateInput
+  }
+
+  export type GuildApiKeyScalarWhereWithAggregatesInput = {
+    AND?: GuildApiKeyScalarWhereWithAggregatesInput | GuildApiKeyScalarWhereWithAggregatesInput[]
+    OR?: GuildApiKeyScalarWhereWithAggregatesInput[]
+    NOT?: GuildApiKeyScalarWhereWithAggregatesInput | GuildApiKeyScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"GuildApiKey"> | string
+    guildId?: StringWithAggregatesFilter<"GuildApiKey"> | string
+    name?: StringWithAggregatesFilter<"GuildApiKey"> | string
+    keyHash?: StringWithAggregatesFilter<"GuildApiKey"> | string
+    keyPrefix?: StringWithAggregatesFilter<"GuildApiKey"> | string
+    createdById?: StringWithAggregatesFilter<"GuildApiKey"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"GuildApiKey"> | Date | string
+    lastUsedAt?: DateTimeNullableWithAggregatesFilter<"GuildApiKey"> | Date | string | null
+    revokedAt?: DateTimeNullableWithAggregatesFilter<"GuildApiKey"> | Date | string | null
   }
 
   export type GuildInactivityTargetRoleWhereInput = {
@@ -40517,21 +41916,21 @@ export namespace Prisma {
     NOT?: GuildCharacterWhereInput | GuildCharacterWhereInput[]
     id?: StringFilter<"GuildCharacter"> | string
     guildId?: StringFilter<"GuildCharacter"> | string
-    userId?: StringFilter<"GuildCharacter"> | string
+    userId?: StringNullableFilter<"GuildCharacter"> | string | null
     name?: StringFilter<"GuildCharacter"> | string
     realm?: StringFilter<"GuildCharacter"> | string
     class?: StringNullableFilter<"GuildCharacter"> | string | null
     importedAt?: DateTimeFilter<"GuildCharacter"> | Date | string
     updatedAt?: DateTimeFilter<"GuildCharacter"> | Date | string
     guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     professions?: ProfessionListRelationFilter
   }
 
   export type GuildCharacterOrderByWithRelationInput = {
     id?: SortOrder
     guildId?: SortOrder
-    userId?: SortOrder
+    userId?: SortOrderInput | SortOrder
     name?: SortOrder
     realm?: SortOrder
     class?: SortOrderInput | SortOrder
@@ -40544,26 +41943,26 @@ export namespace Prisma {
 
   export type GuildCharacterWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    guildId_userId_name_realm?: GuildCharacterGuildIdUserIdNameRealmCompoundUniqueInput
+    guildId_name_realm?: GuildCharacterGuildIdNameRealmCompoundUniqueInput
     AND?: GuildCharacterWhereInput | GuildCharacterWhereInput[]
     OR?: GuildCharacterWhereInput[]
     NOT?: GuildCharacterWhereInput | GuildCharacterWhereInput[]
     guildId?: StringFilter<"GuildCharacter"> | string
-    userId?: StringFilter<"GuildCharacter"> | string
+    userId?: StringNullableFilter<"GuildCharacter"> | string | null
     name?: StringFilter<"GuildCharacter"> | string
     realm?: StringFilter<"GuildCharacter"> | string
     class?: StringNullableFilter<"GuildCharacter"> | string | null
     importedAt?: DateTimeFilter<"GuildCharacter"> | Date | string
     updatedAt?: DateTimeFilter<"GuildCharacter"> | Date | string
     guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     professions?: ProfessionListRelationFilter
-  }, "id" | "guildId_userId_name_realm">
+  }, "id" | "guildId_name_realm">
 
   export type GuildCharacterOrderByWithAggregationInput = {
     id?: SortOrder
     guildId?: SortOrder
-    userId?: SortOrder
+    userId?: SortOrderInput | SortOrder
     name?: SortOrder
     realm?: SortOrder
     class?: SortOrderInput | SortOrder
@@ -40580,7 +41979,7 @@ export namespace Prisma {
     NOT?: GuildCharacterScalarWhereWithAggregatesInput | GuildCharacterScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"GuildCharacter"> | string
     guildId?: StringWithAggregatesFilter<"GuildCharacter"> | string
-    userId?: StringWithAggregatesFilter<"GuildCharacter"> | string
+    userId?: StringNullableWithAggregatesFilter<"GuildCharacter"> | string | null
     name?: StringWithAggregatesFilter<"GuildCharacter"> | string
     realm?: StringWithAggregatesFilter<"GuildCharacter"> | string
     class?: StringNullableWithAggregatesFilter<"GuildCharacter"> | string | null
@@ -40866,6 +42265,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildCreateNestedManyWithoutLastRosterImportedByInput
     guildCharacters?: GuildCharacterCreateNestedManyWithoutUserInput
     addedGuildCreators?: AllowedGuildCreatorCreateNestedManyWithoutAddedByInput
+    createdApiKeys?: GuildApiKeyCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -40885,6 +42285,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUncheckedCreateNestedManyWithoutLastRosterImportedByInput
     guildCharacters?: GuildCharacterUncheckedCreateNestedManyWithoutUserInput
     addedGuildCreators?: AllowedGuildCreatorUncheckedCreateNestedManyWithoutAddedByInput
+    createdApiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUpdateInput = {
@@ -40904,6 +42305,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUpdateManyWithoutLastRosterImportedByNestedInput
     guildCharacters?: GuildCharacterUpdateManyWithoutUserNestedInput
     addedGuildCreators?: AllowedGuildCreatorUpdateManyWithoutAddedByNestedInput
+    createdApiKeys?: GuildApiKeyUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -40923,6 +42325,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUncheckedUpdateManyWithoutLastRosterImportedByNestedInput
     guildCharacters?: GuildCharacterUncheckedUpdateManyWithoutUserNestedInput
     addedGuildCreators?: AllowedGuildCreatorUncheckedUpdateManyWithoutAddedByNestedInput
+    createdApiKeys?: GuildApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -41323,6 +42726,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -41361,6 +42765,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildUpdateInput = {
@@ -41395,6 +42800,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -41433,6 +42839,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateManyInput = {
@@ -41502,6 +42909,88 @@ export namespace Prisma {
     inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
     inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
     inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type GuildApiKeyCreateInput = {
+    id?: string
+    name: string
+    keyHash: string
+    keyPrefix: string
+    createdAt?: Date | string
+    lastUsedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    guild: GuildCreateNestedOneWithoutApiKeysInput
+    createdBy: UserCreateNestedOneWithoutCreatedApiKeysInput
+  }
+
+  export type GuildApiKeyUncheckedCreateInput = {
+    id?: string
+    guildId: string
+    name: string
+    keyHash: string
+    keyPrefix: string
+    createdById: string
+    createdAt?: Date | string
+    lastUsedAt?: Date | string | null
+    revokedAt?: Date | string | null
+  }
+
+  export type GuildApiKeyUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    keyHash?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    guild?: GuildUpdateOneRequiredWithoutApiKeysNestedInput
+    createdBy?: UserUpdateOneRequiredWithoutCreatedApiKeysNestedInput
+  }
+
+  export type GuildApiKeyUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    guildId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    keyHash?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    createdById?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type GuildApiKeyCreateManyInput = {
+    id?: string
+    guildId: string
+    name: string
+    keyHash: string
+    keyPrefix: string
+    createdById: string
+    createdAt?: Date | string
+    lastUsedAt?: Date | string | null
+    revokedAt?: Date | string | null
+  }
+
+  export type GuildApiKeyUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    keyHash?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type GuildApiKeyUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    guildId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    keyHash?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    createdById?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type GuildInactivityTargetRoleCreateInput = {
@@ -42651,14 +44140,14 @@ export namespace Prisma {
     importedAt?: Date | string
     updatedAt?: Date | string
     guild: GuildCreateNestedOneWithoutCharactersInput
-    user: UserCreateNestedOneWithoutGuildCharactersInput
+    user?: UserCreateNestedOneWithoutGuildCharactersInput
     professions?: ProfessionCreateNestedManyWithoutCharacterInput
   }
 
   export type GuildCharacterUncheckedCreateInput = {
     id?: string
     guildId: string
-    userId: string
+    userId?: string | null
     name: string
     realm: string
     class?: string | null
@@ -42675,14 +44164,14 @@ export namespace Prisma {
     importedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     guild?: GuildUpdateOneRequiredWithoutCharactersNestedInput
-    user?: UserUpdateOneRequiredWithoutGuildCharactersNestedInput
+    user?: UserUpdateOneWithoutGuildCharactersNestedInput
     professions?: ProfessionUpdateManyWithoutCharacterNestedInput
   }
 
   export type GuildCharacterUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     guildId?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     realm?: StringFieldUpdateOperationsInput | string
     class?: NullableStringFieldUpdateOperationsInput | string | null
@@ -42694,7 +44183,7 @@ export namespace Prisma {
   export type GuildCharacterCreateManyInput = {
     id?: string
     guildId: string
-    userId: string
+    userId?: string | null
     name: string
     realm: string
     class?: string | null
@@ -42714,7 +44203,7 @@ export namespace Prisma {
   export type GuildCharacterUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     guildId?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     realm?: StringFieldUpdateOperationsInput | string
     class?: NullableStringFieldUpdateOperationsInput | string | null
@@ -43067,6 +44556,12 @@ export namespace Prisma {
     none?: AllowedGuildCreatorWhereInput
   }
 
+  export type GuildApiKeyListRelationFilter = {
+    every?: GuildApiKeyWhereInput
+    some?: GuildApiKeyWhereInput
+    none?: GuildApiKeyWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -43093,6 +44588,10 @@ export namespace Prisma {
   }
 
   export type AllowedGuildCreatorOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type GuildApiKeyOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -43548,6 +45047,42 @@ export namespace Prisma {
   export type GuildScalarRelationFilter = {
     is?: GuildWhereInput
     isNot?: GuildWhereInput
+  }
+
+  export type GuildApiKeyCountOrderByAggregateInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    name?: SortOrder
+    keyHash?: SortOrder
+    keyPrefix?: SortOrder
+    createdById?: SortOrder
+    createdAt?: SortOrder
+    lastUsedAt?: SortOrder
+    revokedAt?: SortOrder
+  }
+
+  export type GuildApiKeyMaxOrderByAggregateInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    name?: SortOrder
+    keyHash?: SortOrder
+    keyPrefix?: SortOrder
+    createdById?: SortOrder
+    createdAt?: SortOrder
+    lastUsedAt?: SortOrder
+    revokedAt?: SortOrder
+  }
+
+  export type GuildApiKeyMinOrderByAggregateInput = {
+    id?: SortOrder
+    guildId?: SortOrder
+    name?: SortOrder
+    keyHash?: SortOrder
+    keyPrefix?: SortOrder
+    createdById?: SortOrder
+    createdAt?: SortOrder
+    lastUsedAt?: SortOrder
+    revokedAt?: SortOrder
   }
 
   export type GuildInactivityTargetRoleGuildIdDiscordRoleIdCompoundUniqueInput = {
@@ -44238,9 +45773,8 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
-  export type GuildCharacterGuildIdUserIdNameRealmCompoundUniqueInput = {
+  export type GuildCharacterGuildIdNameRealmCompoundUniqueInput = {
     guildId: string
-    userId: string
     name: string
     realm: string
   }
@@ -44483,6 +46017,13 @@ export namespace Prisma {
     connect?: AllowedGuildCreatorWhereUniqueInput | AllowedGuildCreatorWhereUniqueInput[]
   }
 
+  export type GuildApiKeyCreateNestedManyWithoutCreatedByInput = {
+    create?: XOR<GuildApiKeyCreateWithoutCreatedByInput, GuildApiKeyUncheckedCreateWithoutCreatedByInput> | GuildApiKeyCreateWithoutCreatedByInput[] | GuildApiKeyUncheckedCreateWithoutCreatedByInput[]
+    connectOrCreate?: GuildApiKeyCreateOrConnectWithoutCreatedByInput | GuildApiKeyCreateOrConnectWithoutCreatedByInput[]
+    createMany?: GuildApiKeyCreateManyCreatedByInputEnvelope
+    connect?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+  }
+
   export type SessionUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<SessionCreateWithoutUserInput, SessionUncheckedCreateWithoutUserInput> | SessionCreateWithoutUserInput[] | SessionUncheckedCreateWithoutUserInput[]
     connectOrCreate?: SessionCreateOrConnectWithoutUserInput | SessionCreateOrConnectWithoutUserInput[]
@@ -44537,6 +46078,13 @@ export namespace Prisma {
     connectOrCreate?: AllowedGuildCreatorCreateOrConnectWithoutAddedByInput | AllowedGuildCreatorCreateOrConnectWithoutAddedByInput[]
     createMany?: AllowedGuildCreatorCreateManyAddedByInputEnvelope
     connect?: AllowedGuildCreatorWhereUniqueInput | AllowedGuildCreatorWhereUniqueInput[]
+  }
+
+  export type GuildApiKeyUncheckedCreateNestedManyWithoutCreatedByInput = {
+    create?: XOR<GuildApiKeyCreateWithoutCreatedByInput, GuildApiKeyUncheckedCreateWithoutCreatedByInput> | GuildApiKeyCreateWithoutCreatedByInput[] | GuildApiKeyUncheckedCreateWithoutCreatedByInput[]
+    connectOrCreate?: GuildApiKeyCreateOrConnectWithoutCreatedByInput | GuildApiKeyCreateOrConnectWithoutCreatedByInput[]
+    createMany?: GuildApiKeyCreateManyCreatedByInputEnvelope
+    connect?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
   }
 
   export type NullableStringFieldUpdateOperationsInput = {
@@ -44659,6 +46207,20 @@ export namespace Prisma {
     deleteMany?: AllowedGuildCreatorScalarWhereInput | AllowedGuildCreatorScalarWhereInput[]
   }
 
+  export type GuildApiKeyUpdateManyWithoutCreatedByNestedInput = {
+    create?: XOR<GuildApiKeyCreateWithoutCreatedByInput, GuildApiKeyUncheckedCreateWithoutCreatedByInput> | GuildApiKeyCreateWithoutCreatedByInput[] | GuildApiKeyUncheckedCreateWithoutCreatedByInput[]
+    connectOrCreate?: GuildApiKeyCreateOrConnectWithoutCreatedByInput | GuildApiKeyCreateOrConnectWithoutCreatedByInput[]
+    upsert?: GuildApiKeyUpsertWithWhereUniqueWithoutCreatedByInput | GuildApiKeyUpsertWithWhereUniqueWithoutCreatedByInput[]
+    createMany?: GuildApiKeyCreateManyCreatedByInputEnvelope
+    set?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+    disconnect?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+    delete?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+    connect?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+    update?: GuildApiKeyUpdateWithWhereUniqueWithoutCreatedByInput | GuildApiKeyUpdateWithWhereUniqueWithoutCreatedByInput[]
+    updateMany?: GuildApiKeyUpdateManyWithWhereWithoutCreatedByInput | GuildApiKeyUpdateManyWithWhereWithoutCreatedByInput[]
+    deleteMany?: GuildApiKeyScalarWhereInput | GuildApiKeyScalarWhereInput[]
+  }
+
   export type SessionUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<SessionCreateWithoutUserInput, SessionUncheckedCreateWithoutUserInput> | SessionCreateWithoutUserInput[] | SessionUncheckedCreateWithoutUserInput[]
     connectOrCreate?: SessionCreateOrConnectWithoutUserInput | SessionCreateOrConnectWithoutUserInput[]
@@ -44769,6 +46331,20 @@ export namespace Prisma {
     update?: AllowedGuildCreatorUpdateWithWhereUniqueWithoutAddedByInput | AllowedGuildCreatorUpdateWithWhereUniqueWithoutAddedByInput[]
     updateMany?: AllowedGuildCreatorUpdateManyWithWhereWithoutAddedByInput | AllowedGuildCreatorUpdateManyWithWhereWithoutAddedByInput[]
     deleteMany?: AllowedGuildCreatorScalarWhereInput | AllowedGuildCreatorScalarWhereInput[]
+  }
+
+  export type GuildApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput = {
+    create?: XOR<GuildApiKeyCreateWithoutCreatedByInput, GuildApiKeyUncheckedCreateWithoutCreatedByInput> | GuildApiKeyCreateWithoutCreatedByInput[] | GuildApiKeyUncheckedCreateWithoutCreatedByInput[]
+    connectOrCreate?: GuildApiKeyCreateOrConnectWithoutCreatedByInput | GuildApiKeyCreateOrConnectWithoutCreatedByInput[]
+    upsert?: GuildApiKeyUpsertWithWhereUniqueWithoutCreatedByInput | GuildApiKeyUpsertWithWhereUniqueWithoutCreatedByInput[]
+    createMany?: GuildApiKeyCreateManyCreatedByInputEnvelope
+    set?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+    disconnect?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+    delete?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+    connect?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+    update?: GuildApiKeyUpdateWithWhereUniqueWithoutCreatedByInput | GuildApiKeyUpdateWithWhereUniqueWithoutCreatedByInput[]
+    updateMany?: GuildApiKeyUpdateManyWithWhereWithoutCreatedByInput | GuildApiKeyUpdateManyWithWhereWithoutCreatedByInput[]
+    deleteMany?: GuildApiKeyScalarWhereInput | GuildApiKeyScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutSessionsInput = {
@@ -44907,6 +46483,13 @@ export namespace Prisma {
     connect?: EventChannelPresetWhereUniqueInput | EventChannelPresetWhereUniqueInput[]
   }
 
+  export type GuildApiKeyCreateNestedManyWithoutGuildInput = {
+    create?: XOR<GuildApiKeyCreateWithoutGuildInput, GuildApiKeyUncheckedCreateWithoutGuildInput> | GuildApiKeyCreateWithoutGuildInput[] | GuildApiKeyUncheckedCreateWithoutGuildInput[]
+    connectOrCreate?: GuildApiKeyCreateOrConnectWithoutGuildInput | GuildApiKeyCreateOrConnectWithoutGuildInput[]
+    createMany?: GuildApiKeyCreateManyGuildInputEnvelope
+    connect?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+  }
+
   export type UserCreateNestedOneWithoutLastExportedGuildsInput = {
     create?: XOR<UserCreateWithoutLastExportedGuildsInput, UserUncheckedCreateWithoutLastExportedGuildsInput>
     connectOrCreate?: UserCreateOrConnectWithoutLastExportedGuildsInput
@@ -45001,6 +46584,13 @@ export namespace Prisma {
     connectOrCreate?: EventChannelPresetCreateOrConnectWithoutGuildInput | EventChannelPresetCreateOrConnectWithoutGuildInput[]
     createMany?: EventChannelPresetCreateManyGuildInputEnvelope
     connect?: EventChannelPresetWhereUniqueInput | EventChannelPresetWhereUniqueInput[]
+  }
+
+  export type GuildApiKeyUncheckedCreateNestedManyWithoutGuildInput = {
+    create?: XOR<GuildApiKeyCreateWithoutGuildInput, GuildApiKeyUncheckedCreateWithoutGuildInput> | GuildApiKeyCreateWithoutGuildInput[] | GuildApiKeyUncheckedCreateWithoutGuildInput[]
+    connectOrCreate?: GuildApiKeyCreateOrConnectWithoutGuildInput | GuildApiKeyCreateOrConnectWithoutGuildInput[]
+    createMany?: GuildApiKeyCreateManyGuildInputEnvelope
+    connect?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
   }
 
   export type NullableIntFieldUpdateOperationsInput = {
@@ -45185,6 +46775,20 @@ export namespace Prisma {
     update?: EventChannelPresetUpdateWithWhereUniqueWithoutGuildInput | EventChannelPresetUpdateWithWhereUniqueWithoutGuildInput[]
     updateMany?: EventChannelPresetUpdateManyWithWhereWithoutGuildInput | EventChannelPresetUpdateManyWithWhereWithoutGuildInput[]
     deleteMany?: EventChannelPresetScalarWhereInput | EventChannelPresetScalarWhereInput[]
+  }
+
+  export type GuildApiKeyUpdateManyWithoutGuildNestedInput = {
+    create?: XOR<GuildApiKeyCreateWithoutGuildInput, GuildApiKeyUncheckedCreateWithoutGuildInput> | GuildApiKeyCreateWithoutGuildInput[] | GuildApiKeyUncheckedCreateWithoutGuildInput[]
+    connectOrCreate?: GuildApiKeyCreateOrConnectWithoutGuildInput | GuildApiKeyCreateOrConnectWithoutGuildInput[]
+    upsert?: GuildApiKeyUpsertWithWhereUniqueWithoutGuildInput | GuildApiKeyUpsertWithWhereUniqueWithoutGuildInput[]
+    createMany?: GuildApiKeyCreateManyGuildInputEnvelope
+    set?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+    disconnect?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+    delete?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+    connect?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+    update?: GuildApiKeyUpdateWithWhereUniqueWithoutGuildInput | GuildApiKeyUpdateWithWhereUniqueWithoutGuildInput[]
+    updateMany?: GuildApiKeyUpdateManyWithWhereWithoutGuildInput | GuildApiKeyUpdateManyWithWhereWithoutGuildInput[]
+    deleteMany?: GuildApiKeyScalarWhereInput | GuildApiKeyScalarWhereInput[]
   }
 
   export type UserUpdateOneWithoutLastExportedGuildsNestedInput = {
@@ -45373,6 +46977,48 @@ export namespace Prisma {
     update?: EventChannelPresetUpdateWithWhereUniqueWithoutGuildInput | EventChannelPresetUpdateWithWhereUniqueWithoutGuildInput[]
     updateMany?: EventChannelPresetUpdateManyWithWhereWithoutGuildInput | EventChannelPresetUpdateManyWithWhereWithoutGuildInput[]
     deleteMany?: EventChannelPresetScalarWhereInput | EventChannelPresetScalarWhereInput[]
+  }
+
+  export type GuildApiKeyUncheckedUpdateManyWithoutGuildNestedInput = {
+    create?: XOR<GuildApiKeyCreateWithoutGuildInput, GuildApiKeyUncheckedCreateWithoutGuildInput> | GuildApiKeyCreateWithoutGuildInput[] | GuildApiKeyUncheckedCreateWithoutGuildInput[]
+    connectOrCreate?: GuildApiKeyCreateOrConnectWithoutGuildInput | GuildApiKeyCreateOrConnectWithoutGuildInput[]
+    upsert?: GuildApiKeyUpsertWithWhereUniqueWithoutGuildInput | GuildApiKeyUpsertWithWhereUniqueWithoutGuildInput[]
+    createMany?: GuildApiKeyCreateManyGuildInputEnvelope
+    set?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+    disconnect?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+    delete?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+    connect?: GuildApiKeyWhereUniqueInput | GuildApiKeyWhereUniqueInput[]
+    update?: GuildApiKeyUpdateWithWhereUniqueWithoutGuildInput | GuildApiKeyUpdateWithWhereUniqueWithoutGuildInput[]
+    updateMany?: GuildApiKeyUpdateManyWithWhereWithoutGuildInput | GuildApiKeyUpdateManyWithWhereWithoutGuildInput[]
+    deleteMany?: GuildApiKeyScalarWhereInput | GuildApiKeyScalarWhereInput[]
+  }
+
+  export type GuildCreateNestedOneWithoutApiKeysInput = {
+    create?: XOR<GuildCreateWithoutApiKeysInput, GuildUncheckedCreateWithoutApiKeysInput>
+    connectOrCreate?: GuildCreateOrConnectWithoutApiKeysInput
+    connect?: GuildWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutCreatedApiKeysInput = {
+    create?: XOR<UserCreateWithoutCreatedApiKeysInput, UserUncheckedCreateWithoutCreatedApiKeysInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCreatedApiKeysInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type GuildUpdateOneRequiredWithoutApiKeysNestedInput = {
+    create?: XOR<GuildCreateWithoutApiKeysInput, GuildUncheckedCreateWithoutApiKeysInput>
+    connectOrCreate?: GuildCreateOrConnectWithoutApiKeysInput
+    upsert?: GuildUpsertWithoutApiKeysInput
+    connect?: GuildWhereUniqueInput
+    update?: XOR<XOR<GuildUpdateToOneWithWhereWithoutApiKeysInput, GuildUpdateWithoutApiKeysInput>, GuildUncheckedUpdateWithoutApiKeysInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutCreatedApiKeysNestedInput = {
+    create?: XOR<UserCreateWithoutCreatedApiKeysInput, UserUncheckedCreateWithoutCreatedApiKeysInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCreatedApiKeysInput
+    upsert?: UserUpsertWithoutCreatedApiKeysInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCreatedApiKeysInput, UserUpdateWithoutCreatedApiKeysInput>, UserUncheckedUpdateWithoutCreatedApiKeysInput>
   }
 
   export type GuildCreateNestedOneWithoutInactivityTargetRolesInput = {
@@ -46133,10 +47779,12 @@ export namespace Prisma {
     update?: XOR<XOR<GuildUpdateToOneWithWhereWithoutCharactersInput, GuildUpdateWithoutCharactersInput>, GuildUncheckedUpdateWithoutCharactersInput>
   }
 
-  export type UserUpdateOneRequiredWithoutGuildCharactersNestedInput = {
+  export type UserUpdateOneWithoutGuildCharactersNestedInput = {
     create?: XOR<UserCreateWithoutGuildCharactersInput, UserUncheckedCreateWithoutGuildCharactersInput>
     connectOrCreate?: UserCreateOrConnectWithoutGuildCharactersInput
     upsert?: UserUpsertWithoutGuildCharactersInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutGuildCharactersInput, UserUpdateWithoutGuildCharactersInput>, UserUncheckedUpdateWithoutGuildCharactersInput>
   }
@@ -46456,6 +48104,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildCreateNestedManyWithoutLastRosterImportedByInput
     guildCharacters?: GuildCharacterCreateNestedManyWithoutUserInput
     addedGuildCreators?: AllowedGuildCreatorCreateNestedManyWithoutAddedByInput
+    createdApiKeys?: GuildApiKeyCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutPostsInput = {
@@ -46474,6 +48123,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUncheckedCreateNestedManyWithoutLastRosterImportedByInput
     guildCharacters?: GuildCharacterUncheckedCreateNestedManyWithoutUserInput
     addedGuildCreators?: AllowedGuildCreatorUncheckedCreateNestedManyWithoutAddedByInput
+    createdApiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutPostsInput = {
@@ -46508,6 +48158,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUpdateManyWithoutLastRosterImportedByNestedInput
     guildCharacters?: GuildCharacterUpdateManyWithoutUserNestedInput
     addedGuildCreators?: AllowedGuildCreatorUpdateManyWithoutAddedByNestedInput
+    createdApiKeys?: GuildApiKeyUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPostsInput = {
@@ -46526,6 +48177,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUncheckedUpdateManyWithoutLastRosterImportedByNestedInput
     guildCharacters?: GuildCharacterUncheckedUpdateManyWithoutUserNestedInput
     addedGuildCreators?: AllowedGuildCreatorUncheckedUpdateManyWithoutAddedByNestedInput
+    createdApiKeys?: GuildApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type SessionCreateWithoutUserInput = {
@@ -46650,6 +48302,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -46687,6 +48340,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutCreatedByInput = {
@@ -46730,6 +48384,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyCreateNestedManyWithoutGuildInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
 
@@ -46766,6 +48421,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutLastExportedByInput = {
@@ -46809,6 +48465,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
   }
 
@@ -46845,6 +48502,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutLastRosterImportedByInput = {
@@ -46906,6 +48564,37 @@ export namespace Prisma {
 
   export type AllowedGuildCreatorCreateManyAddedByInputEnvelope = {
     data: AllowedGuildCreatorCreateManyAddedByInput | AllowedGuildCreatorCreateManyAddedByInput[]
+  }
+
+  export type GuildApiKeyCreateWithoutCreatedByInput = {
+    id?: string
+    name: string
+    keyHash: string
+    keyPrefix: string
+    createdAt?: Date | string
+    lastUsedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    guild: GuildCreateNestedOneWithoutApiKeysInput
+  }
+
+  export type GuildApiKeyUncheckedCreateWithoutCreatedByInput = {
+    id?: string
+    guildId: string
+    name: string
+    keyHash: string
+    keyPrefix: string
+    createdAt?: Date | string
+    lastUsedAt?: Date | string | null
+    revokedAt?: Date | string | null
+  }
+
+  export type GuildApiKeyCreateOrConnectWithoutCreatedByInput = {
+    where: GuildApiKeyWhereUniqueInput
+    create: XOR<GuildApiKeyCreateWithoutCreatedByInput, GuildApiKeyUncheckedCreateWithoutCreatedByInput>
+  }
+
+  export type GuildApiKeyCreateManyCreatedByInputEnvelope = {
+    data: GuildApiKeyCreateManyCreatedByInput | GuildApiKeyCreateManyCreatedByInput[]
   }
 
   export type SessionUpsertWithWhereUniqueWithoutUserInput = {
@@ -47097,7 +48786,7 @@ export namespace Prisma {
     NOT?: GuildCharacterScalarWhereInput | GuildCharacterScalarWhereInput[]
     id?: StringFilter<"GuildCharacter"> | string
     guildId?: StringFilter<"GuildCharacter"> | string
-    userId?: StringFilter<"GuildCharacter"> | string
+    userId?: StringNullableFilter<"GuildCharacter"> | string | null
     name?: StringFilter<"GuildCharacter"> | string
     realm?: StringFilter<"GuildCharacter"> | string
     class?: StringNullableFilter<"GuildCharacter"> | string | null
@@ -47131,6 +48820,37 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"AllowedGuildCreator"> | Date | string
   }
 
+  export type GuildApiKeyUpsertWithWhereUniqueWithoutCreatedByInput = {
+    where: GuildApiKeyWhereUniqueInput
+    update: XOR<GuildApiKeyUpdateWithoutCreatedByInput, GuildApiKeyUncheckedUpdateWithoutCreatedByInput>
+    create: XOR<GuildApiKeyCreateWithoutCreatedByInput, GuildApiKeyUncheckedCreateWithoutCreatedByInput>
+  }
+
+  export type GuildApiKeyUpdateWithWhereUniqueWithoutCreatedByInput = {
+    where: GuildApiKeyWhereUniqueInput
+    data: XOR<GuildApiKeyUpdateWithoutCreatedByInput, GuildApiKeyUncheckedUpdateWithoutCreatedByInput>
+  }
+
+  export type GuildApiKeyUpdateManyWithWhereWithoutCreatedByInput = {
+    where: GuildApiKeyScalarWhereInput
+    data: XOR<GuildApiKeyUpdateManyMutationInput, GuildApiKeyUncheckedUpdateManyWithoutCreatedByInput>
+  }
+
+  export type GuildApiKeyScalarWhereInput = {
+    AND?: GuildApiKeyScalarWhereInput | GuildApiKeyScalarWhereInput[]
+    OR?: GuildApiKeyScalarWhereInput[]
+    NOT?: GuildApiKeyScalarWhereInput | GuildApiKeyScalarWhereInput[]
+    id?: StringFilter<"GuildApiKey"> | string
+    guildId?: StringFilter<"GuildApiKey"> | string
+    name?: StringFilter<"GuildApiKey"> | string
+    keyHash?: StringFilter<"GuildApiKey"> | string
+    keyPrefix?: StringFilter<"GuildApiKey"> | string
+    createdById?: StringFilter<"GuildApiKey"> | string
+    createdAt?: DateTimeFilter<"GuildApiKey"> | Date | string
+    lastUsedAt?: DateTimeNullableFilter<"GuildApiKey"> | Date | string | null
+    revokedAt?: DateTimeNullableFilter<"GuildApiKey"> | Date | string | null
+  }
+
   export type UserCreateWithoutSessionsInput = {
     id: string
     name: string
@@ -47147,6 +48867,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildCreateNestedManyWithoutLastRosterImportedByInput
     guildCharacters?: GuildCharacterCreateNestedManyWithoutUserInput
     addedGuildCreators?: AllowedGuildCreatorCreateNestedManyWithoutAddedByInput
+    createdApiKeys?: GuildApiKeyCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -47165,6 +48886,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUncheckedCreateNestedManyWithoutLastRosterImportedByInput
     guildCharacters?: GuildCharacterUncheckedCreateNestedManyWithoutUserInput
     addedGuildCreators?: AllowedGuildCreatorUncheckedCreateNestedManyWithoutAddedByInput
+    createdApiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -47199,6 +48921,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUpdateManyWithoutLastRosterImportedByNestedInput
     guildCharacters?: GuildCharacterUpdateManyWithoutUserNestedInput
     addedGuildCreators?: AllowedGuildCreatorUpdateManyWithoutAddedByNestedInput
+    createdApiKeys?: GuildApiKeyUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -47217,6 +48940,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUncheckedUpdateManyWithoutLastRosterImportedByNestedInput
     guildCharacters?: GuildCharacterUncheckedUpdateManyWithoutUserNestedInput
     addedGuildCreators?: AllowedGuildCreatorUncheckedUpdateManyWithoutAddedByNestedInput
+    createdApiKeys?: GuildApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserCreateWithoutAccountsInput = {
@@ -47235,6 +48959,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildCreateNestedManyWithoutLastRosterImportedByInput
     guildCharacters?: GuildCharacterCreateNestedManyWithoutUserInput
     addedGuildCreators?: AllowedGuildCreatorCreateNestedManyWithoutAddedByInput
+    createdApiKeys?: GuildApiKeyCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutAccountsInput = {
@@ -47253,6 +48978,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUncheckedCreateNestedManyWithoutLastRosterImportedByInput
     guildCharacters?: GuildCharacterUncheckedCreateNestedManyWithoutUserInput
     addedGuildCreators?: AllowedGuildCreatorUncheckedCreateNestedManyWithoutAddedByInput
+    createdApiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutAccountsInput = {
@@ -47287,6 +49013,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUpdateManyWithoutLastRosterImportedByNestedInput
     guildCharacters?: GuildCharacterUpdateManyWithoutUserNestedInput
     addedGuildCreators?: AllowedGuildCreatorUpdateManyWithoutAddedByNestedInput
+    createdApiKeys?: GuildApiKeyUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -47305,6 +49032,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUncheckedUpdateManyWithoutLastRosterImportedByNestedInput
     guildCharacters?: GuildCharacterUncheckedUpdateManyWithoutUserNestedInput
     addedGuildCreators?: AllowedGuildCreatorUncheckedUpdateManyWithoutAddedByNestedInput
+    createdApiKeys?: GuildApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserCreateWithoutAddedGuildCreatorsInput = {
@@ -47323,6 +49051,7 @@ export namespace Prisma {
     lastExportedGuilds?: GuildCreateNestedManyWithoutLastExportedByInput
     lastRosterImportedGuilds?: GuildCreateNestedManyWithoutLastRosterImportedByInput
     guildCharacters?: GuildCharacterCreateNestedManyWithoutUserInput
+    createdApiKeys?: GuildApiKeyCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutAddedGuildCreatorsInput = {
@@ -47341,6 +49070,7 @@ export namespace Prisma {
     lastExportedGuilds?: GuildUncheckedCreateNestedManyWithoutLastExportedByInput
     lastRosterImportedGuilds?: GuildUncheckedCreateNestedManyWithoutLastRosterImportedByInput
     guildCharacters?: GuildCharacterUncheckedCreateNestedManyWithoutUserInput
+    createdApiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutAddedGuildCreatorsInput = {
@@ -47375,6 +49105,7 @@ export namespace Prisma {
     lastExportedGuilds?: GuildUpdateManyWithoutLastExportedByNestedInput
     lastRosterImportedGuilds?: GuildUpdateManyWithoutLastRosterImportedByNestedInput
     guildCharacters?: GuildCharacterUpdateManyWithoutUserNestedInput
+    createdApiKeys?: GuildApiKeyUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAddedGuildCreatorsInput = {
@@ -47393,6 +49124,7 @@ export namespace Prisma {
     lastExportedGuilds?: GuildUncheckedUpdateManyWithoutLastExportedByNestedInput
     lastRosterImportedGuilds?: GuildUncheckedUpdateManyWithoutLastRosterImportedByNestedInput
     guildCharacters?: GuildCharacterUncheckedUpdateManyWithoutUserNestedInput
+    createdApiKeys?: GuildApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserCreateWithoutCreatedGuildsInput = {
@@ -47411,6 +49143,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildCreateNestedManyWithoutLastRosterImportedByInput
     guildCharacters?: GuildCharacterCreateNestedManyWithoutUserInput
     addedGuildCreators?: AllowedGuildCreatorCreateNestedManyWithoutAddedByInput
+    createdApiKeys?: GuildApiKeyCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutCreatedGuildsInput = {
@@ -47429,6 +49162,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUncheckedCreateNestedManyWithoutLastRosterImportedByInput
     guildCharacters?: GuildCharacterUncheckedCreateNestedManyWithoutUserInput
     addedGuildCreators?: AllowedGuildCreatorUncheckedCreateNestedManyWithoutAddedByInput
+    createdApiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutCreatedGuildsInput = {
@@ -47443,13 +49177,13 @@ export namespace Prisma {
     class?: string | null
     importedAt?: Date | string
     updatedAt?: Date | string
-    user: UserCreateNestedOneWithoutGuildCharactersInput
+    user?: UserCreateNestedOneWithoutGuildCharactersInput
     professions?: ProfessionCreateNestedManyWithoutCharacterInput
   }
 
   export type GuildCharacterUncheckedCreateWithoutGuildInput = {
     id?: string
-    userId: string
+    userId?: string | null
     name: string
     realm: string
     class?: string | null
@@ -47766,6 +49500,37 @@ export namespace Prisma {
     data: EventChannelPresetCreateManyGuildInput | EventChannelPresetCreateManyGuildInput[]
   }
 
+  export type GuildApiKeyCreateWithoutGuildInput = {
+    id?: string
+    name: string
+    keyHash: string
+    keyPrefix: string
+    createdAt?: Date | string
+    lastUsedAt?: Date | string | null
+    revokedAt?: Date | string | null
+    createdBy: UserCreateNestedOneWithoutCreatedApiKeysInput
+  }
+
+  export type GuildApiKeyUncheckedCreateWithoutGuildInput = {
+    id?: string
+    name: string
+    keyHash: string
+    keyPrefix: string
+    createdById: string
+    createdAt?: Date | string
+    lastUsedAt?: Date | string | null
+    revokedAt?: Date | string | null
+  }
+
+  export type GuildApiKeyCreateOrConnectWithoutGuildInput = {
+    where: GuildApiKeyWhereUniqueInput
+    create: XOR<GuildApiKeyCreateWithoutGuildInput, GuildApiKeyUncheckedCreateWithoutGuildInput>
+  }
+
+  export type GuildApiKeyCreateManyGuildInputEnvelope = {
+    data: GuildApiKeyCreateManyGuildInput | GuildApiKeyCreateManyGuildInput[]
+  }
+
   export type UserCreateWithoutLastExportedGuildsInput = {
     id: string
     name: string
@@ -47782,6 +49547,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildCreateNestedManyWithoutLastRosterImportedByInput
     guildCharacters?: GuildCharacterCreateNestedManyWithoutUserInput
     addedGuildCreators?: AllowedGuildCreatorCreateNestedManyWithoutAddedByInput
+    createdApiKeys?: GuildApiKeyCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutLastExportedGuildsInput = {
@@ -47800,6 +49566,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUncheckedCreateNestedManyWithoutLastRosterImportedByInput
     guildCharacters?: GuildCharacterUncheckedCreateNestedManyWithoutUserInput
     addedGuildCreators?: AllowedGuildCreatorUncheckedCreateNestedManyWithoutAddedByInput
+    createdApiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutLastExportedGuildsInput = {
@@ -47823,6 +49590,7 @@ export namespace Prisma {
     lastExportedGuilds?: GuildCreateNestedManyWithoutLastExportedByInput
     guildCharacters?: GuildCharacterCreateNestedManyWithoutUserInput
     addedGuildCreators?: AllowedGuildCreatorCreateNestedManyWithoutAddedByInput
+    createdApiKeys?: GuildApiKeyCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutLastRosterImportedGuildsInput = {
@@ -47841,6 +49609,7 @@ export namespace Prisma {
     lastExportedGuilds?: GuildUncheckedCreateNestedManyWithoutLastExportedByInput
     guildCharacters?: GuildCharacterUncheckedCreateNestedManyWithoutUserInput
     addedGuildCreators?: AllowedGuildCreatorUncheckedCreateNestedManyWithoutAddedByInput
+    createdApiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutLastRosterImportedGuildsInput = {
@@ -47875,6 +49644,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUpdateManyWithoutLastRosterImportedByNestedInput
     guildCharacters?: GuildCharacterUpdateManyWithoutUserNestedInput
     addedGuildCreators?: AllowedGuildCreatorUpdateManyWithoutAddedByNestedInput
+    createdApiKeys?: GuildApiKeyUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCreatedGuildsInput = {
@@ -47893,6 +49663,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUncheckedUpdateManyWithoutLastRosterImportedByNestedInput
     guildCharacters?: GuildCharacterUncheckedUpdateManyWithoutUserNestedInput
     addedGuildCreators?: AllowedGuildCreatorUncheckedUpdateManyWithoutAddedByNestedInput
+    createdApiKeys?: GuildApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type GuildCharacterUpsertWithWhereUniqueWithoutGuildInput = {
@@ -48223,6 +49994,22 @@ export namespace Prisma {
     buttonMessageId?: StringNullableFilter<"EventChannelPreset"> | string | null
   }
 
+  export type GuildApiKeyUpsertWithWhereUniqueWithoutGuildInput = {
+    where: GuildApiKeyWhereUniqueInput
+    update: XOR<GuildApiKeyUpdateWithoutGuildInput, GuildApiKeyUncheckedUpdateWithoutGuildInput>
+    create: XOR<GuildApiKeyCreateWithoutGuildInput, GuildApiKeyUncheckedCreateWithoutGuildInput>
+  }
+
+  export type GuildApiKeyUpdateWithWhereUniqueWithoutGuildInput = {
+    where: GuildApiKeyWhereUniqueInput
+    data: XOR<GuildApiKeyUpdateWithoutGuildInput, GuildApiKeyUncheckedUpdateWithoutGuildInput>
+  }
+
+  export type GuildApiKeyUpdateManyWithWhereWithoutGuildInput = {
+    where: GuildApiKeyScalarWhereInput
+    data: XOR<GuildApiKeyUpdateManyMutationInput, GuildApiKeyUncheckedUpdateManyWithoutGuildInput>
+  }
+
   export type UserUpsertWithoutLastExportedGuildsInput = {
     update: XOR<UserUpdateWithoutLastExportedGuildsInput, UserUncheckedUpdateWithoutLastExportedGuildsInput>
     create: XOR<UserCreateWithoutLastExportedGuildsInput, UserUncheckedCreateWithoutLastExportedGuildsInput>
@@ -48250,6 +50037,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUpdateManyWithoutLastRosterImportedByNestedInput
     guildCharacters?: GuildCharacterUpdateManyWithoutUserNestedInput
     addedGuildCreators?: AllowedGuildCreatorUpdateManyWithoutAddedByNestedInput
+    createdApiKeys?: GuildApiKeyUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutLastExportedGuildsInput = {
@@ -48268,6 +50056,7 @@ export namespace Prisma {
     lastRosterImportedGuilds?: GuildUncheckedUpdateManyWithoutLastRosterImportedByNestedInput
     guildCharacters?: GuildCharacterUncheckedUpdateManyWithoutUserNestedInput
     addedGuildCreators?: AllowedGuildCreatorUncheckedUpdateManyWithoutAddedByNestedInput
+    createdApiKeys?: GuildApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUpsertWithoutLastRosterImportedGuildsInput = {
@@ -48297,6 +50086,7 @@ export namespace Prisma {
     lastExportedGuilds?: GuildUpdateManyWithoutLastExportedByNestedInput
     guildCharacters?: GuildCharacterUpdateManyWithoutUserNestedInput
     addedGuildCreators?: AllowedGuildCreatorUpdateManyWithoutAddedByNestedInput
+    createdApiKeys?: GuildApiKeyUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutLastRosterImportedGuildsInput = {
@@ -48313,6 +50103,259 @@ export namespace Prisma {
     posts?: PostUncheckedUpdateManyWithoutCreatedByNestedInput
     createdGuilds?: GuildUncheckedUpdateManyWithoutCreatedByNestedInput
     lastExportedGuilds?: GuildUncheckedUpdateManyWithoutLastExportedByNestedInput
+    guildCharacters?: GuildCharacterUncheckedUpdateManyWithoutUserNestedInput
+    addedGuildCreators?: AllowedGuildCreatorUncheckedUpdateManyWithoutAddedByNestedInput
+    createdApiKeys?: GuildApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
+  }
+
+  export type GuildCreateWithoutApiKeysInput = {
+    id?: string
+    name: string
+    slug: string
+    discordGuildId: string
+    createdAt?: Date | string
+    rosterSource?: string
+    pugEnabled?: boolean
+    pugRoleId?: string | null
+    lastExportedAt?: Date | string | null
+    lastRosterImportedAt?: Date | string | null
+    adminNotifyChannelId?: string | null
+    onboardingChannelId?: string | null
+    onboardingMessageId?: string | null
+    onboardingMessageText?: string | null
+    forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityRoleId?: string | null
+    createdBy: UserCreateNestedOneWithoutCreatedGuildsInput
+    characters?: GuildCharacterCreateNestedManyWithoutGuildInput
+    requiredRoles?: GuildRequiredRoleCreateNestedManyWithoutGuildInput
+    adminRoles?: GuildAdminRoleCreateNestedManyWithoutGuildInput
+    rosterMembers?: GuildRosterMemberCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleCreateNestedManyWithoutGuildInput
+    claimConflicts?: GuildRosterClaimConflictCreateNestedManyWithoutGuildInput
+    pendingRosterMatches?: GuildPendingRosterMatchCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityCreateNestedManyWithoutGuildInput
+    inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
+    pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
+    events?: EventCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
+    lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
+    lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
+  }
+
+  export type GuildUncheckedCreateWithoutApiKeysInput = {
+    id?: string
+    name: string
+    slug: string
+    discordGuildId: string
+    createdById: string
+    createdAt?: Date | string
+    rosterSource?: string
+    pugEnabled?: boolean
+    pugRoleId?: string | null
+    lastExportedAt?: Date | string | null
+    lastExportedById?: string | null
+    lastRosterImportedAt?: Date | string | null
+    lastRosterImportedById?: string | null
+    adminNotifyChannelId?: string | null
+    onboardingChannelId?: string | null
+    onboardingMessageId?: string | null
+    onboardingMessageText?: string | null
+    forceSyncRequestedAt?: Date | string | null
+    inactivityFilterEnabled?: boolean
+    inactivityDays?: number | null
+    inactivityRoleId?: string | null
+    characters?: GuildCharacterUncheckedCreateNestedManyWithoutGuildInput
+    requiredRoles?: GuildRequiredRoleUncheckedCreateNestedManyWithoutGuildInput
+    adminRoles?: GuildAdminRoleUncheckedCreateNestedManyWithoutGuildInput
+    rosterMembers?: GuildRosterMemberUncheckedCreateNestedManyWithoutGuildInput
+    roleRules?: GuildRoleRuleUncheckedCreateNestedManyWithoutGuildInput
+    claimConflicts?: GuildRosterClaimConflictUncheckedCreateNestedManyWithoutGuildInput
+    pendingRosterMatches?: GuildPendingRosterMatchUncheckedCreateNestedManyWithoutGuildInput
+    memberActivity?: GuildMemberActivityUncheckedCreateNestedManyWithoutGuildInput
+    inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
+    pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
+    events?: EventUncheckedCreateNestedManyWithoutGuildInput
+    eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
+  }
+
+  export type GuildCreateOrConnectWithoutApiKeysInput = {
+    where: GuildWhereUniqueInput
+    create: XOR<GuildCreateWithoutApiKeysInput, GuildUncheckedCreateWithoutApiKeysInput>
+  }
+
+  export type UserCreateWithoutCreatedApiKeysInput = {
+    id: string
+    name: string
+    nickname?: string | null
+    email: string
+    emailVerified?: boolean
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    posts?: PostCreateNestedManyWithoutCreatedByInput
+    createdGuilds?: GuildCreateNestedManyWithoutCreatedByInput
+    lastExportedGuilds?: GuildCreateNestedManyWithoutLastExportedByInput
+    lastRosterImportedGuilds?: GuildCreateNestedManyWithoutLastRosterImportedByInput
+    guildCharacters?: GuildCharacterCreateNestedManyWithoutUserInput
+    addedGuildCreators?: AllowedGuildCreatorCreateNestedManyWithoutAddedByInput
+  }
+
+  export type UserUncheckedCreateWithoutCreatedApiKeysInput = {
+    id: string
+    name: string
+    nickname?: string | null
+    email: string
+    emailVerified?: boolean
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    posts?: PostUncheckedCreateNestedManyWithoutCreatedByInput
+    createdGuilds?: GuildUncheckedCreateNestedManyWithoutCreatedByInput
+    lastExportedGuilds?: GuildUncheckedCreateNestedManyWithoutLastExportedByInput
+    lastRosterImportedGuilds?: GuildUncheckedCreateNestedManyWithoutLastRosterImportedByInput
+    guildCharacters?: GuildCharacterUncheckedCreateNestedManyWithoutUserInput
+    addedGuildCreators?: AllowedGuildCreatorUncheckedCreateNestedManyWithoutAddedByInput
+  }
+
+  export type UserCreateOrConnectWithoutCreatedApiKeysInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutCreatedApiKeysInput, UserUncheckedCreateWithoutCreatedApiKeysInput>
+  }
+
+  export type GuildUpsertWithoutApiKeysInput = {
+    update: XOR<GuildUpdateWithoutApiKeysInput, GuildUncheckedUpdateWithoutApiKeysInput>
+    create: XOR<GuildCreateWithoutApiKeysInput, GuildUncheckedCreateWithoutApiKeysInput>
+    where?: GuildWhereInput
+  }
+
+  export type GuildUpdateToOneWithWhereWithoutApiKeysInput = {
+    where?: GuildWhereInput
+    data: XOR<GuildUpdateWithoutApiKeysInput, GuildUncheckedUpdateWithoutApiKeysInput>
+  }
+
+  export type GuildUpdateWithoutApiKeysInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    discordGuildId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rosterSource?: StringFieldUpdateOperationsInput | string
+    pugEnabled?: BoolFieldUpdateOperationsInput | boolean
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adminNotifyChannelId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingChannelId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
+    forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: UserUpdateOneRequiredWithoutCreatedGuildsNestedInput
+    characters?: GuildCharacterUpdateManyWithoutGuildNestedInput
+    requiredRoles?: GuildRequiredRoleUpdateManyWithoutGuildNestedInput
+    adminRoles?: GuildAdminRoleUpdateManyWithoutGuildNestedInput
+    rosterMembers?: GuildRosterMemberUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUpdateManyWithoutGuildNestedInput
+    claimConflicts?: GuildRosterClaimConflictUpdateManyWithoutGuildNestedInput
+    pendingRosterMatches?: GuildPendingRosterMatchUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUpdateManyWithoutGuildNestedInput
+    inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
+    pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
+    events?: EventUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
+    lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
+    lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
+  }
+
+  export type GuildUncheckedUpdateWithoutApiKeysInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    discordGuildId?: StringFieldUpdateOperationsInput | string
+    createdById?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rosterSource?: StringFieldUpdateOperationsInput | string
+    pugEnabled?: BoolFieldUpdateOperationsInput | boolean
+    pugRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastExportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastExportedById?: NullableStringFieldUpdateOperationsInput | string | null
+    lastRosterImportedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRosterImportedById?: NullableStringFieldUpdateOperationsInput | string | null
+    adminNotifyChannelId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingChannelId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingMessageText?: NullableStringFieldUpdateOperationsInput | string | null
+    forceSyncRequestedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inactivityFilterEnabled?: BoolFieldUpdateOperationsInput | boolean
+    inactivityDays?: NullableIntFieldUpdateOperationsInput | number | null
+    inactivityRoleId?: NullableStringFieldUpdateOperationsInput | string | null
+    characters?: GuildCharacterUncheckedUpdateManyWithoutGuildNestedInput
+    requiredRoles?: GuildRequiredRoleUncheckedUpdateManyWithoutGuildNestedInput
+    adminRoles?: GuildAdminRoleUncheckedUpdateManyWithoutGuildNestedInput
+    rosterMembers?: GuildRosterMemberUncheckedUpdateManyWithoutGuildNestedInput
+    roleRules?: GuildRoleRuleUncheckedUpdateManyWithoutGuildNestedInput
+    claimConflicts?: GuildRosterClaimConflictUncheckedUpdateManyWithoutGuildNestedInput
+    pendingRosterMatches?: GuildPendingRosterMatchUncheckedUpdateManyWithoutGuildNestedInput
+    memberActivity?: GuildMemberActivityUncheckedUpdateManyWithoutGuildNestedInput
+    inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
+    pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
+    events?: EventUncheckedUpdateManyWithoutGuildNestedInput
+    eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
+  }
+
+  export type UserUpsertWithoutCreatedApiKeysInput = {
+    update: XOR<UserUpdateWithoutCreatedApiKeysInput, UserUncheckedUpdateWithoutCreatedApiKeysInput>
+    create: XOR<UserCreateWithoutCreatedApiKeysInput, UserUncheckedCreateWithoutCreatedApiKeysInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutCreatedApiKeysInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutCreatedApiKeysInput, UserUncheckedUpdateWithoutCreatedApiKeysInput>
+  }
+
+  export type UserUpdateWithoutCreatedApiKeysInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    nickname?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    posts?: PostUpdateManyWithoutCreatedByNestedInput
+    createdGuilds?: GuildUpdateManyWithoutCreatedByNestedInput
+    lastExportedGuilds?: GuildUpdateManyWithoutLastExportedByNestedInput
+    lastRosterImportedGuilds?: GuildUpdateManyWithoutLastRosterImportedByNestedInput
+    guildCharacters?: GuildCharacterUpdateManyWithoutUserNestedInput
+    addedGuildCreators?: AllowedGuildCreatorUpdateManyWithoutAddedByNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutCreatedApiKeysInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    nickname?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    posts?: PostUncheckedUpdateManyWithoutCreatedByNestedInput
+    createdGuilds?: GuildUncheckedUpdateManyWithoutCreatedByNestedInput
+    lastExportedGuilds?: GuildUncheckedUpdateManyWithoutLastExportedByNestedInput
+    lastRosterImportedGuilds?: GuildUncheckedUpdateManyWithoutLastRosterImportedByNestedInput
     guildCharacters?: GuildCharacterUncheckedUpdateManyWithoutUserNestedInput
     addedGuildCreators?: AllowedGuildCreatorUncheckedUpdateManyWithoutAddedByNestedInput
   }
@@ -48348,6 +50391,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -48385,6 +50429,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutInactivityTargetRolesInput = {
@@ -48434,6 +50479,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -48471,6 +50517,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutRosterMembersInput = {
@@ -48504,6 +50551,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -48541,6 +50589,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutRosterMembersInput = {
@@ -48615,6 +50664,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -48652,6 +50702,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildRosterClaimConflictUpsertWithWhereUniqueWithoutRosterMemberInput = {
@@ -48701,6 +50752,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -48738,6 +50790,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutClaimConflictsInput = {
@@ -48818,6 +50871,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -48855,6 +50909,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildRosterMemberUpsertWithoutClaimConflictsInput = {
@@ -48925,6 +50980,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -48962,6 +51018,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutPendingRosterMatchesInput = {
@@ -49011,6 +51068,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -49048,6 +51106,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutPugMembersInput = {
@@ -49081,6 +51140,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -49118,6 +51178,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutPugMembersInput = {
@@ -49167,6 +51228,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -49204,6 +51266,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutMemberActivityInput = {
@@ -49237,6 +51300,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -49274,6 +51338,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutMemberActivityInput = {
@@ -49323,6 +51388,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -49360,6 +51426,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutRoleRulesInput = {
@@ -49393,6 +51460,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -49430,6 +51498,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutRoleRulesInput = {
@@ -49546,6 +51615,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -49583,6 +51653,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildRoleRuleGrantedRoleUpsertWithWhereUniqueWithoutRuleInput = {
@@ -49840,6 +51911,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -49877,6 +51949,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutEventChannelPresetsInput = {
@@ -49926,6 +51999,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -49963,6 +52037,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutEventsInput = {
@@ -49996,6 +52071,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -50033,6 +52109,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedCreateNestedManyWithoutGuildInput
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutEventsInput = {
@@ -50182,6 +52259,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -50219,6 +52297,7 @@ export namespace Prisma {
     inactivityTargetRoles?: GuildInactivityTargetRoleUncheckedUpdateManyWithoutGuildNestedInput
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type EventTimeOptionUpsertWithWhereUniqueWithoutEventInput = {
@@ -50952,6 +53031,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -50989,6 +53069,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutRequiredRolesInput = {
@@ -51038,6 +53119,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -51075,6 +53157,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutAdminRolesInput = {
@@ -51108,6 +53191,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -51145,6 +53229,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutAdminRolesInput = {
@@ -51194,6 +53279,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -51231,6 +53317,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildCreateWithoutCharactersInput = {
@@ -51264,6 +53351,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberCreateNestedManyWithoutGuildInput
     events?: EventCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyCreateNestedManyWithoutGuildInput
     lastExportedBy?: UserCreateNestedOneWithoutLastExportedGuildsInput
     lastRosterImportedBy?: UserCreateNestedOneWithoutLastRosterImportedGuildsInput
   }
@@ -51301,6 +53389,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedCreateNestedManyWithoutGuildInput
     events?: EventUncheckedCreateNestedManyWithoutGuildInput
     eventChannelPresets?: EventChannelPresetUncheckedCreateNestedManyWithoutGuildInput
+    apiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutGuildInput
   }
 
   export type GuildCreateOrConnectWithoutCharactersInput = {
@@ -51324,6 +53413,7 @@ export namespace Prisma {
     lastExportedGuilds?: GuildCreateNestedManyWithoutLastExportedByInput
     lastRosterImportedGuilds?: GuildCreateNestedManyWithoutLastRosterImportedByInput
     addedGuildCreators?: AllowedGuildCreatorCreateNestedManyWithoutAddedByInput
+    createdApiKeys?: GuildApiKeyCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserUncheckedCreateWithoutGuildCharactersInput = {
@@ -51342,6 +53432,7 @@ export namespace Prisma {
     lastExportedGuilds?: GuildUncheckedCreateNestedManyWithoutLastExportedByInput
     lastRosterImportedGuilds?: GuildUncheckedCreateNestedManyWithoutLastRosterImportedByInput
     addedGuildCreators?: AllowedGuildCreatorUncheckedCreateNestedManyWithoutAddedByInput
+    createdApiKeys?: GuildApiKeyUncheckedCreateNestedManyWithoutCreatedByInput
   }
 
   export type UserCreateOrConnectWithoutGuildCharactersInput = {
@@ -51412,6 +53503,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -51449,6 +53541,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type UserUpsertWithoutGuildCharactersInput = {
@@ -51478,6 +53571,7 @@ export namespace Prisma {
     lastExportedGuilds?: GuildUpdateManyWithoutLastExportedByNestedInput
     lastRosterImportedGuilds?: GuildUpdateManyWithoutLastRosterImportedByNestedInput
     addedGuildCreators?: AllowedGuildCreatorUpdateManyWithoutAddedByNestedInput
+    createdApiKeys?: GuildApiKeyUpdateManyWithoutCreatedByNestedInput
   }
 
   export type UserUncheckedUpdateWithoutGuildCharactersInput = {
@@ -51496,6 +53590,7 @@ export namespace Prisma {
     lastExportedGuilds?: GuildUncheckedUpdateManyWithoutLastExportedByNestedInput
     lastRosterImportedGuilds?: GuildUncheckedUpdateManyWithoutLastRosterImportedByNestedInput
     addedGuildCreators?: AllowedGuildCreatorUncheckedUpdateManyWithoutAddedByNestedInput
+    createdApiKeys?: GuildApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
   export type ProfessionUpsertWithWhereUniqueWithoutCharacterInput = {
@@ -51531,13 +53626,13 @@ export namespace Prisma {
     importedAt?: Date | string
     updatedAt?: Date | string
     guild: GuildCreateNestedOneWithoutCharactersInput
-    user: UserCreateNestedOneWithoutGuildCharactersInput
+    user?: UserCreateNestedOneWithoutGuildCharactersInput
   }
 
   export type GuildCharacterUncheckedCreateWithoutProfessionsInput = {
     id?: string
     guildId: string
-    userId: string
+    userId?: string | null
     name: string
     realm: string
     class?: string | null
@@ -51592,13 +53687,13 @@ export namespace Prisma {
     importedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     guild?: GuildUpdateOneRequiredWithoutCharactersNestedInput
-    user?: UserUpdateOneRequiredWithoutGuildCharactersNestedInput
+    user?: UserUpdateOneWithoutGuildCharactersNestedInput
   }
 
   export type GuildCharacterUncheckedUpdateWithoutProfessionsInput = {
     id?: StringFieldUpdateOperationsInput | string
     guildId?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     realm?: StringFieldUpdateOperationsInput | string
     class?: NullableStringFieldUpdateOperationsInput | string | null
@@ -51790,6 +53885,17 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type GuildApiKeyCreateManyCreatedByInput = {
+    id?: string
+    guildId: string
+    name: string
+    keyHash: string
+    keyPrefix: string
+    createdAt?: Date | string
+    lastUsedAt?: Date | string | null
+    revokedAt?: Date | string | null
+  }
+
   export type SessionUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -51917,6 +54023,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
@@ -51954,6 +54061,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildUncheckedUpdateManyWithoutCreatedByInput = {
@@ -52011,6 +54119,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUpdateManyWithoutGuildNestedInput
     lastRosterImportedBy?: UserUpdateOneWithoutLastRosterImportedGuildsNestedInput
   }
 
@@ -52047,6 +54156,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildUncheckedUpdateManyWithoutLastExportedByInput = {
@@ -52104,6 +54214,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUpdateManyWithoutGuildNestedInput
     events?: EventUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUpdateManyWithoutGuildNestedInput
     lastExportedBy?: UserUpdateOneWithoutLastExportedGuildsNestedInput
   }
 
@@ -52140,6 +54251,7 @@ export namespace Prisma {
     pugMembers?: GuildPugMemberUncheckedUpdateManyWithoutGuildNestedInput
     events?: EventUncheckedUpdateManyWithoutGuildNestedInput
     eventChannelPresets?: EventChannelPresetUncheckedUpdateManyWithoutGuildNestedInput
+    apiKeys?: GuildApiKeyUncheckedUpdateManyWithoutGuildNestedInput
   }
 
   export type GuildUncheckedUpdateManyWithoutLastRosterImportedByInput = {
@@ -52215,9 +54327,42 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type GuildApiKeyUpdateWithoutCreatedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    keyHash?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    guild?: GuildUpdateOneRequiredWithoutApiKeysNestedInput
+  }
+
+  export type GuildApiKeyUncheckedUpdateWithoutCreatedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    guildId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    keyHash?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type GuildApiKeyUncheckedUpdateManyWithoutCreatedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    guildId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    keyHash?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type GuildCharacterCreateManyGuildInput = {
     id?: string
-    userId: string
+    userId?: string | null
     name: string
     realm: string
     class?: string | null
@@ -52317,6 +54462,17 @@ export namespace Prisma {
     buttonMessageId?: string | null
   }
 
+  export type GuildApiKeyCreateManyGuildInput = {
+    id?: string
+    name: string
+    keyHash: string
+    keyPrefix: string
+    createdById: string
+    createdAt?: Date | string
+    lastUsedAt?: Date | string | null
+    revokedAt?: Date | string | null
+  }
+
   export type GuildCharacterUpdateWithoutGuildInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -52324,13 +54480,13 @@ export namespace Prisma {
     class?: NullableStringFieldUpdateOperationsInput | string | null
     importedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    user?: UserUpdateOneRequiredWithoutGuildCharactersNestedInput
+    user?: UserUpdateOneWithoutGuildCharactersNestedInput
     professions?: ProfessionUpdateManyWithoutCharacterNestedInput
   }
 
   export type GuildCharacterUncheckedUpdateWithoutGuildInput = {
     id?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     realm?: StringFieldUpdateOperationsInput | string
     class?: NullableStringFieldUpdateOperationsInput | string | null
@@ -52341,7 +54497,7 @@ export namespace Prisma {
 
   export type GuildCharacterUncheckedUpdateManyWithoutGuildInput = {
     id?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     realm?: StringFieldUpdateOperationsInput | string
     class?: NullableStringFieldUpdateOperationsInput | string | null
@@ -52639,6 +54795,39 @@ export namespace Prisma {
     roles?: NullableStringFieldUpdateOperationsInput | string | null
     buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
     buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type GuildApiKeyUpdateWithoutGuildInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    keyHash?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: UserUpdateOneRequiredWithoutCreatedApiKeysNestedInput
+  }
+
+  export type GuildApiKeyUncheckedUpdateWithoutGuildInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    keyHash?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    createdById?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type GuildApiKeyUncheckedUpdateManyWithoutGuildInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    keyHash?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    createdById?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revokedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type GuildRosterClaimConflictCreateManyRosterMemberInput = {
