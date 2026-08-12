@@ -37,7 +37,7 @@ function emptyCondition(): ConditionDraft {
 function emptyRule(): RuleDraft {
   return {
     label: "",
-    discordRoleIds: [""],
+    discordRoleIds: [],
     grantedChannelIds: [],
     conditions: [emptyCondition()],
   };
@@ -227,10 +227,14 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
   >([""]);
   const [inactivityRoleId, setInactivityRoleId] = useState("");
   const [rules, setRules] = useState<RuleDraft[]>([]);
-  // null = showing the rules list; an index = showing that rule's editor.
+  // Index of the rule shown in the right-hand editor pane; null = none
+  // selected (empty rule list, or not loaded yet).
   const [selectedRuleIndex, setSelectedRuleIndex] = useState<number | null>(
     null,
   );
+  // Only auto-select the first rule on the initial load, so a later
+  // refetch (e.g. after saving) doesn't yank the admin back to rule 0.
+  const [hasAutoSelected, setHasAutoSelected] = useState(false);
 
   useEffect(() => {
     if (!config.data) return;
@@ -258,10 +262,7 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
       config.data.rules.map((r) => ({
         id: r.id,
         label: r.label ?? "",
-        discordRoleIds:
-          r.grantedRoles.length > 0
-            ? r.grantedRoles.map((g) => g.discordRoleId)
-            : [""],
+        discordRoleIds: r.grantedRoles.map((g) => g.discordRoleId),
         grantedChannelIds: r.grantedChannels.map((g) => g.discordChannelId),
         conditions: r.conditions.map((c) => ({
           field: c.field as Field,
@@ -271,7 +272,11 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
         })),
       })),
     );
-  }, [config.data]);
+    if (!hasAutoSelected) {
+      setHasAutoSelected(true);
+      if (config.data.rules.length > 0) setSelectedRuleIndex(0);
+    }
+  }, [config.data, hasAutoSelected]);
 
   const saveRosterSource = api.guild.setRosterSource.useMutation({
     onSuccess: async () =>
@@ -332,38 +337,45 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
     );
   }
 
+  // Tracks which rule the "Saved!" confirmation belongs to, since
+  // upsertRule is one shared mutation for every rule's save button.
+  const [justSavedIndex, setJustSavedIndex] = useState<number | null>(null);
+
   function saveRule(index: number) {
     const rule = rules[index];
     if (!rule) return;
-    upsertRule.mutate({
-      id: rule.id,
-      guildId,
-      label: rule.label.trim() === "" ? undefined : rule.label,
-      discordRoleIds: rule.discordRoleIds.filter((id) => id.trim() !== ""),
-      grantedChannels: rule.grantedChannelIds
-        .filter((id) => id.trim() !== "")
-        .map((discordChannelId) => ({
-          discordChannelId,
-          channelType:
-            discordChannelsForGrants.data?.find(
-              (c) => c.id === discordChannelId,
-            )?.type ?? "text",
-        })),
-      conditions: rule.conditions.map((c) =>
-        c.field === "level"
-          ? {
-              field: "level" as const,
-              operator: "between" as const,
-              minNumber: Number(c.minNumber),
-              maxNumber: Number(c.maxNumber),
-            }
-          : {
-              field: c.field,
-              operator: "equals" as const,
-              textValue: c.textValue,
-            },
-      ),
-    });
+    upsertRule.mutate(
+      {
+        id: rule.id,
+        guildId,
+        label: rule.label.trim() === "" ? undefined : rule.label,
+        discordRoleIds: rule.discordRoleIds.filter((id) => id.trim() !== ""),
+        grantedChannels: rule.grantedChannelIds
+          .filter((id) => id.trim() !== "")
+          .map((discordChannelId) => ({
+            discordChannelId,
+            channelType:
+              discordChannelsForGrants.data?.find(
+                (c) => c.id === discordChannelId,
+              )?.type ?? "text",
+          })),
+        conditions: rule.conditions.map((c) =>
+          c.field === "level"
+            ? {
+                field: "level" as const,
+                operator: "between" as const,
+                minNumber: Number(c.minNumber),
+                maxNumber: Number(c.maxNumber),
+              }
+            : {
+                field: c.field,
+                operator: "equals" as const,
+                textValue: c.textValue,
+              },
+        ),
+      },
+      { onSuccess: () => setJustSavedIndex(index) },
+    );
   }
 
   function removeRule(index: number) {
@@ -372,10 +384,26 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
       deleteRule.mutate({ guildId, id: rule.id });
     }
     setRules((rs) => rs.filter((_, i) => i !== index));
+    setSelectedRuleIndex((current) => {
+      if (current === null) return null;
+      if (current === index) return null;
+      if (current > index) return current - 1;
+      return current;
+    });
+    setJustSavedIndex((current) => {
+      if (current === null) return null;
+      if (current === index) return null;
+      if (current > index) return current - 1;
+      return current;
+    });
   }
 
   return (
-    <div className="flex w-full max-w-2xl flex-col gap-6">
+    <div
+      className={`flex w-full flex-col gap-6 ${
+        activeTab === "rules" ? "max-w-4xl" : "max-w-2xl"
+      }`}
+    >
       <div className="bg-discord-elevated flex gap-1 self-start rounded-full p-1">
         {TABS.map((tab) => (
           <button
@@ -792,44 +820,47 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
             <div>
               <h3 className="font-bold">Role rules</h3>
               <p className="text-discord-text-muted text-sm">
-                Each rule grants its roles and/or channel access when every one
-                of its conditions is met by at least one of the person&apos;s
-                characters (main or an alt) — different conditions can be
-                matched by different characters. Click a rule to edit it.
+                Each rule grants a Discord role, direct access to a channel,
+                or both, when every one of its conditions is met by at least
+                one of the person&apos;s characters (main or an alt) —
+                different conditions can be matched by different characters.
+                A channel grant doesn&apos;t require a role, and a role grant
+                doesn&apos;t require a channel — pick either, or both. Pick a
+                rule on the left to edit it.
               </p>
             </div>
 
-            {selectedRuleIndex === null && (
-              <>
+            <div className="flex items-start gap-4">
+              <div className="flex w-56 shrink-0 flex-col gap-2">
                 {rules.length === 0 ? (
-                  <div className="bg-discord-elevated text-discord-text-muted rounded-xl p-6 text-center text-sm">
-                    No rules yet — add one below.
+                  <div className="bg-discord-elevated text-discord-text-muted rounded-xl p-4 text-center text-sm">
+                    No rules yet.
                   </div>
                 ) : (
-                  <ul className="flex flex-col gap-2">
+                  <ul className="flex flex-col gap-1">
                     {rules.map((rule, i) => (
                       <li
                         key={rule.id ?? `new-${i}`}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-1"
                       >
                         <button
                           type="button"
                           onClick={() => setSelectedRuleIndex(i)}
-                          className="bg-discord-elevated hover:bg-discord-elevated-hover flex-1 rounded-xl p-4 text-left transition"
+                          title={ruleSummary(rule)}
+                          className={`min-w-0 flex-1 truncate rounded-lg px-3 py-2 text-left text-sm font-semibold transition ${
+                            selectedRuleIndex === i
+                              ? "bg-discord-brand text-white"
+                              : "bg-discord-elevated hover:bg-discord-elevated-hover text-discord-text"
+                          }`}
                         >
-                          <span className="block font-semibold">
-                            {rule.label.trim() !== ""
-                              ? rule.label
-                              : `Rule ${i + 1}`}
-                          </span>
-                          <span className="text-discord-text-muted block text-sm">
-                            {ruleSummary(rule)}
-                          </span>
+                          {rule.label.trim() !== ""
+                            ? rule.label
+                            : `Rule ${i + 1}`}
                         </button>
                         <button
                           type="button"
                           onClick={() => removeRule(i)}
-                          className="bg-discord-base hover:bg-discord-elevated-hover self-stretch rounded-xl px-3 text-sm"
+                          className="bg-discord-base hover:bg-discord-elevated-hover shrink-0 rounded-lg px-2.5 py-2 text-sm"
                           title="Delete rule"
                         >
                           ✕
@@ -844,258 +875,265 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
                     setRules((rs) => [...rs, emptyRule()]);
                     setSelectedRuleIndex(rules.length);
                   }}
-                  className="bg-discord-elevated hover:bg-discord-elevated-hover self-start rounded-full px-6 py-2 text-sm font-semibold transition"
+                  className="bg-discord-elevated hover:bg-discord-elevated-hover self-start rounded-full px-4 py-1.5 text-sm font-semibold transition"
                 >
                   + Add rule
                 </button>
-              </>
-            )}
+              </div>
 
-            {selectedRuleIndex !== null && (
-              <button
-                type="button"
-                onClick={() => setSelectedRuleIndex(null)}
-                className="text-discord-text-muted hover:text-discord-text self-start text-sm"
-              >
-                ← Back to rules
-              </button>
-            )}
-
-            {rules.map((rule, i) =>
-              selectedRuleIndex !== i ? null : (
-                <div
-                  key={rule.id ?? `new-${i}`}
-                  className="bg-discord-elevated flex flex-col gap-3 rounded-xl p-6"
-                >
-                  <div className="flex gap-2">
-                    <input
-                      className="bg-discord-base text-discord-text flex-1 rounded-full px-4 py-2"
-                      value={rule.label}
-                      onChange={(e) => updateRule(i, { label: e.target.value })}
-                      placeholder="Label (optional, e.g. 'Wailing Caverns raiders')"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        removeRule(i);
-                        setSelectedRuleIndex(null);
-                      }}
-                      className="bg-discord-base hover:bg-discord-elevated-hover rounded-full px-3 text-sm"
-                      title="Delete rule"
-                    >
-                      ✕
-                    </button>
+              <div className="min-w-0 flex-1">
+                {selectedRuleIndex === null || !rules[selectedRuleIndex] ? (
+                  <div className="bg-discord-elevated text-discord-text-muted rounded-xl p-6 text-center text-sm">
+                    Select a rule on the left, or add a new one.
                   </div>
-
-                  <div className="flex flex-col gap-2">
-                    <span className="text-discord-text-muted text-xs uppercase tracking-wide">
-                      Roles to grant
-                    </span>
-                    {rule.discordRoleIds.map((roleId, j) => (
-                      <div key={j} className="flex gap-2">
-                        <RoleSelect
-                          value={roleId}
-                          onChange={(v) =>
-                            updateRule(i, {
-                              discordRoleIds: rule.discordRoleIds.map(
-                                (id, k) => (k === j ? v : id),
-                              ),
-                            })
+                ) : (
+                  (() => {
+                    const i = selectedRuleIndex;
+                    const rule = rules[i]!;
+                    return (
+                      <div className="bg-discord-elevated flex flex-col gap-3 rounded-xl p-6">
+                        <input
+                          className="bg-discord-base text-discord-text rounded-full px-4 py-2"
+                          value={rule.label}
+                          onChange={(e) =>
+                            updateRule(i, { label: e.target.value })
                           }
-                          roles={discordRoles.data}
-                          placeholder="Select a role to grant"
+                          placeholder="Label (optional, e.g. 'Wailing Caverns raiders')"
                         />
-                        {rule.discordRoleIds.length > 1 && (
+
+                        <div className="flex flex-col gap-2">
+                          <span className="text-discord-text-muted text-xs uppercase tracking-wide">
+                            Roles to grant (optional)
+                          </span>
+                          {rule.discordRoleIds.map((roleId, j) => (
+                            <div key={j} className="flex gap-2">
+                              <RoleSelect
+                                value={roleId}
+                                onChange={(v) =>
+                                  updateRule(i, {
+                                    discordRoleIds: rule.discordRoleIds.map(
+                                      (id, k) => (k === j ? v : id),
+                                    ),
+                                  })
+                                }
+                                roles={discordRoles.data}
+                                placeholder="Select a role to grant"
+                              />
+                              {rule.discordRoleIds.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateRule(i, {
+                                      discordRoleIds:
+                                        rule.discordRoleIds.filter(
+                                          (_, k) => k !== j,
+                                        ),
+                                    })
+                                  }
+                                  className="bg-discord-base hover:bg-discord-elevated-hover rounded-full px-3 text-sm"
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                          ))}
                           <button
                             type="button"
                             onClick={() =>
                               updateRule(i, {
-                                discordRoleIds: rule.discordRoleIds.filter(
-                                  (_, k) => k !== j,
-                                ),
+                                discordRoleIds: [...rule.discordRoleIds, ""],
                               })
                             }
-                            className="bg-discord-base hover:bg-discord-elevated-hover rounded-full px-3 text-sm"
+                            className="bg-discord-base hover:bg-discord-elevated-hover self-start rounded-full px-3 py-1 text-xs"
                           >
-                            ✕
+                            + Add role
                           </button>
-                        )}
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateRule(i, {
-                          discordRoleIds: [...rule.discordRoleIds, ""],
-                        })
-                      }
-                      className="bg-discord-base hover:bg-discord-elevated-hover self-start rounded-full px-3 py-1 text-xs"
-                    >
-                      + Add role
-                    </button>
-                  </div>
+                        </div>
 
-                  <div className="flex flex-col gap-2">
-                    <span className="text-discord-text-muted text-xs uppercase tracking-wide">
-                      Channels to grant direct access to (optional)
-                    </span>
-                    {rule.grantedChannelIds.map((channelId, j) => (
-                      <div key={j} className="flex gap-2">
-                        <ChannelGrantSelect
-                          value={channelId}
-                          onChange={(v) =>
-                            updateRule(i, {
-                              grantedChannelIds: rule.grantedChannelIds.map(
-                                (id, k) => (k === j ? v : id),
-                              ),
-                            })
-                          }
-                          channels={discordChannelsForGrants.data}
-                          placeholder="Select a channel to grant access to"
-                        />
+                        <div className="flex flex-col gap-2">
+                          <span className="text-discord-text-muted text-xs uppercase tracking-wide">
+                            Channels to grant direct access to (optional)
+                          </span>
+                          {rule.grantedChannelIds.map((channelId, j) => (
+                            <div key={j} className="flex gap-2">
+                              <ChannelGrantSelect
+                                value={channelId}
+                                onChange={(v) =>
+                                  updateRule(i, {
+                                    grantedChannelIds:
+                                      rule.grantedChannelIds.map((id, k) =>
+                                        k === j ? v : id,
+                                      ),
+                                  })
+                                }
+                                channels={discordChannelsForGrants.data}
+                                placeholder="Select a channel to grant access to"
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateRule(i, {
+                                    grantedChannelIds:
+                                      rule.grantedChannelIds.filter(
+                                        (_, k) => k !== j,
+                                      ),
+                                  })
+                                }
+                                className="bg-discord-base hover:bg-discord-elevated-hover rounded-full px-3 text-sm"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateRule(i, {
+                                grantedChannelIds: [
+                                  ...rule.grantedChannelIds,
+                                  "",
+                                ],
+                              })
+                            }
+                            className="bg-discord-base hover:bg-discord-elevated-hover self-start rounded-full px-3 py-1 text-xs"
+                          >
+                            + Add channel
+                          </button>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                          <span className="text-discord-text-muted text-xs uppercase tracking-wide">
+                            Conditions
+                          </span>
+                          {rule.conditions.map((cond, j) => (
+                            <div key={j} className="flex items-center gap-2">
+                              <select
+                                className="bg-discord-base text-discord-text rounded-full px-3 py-1.5 text-sm"
+                                value={cond.field}
+                                onChange={(e) =>
+                                  updateCondition(i, j, {
+                                    field: e.target.value as Field,
+                                  })
+                                }
+                              >
+                                <option value="rank">Rank</option>
+                                <option value="level">Level</option>
+                                <option value="class">Class</option>
+                              </select>
+
+                              {cond.field === "level" ? (
+                                <>
+                                  <input
+                                    type="number"
+                                    className="bg-discord-base text-discord-text w-20 rounded-full px-3 py-1.5 text-sm"
+                                    value={cond.minNumber}
+                                    onChange={(e) =>
+                                      updateCondition(i, j, {
+                                        minNumber: e.target.value,
+                                      })
+                                    }
+                                    placeholder="Min"
+                                  />
+                                  <span className="text-discord-text-muted">
+                                    –
+                                  </span>
+                                  <input
+                                    type="number"
+                                    className="bg-discord-base text-discord-text w-20 rounded-full px-3 py-1.5 text-sm"
+                                    value={cond.maxNumber}
+                                    onChange={(e) =>
+                                      updateCondition(i, j, {
+                                        maxNumber: e.target.value,
+                                      })
+                                    }
+                                    placeholder="Max"
+                                  />
+                                </>
+                              ) : (
+                                <input
+                                  list={
+                                    cond.field === "rank"
+                                      ? "rank-options"
+                                      : "class-options"
+                                  }
+                                  className="bg-discord-base text-discord-text flex-1 rounded-full px-3 py-1.5 text-sm"
+                                  value={cond.textValue}
+                                  onChange={(e) =>
+                                    updateCondition(i, j, {
+                                      textValue: e.target.value,
+                                    })
+                                  }
+                                  placeholder={
+                                    cond.field === "rank"
+                                      ? "Exact rank name"
+                                      : "Exact class (e.g. WARRIOR)"
+                                  }
+                                />
+                              )}
+
+                              {rule.conditions.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateRule(i, {
+                                      conditions: rule.conditions.filter(
+                                        (_, k) => k !== j,
+                                      ),
+                                    })
+                                  }
+                                  className="bg-discord-base hover:bg-discord-elevated-hover rounded-full px-2 text-xs"
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateRule(i, {
+                                conditions: [
+                                  ...rule.conditions,
+                                  emptyCondition(),
+                                ],
+                              })
+                            }
+                            className="bg-discord-base hover:bg-discord-elevated-hover self-start rounded-full px-3 py-1 text-xs"
+                          >
+                            + Add condition
+                          </button>
+                        </div>
+
                         <button
                           type="button"
-                          onClick={() =>
-                            updateRule(i, {
-                              grantedChannelIds: rule.grantedChannelIds.filter(
-                                (_, k) => k !== j,
-                              ),
-                            })
+                          onClick={() => saveRule(i)}
+                          disabled={
+                            upsertRule.isPending ||
+                            (!rule.discordRoleIds.some(
+                              (id) => id.trim() !== "",
+                            ) &&
+                              !rule.grantedChannelIds.some(
+                                (id) => id.trim() !== "",
+                              ))
                           }
-                          className="bg-discord-base hover:bg-discord-elevated-hover rounded-full px-3 text-sm"
+                          className="bg-discord-brand self-start rounded-full px-6 py-2 text-sm font-semibold text-white disabled:opacity-50"
                         >
-                          ✕
+                          {upsertRule.isPending ? "Saving..." : "Save changes"}
                         </button>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateRule(i, {
-                          grantedChannelIds: [...rule.grantedChannelIds, ""],
-                        })
-                      }
-                      className="bg-discord-base hover:bg-discord-elevated-hover self-start rounded-full px-3 py-1 text-xs"
-                    >
-                      + Add channel
-                    </button>
-                  </div>
-
-                  <div className="flex flex-col gap-2 pl-4">
-                    {rule.conditions.map((cond, j) => (
-                      <div key={j} className="flex items-center gap-2">
-                        <select
-                          className="bg-discord-base text-discord-text rounded-full px-3 py-1.5 text-sm"
-                          value={cond.field}
-                          onChange={(e) =>
-                            updateCondition(i, j, {
-                              field: e.target.value as Field,
-                            })
-                          }
-                        >
-                          <option value="rank">Rank</option>
-                          <option value="level">Level</option>
-                          <option value="class">Class</option>
-                        </select>
-
-                        {cond.field === "level" ? (
-                          <>
-                            <input
-                              type="number"
-                              className="bg-discord-base text-discord-text w-20 rounded-full px-3 py-1.5 text-sm"
-                              value={cond.minNumber}
-                              onChange={(e) =>
-                                updateCondition(i, j, {
-                                  minNumber: e.target.value,
-                                })
-                              }
-                              placeholder="Min"
-                            />
-                            <span className="text-discord-text-muted">–</span>
-                            <input
-                              type="number"
-                              className="bg-discord-base text-discord-text w-20 rounded-full px-3 py-1.5 text-sm"
-                              value={cond.maxNumber}
-                              onChange={(e) =>
-                                updateCondition(i, j, {
-                                  maxNumber: e.target.value,
-                                })
-                              }
-                              placeholder="Max"
-                            />
-                          </>
-                        ) : (
-                          <input
-                            list={
-                              cond.field === "rank"
-                                ? "rank-options"
-                                : "class-options"
-                            }
-                            className="bg-discord-base text-discord-text flex-1 rounded-full px-3 py-1.5 text-sm"
-                            value={cond.textValue}
-                            onChange={(e) =>
-                              updateCondition(i, j, {
-                                textValue: e.target.value,
-                              })
-                            }
-                            placeholder={
-                              cond.field === "rank"
-                                ? "Exact rank name"
-                                : "Exact class (e.g. WARRIOR)"
-                            }
-                          />
+                        {upsertRule.error && (
+                          <p className="text-discord-red text-sm">
+                            {upsertRule.error.message}
+                          </p>
                         )}
-
-                        {rule.conditions.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateRule(i, {
-                                conditions: rule.conditions.filter(
-                                  (_, k) => k !== j,
-                                ),
-                              })
-                            }
-                            className="bg-discord-base hover:bg-discord-elevated-hover rounded-full px-2 text-xs"
-                          >
-                            ✕
-                          </button>
+                        {upsertRule.isSuccess && justSavedIndex === i && (
+                          <p className="text-discord-green text-sm">Saved!</p>
                         )}
                       </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateRule(i, {
-                          conditions: [...rule.conditions, emptyCondition()],
-                        })
-                      }
-                      className="bg-discord-base hover:bg-discord-elevated-hover self-start rounded-full px-3 py-1 text-xs"
-                    >
-                      + Add condition
-                    </button>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => saveRule(i)}
-                    disabled={
-                      upsertRule.isPending ||
-                      (!rule.discordRoleIds.some((id) => id.trim() !== "") &&
-                        !rule.grantedChannelIds.some((id) => id.trim() !== ""))
-                    }
-                    className="bg-discord-elevated-hover self-start rounded-full px-6 py-2 text-sm font-semibold"
-                  >
-                    {upsertRule.isPending ? "Saving..." : "Save rule"}
-                  </button>
-                  {upsertRule.error && (
-                    <p className="text-discord-red text-sm">
-                      {upsertRule.error.message}
-                    </p>
-                  )}
-                </div>
-              ),
-            )}
+                    );
+                  })()
+                )}
+              </div>
+            </div>
           </div>
 
           <datalist id="rank-options">
