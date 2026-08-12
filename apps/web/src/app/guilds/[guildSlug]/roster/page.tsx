@@ -1,16 +1,19 @@
+import { GuildExportPanel } from "~/app/_components/guild-export-panel";
 import { GuildPendingMatches } from "~/app/_components/guild-pending-matches";
 import { GuildRosterImportForm } from "~/app/_components/guild-roster-import-form";
 import { GuildRosterTable } from "~/app/_components/guild-roster-table";
 import { GuildUnclaimedMembers } from "~/app/_components/guild-unclaimed-members";
+import { ImportPanel } from "~/app/_components/import-panel";
 import { NicknameEditor } from "~/app/_components/nickname-editor";
 import { api } from "~/trpc/server";
 
 export default async function RosterPage({
   params,
 }: {
-  params: Promise<{ guildId: string }>;
+  params: Promise<{ guildSlug: string }>;
 }) {
-  const { guildId } = await params;
+  const { guildSlug } = await params;
+  const { id: guildId } = await api.guild.resolveSlug({ slug: guildSlug });
   const [guild, members, me] = await Promise.all([
     api.guild.get({ guildId }),
     api.guild.rosterMembers({ guildId }),
@@ -28,6 +31,8 @@ export default async function RosterPage({
       <h2 className="text-center text-2xl font-bold">Members</h2>
 
       <NicknameEditor initialNickname={me.nickname} fallback={me.name} />
+      <ImportPanel guildId={guildId} />
+      <GuildExportPanel guildId={guildId} />
 
       {guild.isAdmin && guild.rosterSource === "onboarding" && (
         <div className="bg-discord-elevated text-discord-text-muted w-full rounded-xl p-4 text-sm">

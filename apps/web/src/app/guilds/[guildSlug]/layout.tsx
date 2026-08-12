@@ -1,8 +1,6 @@
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { EditGuildForm } from "~/app/_components/edit-guild-form";
-import { GuildExportPanel } from "~/app/_components/guild-export-panel";
-import { ImportPanel } from "~/app/_components/import-panel";
 import { auth } from "~/server/better-auth";
 import { api } from "~/trpc/server";
 
@@ -11,9 +9,15 @@ export default async function GuildLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ guildId: string }>;
+  params: Promise<{ guildSlug: string }>;
 }) {
-  const { guildId } = await params;
+  const { guildSlug } = await params;
+  let guildId: string;
+  try {
+    ({ id: guildId } = await api.guild.resolveSlug({ slug: guildSlug }));
+  } catch {
+    notFound();
+  }
   const guild = await api.guild.get({ guildId });
 
   if (!guild.viewerHasAccess) {
@@ -37,7 +41,7 @@ export default async function GuildLayout({
                     const res = await auth.api.signInSocial({
                       body: {
                         provider: "discord",
-                        callbackURL: `/guilds/${guildId}`,
+                        callbackURL: `/guilds/${guildSlug}`,
                       },
                     });
                     if (!res.url) {
@@ -80,22 +84,6 @@ export default async function GuildLayout({
   return (
     <div className="flex flex-1 flex-col items-center gap-6 px-6 py-8">
       <h1 className="text-2xl font-extrabold tracking-tight">{guild.name}</h1>
-
-      {guild.isAdmin && (
-        <div className="w-full max-w-xl">
-          <EditGuildForm
-            guildId={guildId}
-            initialName={guild.name}
-            initialDiscordGuildId={guild.discordGuildId}
-            initialRequiredRoleIds={guild.requiredRoleIds}
-            initialAdminRoleIds={guild.adminRoleIds}
-            isOwner={guild.isOwner}
-          />
-        </div>
-      )}
-
-      <ImportPanel guildId={guildId} />
-      <GuildExportPanel guildId={guildId} />
 
       {children}
     </div>

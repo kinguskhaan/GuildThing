@@ -25,6 +25,7 @@ export function EditGuildForm({
   initialRequiredRoleIds,
   initialAdminRoleIds,
   isOwner,
+  defaultOpen = false,
 }: {
   guildId: string;
   initialName: string;
@@ -32,9 +33,14 @@ export function EditGuildForm({
   initialRequiredRoleIds: string[];
   initialAdminRoleIds: string[];
   isOwner: boolean;
+  // The settings page renders this as its whole reason for existing, so it
+  // opens straight to the form — no point collapsing it there. Everywhere
+  // else (the locked-out screen in guilds/[guildSlug]/layout.tsx) it stays
+  // collapsed behind a button, since it's a rarely-needed escape hatch.
+  defaultOpen?: boolean;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [name, setName] = useState(initialName);
   const [discordGuildId, setDiscordGuildId] = useState(initialDiscordGuildId);
