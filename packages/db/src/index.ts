@@ -18,3 +18,4 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
 
 export { PrismaClient } from "../generated/prisma";
 export { slugify, uniqueGuildSlug } from "./slug";
+export { generateApiKey, hashApiKey } from "./apiKey";

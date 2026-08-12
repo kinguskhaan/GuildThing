@@ -74,6 +74,10 @@ export function Sidebar() {
           label: "Guild settings",
         },
         {
+          href: `/guilds/${guild.slug}/admin/api-keys`,
+          label: "API keys",
+        },
+        {
           href: `/guilds/${guild.slug}/admin/recipes`,
           label: "Raw recipe catalog",
         },
@@ -163,20 +167,30 @@ export function Sidebar() {
         </>
       )}
 
-      <SidebarDivider />
-      <SidebarHeading>Resources</SidebarHeading>
-      <Link
-        href="/guilds/addon"
-        className={navLinkClass(pathname === "/guilds/addon")}
-      >
-        Download addon
-      </Link>
-      <Link
-        href="/guilds/bot"
-        className={navLinkClass(pathname === "/guilds/bot")}
-      >
-        Add bot to Discord
-      </Link>
+      {guild && (
+        <>
+          <SidebarDivider />
+          <SidebarHeading>Resources</SidebarHeading>
+          <Link
+            href={`/guilds/${guild.slug}/addon`}
+            className={navLinkClass(pathname === `/guilds/${guild.slug}/addon`)}
+          >
+            Download addon
+          </Link>
+          <Link
+            href={`/guilds/${guild.slug}/bot`}
+            className={navLinkClass(pathname === `/guilds/${guild.slug}/bot`)}
+          >
+            Add bot to Discord
+          </Link>
+          <Link
+            href={`/guilds/${guild.slug}/sync`}
+            className={navLinkClass(pathname === `/guilds/${guild.slug}/sync`)}
+          >
+            Sync script
+          </Link>
+        </>
+      )}
 
       {isInstanceOwner && (
         <>

@@ -3,10 +3,16 @@ import { deflateSync } from "node:zlib";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { uniqueGuildSlug } from "@guildthing/db";
+import { generateApiKey, uniqueGuildSlug } from "@guildthing/db";
 import { env } from "~/env";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import type { db as Db } from "~/server/db";
+import {
+  applyCharacterImport,
+  applyRosterImport,
+  rosterExportSchema,
+  wowImportSchema,
+} from "~/server/wow-import";
 import { tbcProfessionRecipes, tbcRecipes } from "@guildthing/wowhead-data";
 import {
   addRoleToMember,
@@ -36,24 +42,6 @@ async function safeGuildIconUrl(
   }
 }
 
-// Matches the JSON GuildThing Roster's /gtr export produces (Core.lua's
-// GT.ExportRoster) — plain JSON, not the base64+zlib pipeline the older
-// recipe export uses, since a roster scan is small enough not to need it.
-const rosterExportSchema = z.object({
-  guild: z.string().optional(),
-  exportedAt: z.number().optional(),
-  members: z.array(
-    z.object({
-      name: z.string().min(1),
-      rank: z.string(),
-      level: z.number(),
-      class: z.string().nullable().optional(),
-      note: z.string().nullable().optional(),
-      officernote: z.string().nullable().optional(),
-    }),
-  ),
-});
-
 // One condition within a GuildRoleRule (see schema.prisma) — "equals"
 // pairs with rank/class (a text value), "between" pairs with level (a
 // min/max pair). Refined so the admin UI can't save a nonsensical
@@ -76,22 +64,6 @@ const roleRuleConditionSchema = z
         "level conditions need a min/max range; rank/class conditions need a text value",
     },
   );
-
-const wowImportSchema = z.object({
-  name: z.string().min(1),
-  realm: z.string().min(1),
-  class: z.string().min(1).optional(),
-  professions: z.record(
-    z.string(),
-    z.array(
-      z.object({
-        name: z.string(),
-        itemID: z.number().nullable(),
-        spellID: z.number().nullable().optional(),
-      }),
-    ),
-  ),
-});
 
 export async function checkGuildRole(
   db: typeof Db,
@@ -208,10 +180,12 @@ export async function checkGuildAdmin(
 }
 
 // Owns-it-yourself is always enough; being a guild admin is the other way
-// in, for cleaning up stray/mistaken entries other members left behind.
+// in, for cleaning up stray/mistaken entries other members left behind. A
+// null ownerId is an unclaimed peer-sourced row (see GuildCharacter.userId)
+// — nobody self-owns it yet, so only a guild admin can touch it.
 async function canModifyCharacter(
   db: typeof Db,
-  ownerId: string,
+  ownerId: string | null,
   guildId: string,
   userId: string,
 ): Promise<boolean> {
@@ -673,52 +647,12 @@ export const guildRouter = createTRPCRouter({
             });
       }
 
-      const { name, realm, class: charClass, professions } = input.character;
-
-      return ctx.db.$transaction(async (tx) => {
-        const character = await tx.guildCharacter.upsert({
-          where: {
-            guildId_userId_name_realm: {
-              guildId: input.guildId,
-              userId: ctx.session.user.id,
-              name,
-              realm,
-            },
-          },
-          create: {
-            guildId: input.guildId,
-            userId: ctx.session.user.id,
-            name,
-            realm,
-            class: charClass,
-          },
-          update: {
-            class: charClass,
-          },
-        });
-
-        await tx.profession.deleteMany({
-          where: { characterId: character.id },
-        });
-
-        for (const [professionName, recipes] of Object.entries(professions)) {
-          await tx.profession.create({
-            data: {
-              characterId: character.id,
-              name: professionName,
-              recipes: {
-                create: recipes.map((r) => ({
-                  name: r.name,
-                  itemId: r.itemID,
-                  spellId: r.spellID ?? null,
-                })),
-              },
-            },
-          });
-        }
-
-        return character;
-      });
+      return applyCharacterImport(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+        input.character,
+      );
     }),
 
   deleteCharacter: protectedProcedure
@@ -764,14 +698,26 @@ export const guildRouter = createTRPCRouter({
 
       const realm = input.realm ?? "";
 
+      // Claims an existing unclaimed (peer-sourced) row for this name+realm
+      // if one exists, same as importCharacter's self-import branch —
+      // otherwise a manual add would create a duplicate row alongside it.
+      // Same hijack guard as importCharacter: never steal a row someone
+      // else already claimed.
+      const existing = await ctx.db.guildCharacter.findUnique({
+        where: {
+          guildId_name_realm: { guildId: input.guildId, name: input.name, realm },
+        },
+      });
+      if (existing?.userId && existing.userId !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `${input.name}-${realm} is already claimed by another member of this guild.`,
+        });
+      }
+
       return ctx.db.guildCharacter.upsert({
         where: {
-          guildId_userId_name_realm: {
-            guildId: input.guildId,
-            userId: ctx.session.user.id,
-            name: input.name,
-            realm,
-          },
+          guildId_name_realm: { guildId: input.guildId, name: input.name, realm },
         },
         create: {
           guildId: input.guildId,
@@ -779,7 +725,9 @@ export const guildRouter = createTRPCRouter({
           name: input.name,
           realm,
         },
-        update: {},
+        update: {
+          userId: ctx.session.user.id,
+        },
       });
     }),
 
@@ -999,44 +947,12 @@ export const guildRouter = createTRPCRouter({
         });
       }
 
-      const { members } = result.data;
-      const importedNames = members.map((m) => m.name);
-
-      await ctx.db.$transaction([
-        ctx.db.guildRosterMember.deleteMany({
-          where: { guildId: input.guildId, name: { notIn: importedNames } },
-        }),
-        ...members.map((m) =>
-          ctx.db.guildRosterMember.upsert({
-            where: { guildId_name: { guildId: input.guildId, name: m.name } },
-            create: {
-              guildId: input.guildId,
-              name: m.name,
-              rank: m.rank,
-              level: m.level,
-              class: m.class ?? null,
-              note: m.note ?? null,
-              officerNote: m.officernote ?? null,
-            },
-            update: {
-              rank: m.rank,
-              level: m.level,
-              class: m.class ?? null,
-              note: m.note ?? null,
-              officerNote: m.officernote ?? null,
-            },
-          }),
-        ),
-        ctx.db.guild.update({
-          where: { id: input.guildId },
-          data: {
-            lastRosterImportedAt: new Date(),
-            lastRosterImportedById: ctx.session.user.id,
-          },
-        }),
-      ]);
-
-      return { count: members.length };
+      return applyRosterImport(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+        result.data,
+      );
     }),
 
   // officerNote is stripped for non-admins — same visibility rule the
@@ -1875,6 +1791,92 @@ export const guildRouter = createTRPCRouter({
 
       await ctx.db.guildRoleRule.deleteMany({
         where: { id: input.id, guildId: input.guildId },
+      });
+      return { ok: true };
+    }),
+
+  // Lets an admin mint a secret bearer token for apps/sync (a locally-run
+  // script that reads WoW SavedVariables and pushes roster/character data
+  // to /api/v1/roster and /api/v1/characters) — see GuildApiKey in
+  // schema.prisma. The raw key is only ever returned here, at creation.
+  createApiKey: protectedProcedure
+    .input(z.object({ guildId: z.string(), name: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const { raw, hash, prefix } = generateApiKey();
+      const key = await ctx.db.guildApiKey.create({
+        data: {
+          guildId: input.guildId,
+          name: input.name,
+          keyHash: hash,
+          keyPrefix: prefix,
+          createdById: ctx.session.user.id,
+        },
+      });
+      return {
+        id: key.id,
+        name: key.name,
+        prefix: key.keyPrefix,
+        createdAt: key.createdAt,
+        rawKey: raw,
+      };
+    }),
+
+  listApiKeys: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const keys = await ctx.db.guildApiKey.findMany({
+        where: { guildId: input.guildId },
+        orderBy: { createdAt: "desc" },
+      });
+      return keys.map((k) => ({
+        id: k.id,
+        name: k.name,
+        prefix: k.keyPrefix,
+        createdAt: k.createdAt,
+        lastUsedAt: k.lastUsedAt,
+        revokedAt: k.revokedAt,
+      }));
+    }),
+
+  revokeApiKey: protectedProcedure
+    .input(z.object({ guildId: z.string(), id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      await ctx.db.guildApiKey.updateMany({
+        where: { id: input.id, guildId: input.guildId },
+        data: { revokedAt: new Date() },
       });
       return { ok: true };
     }),
