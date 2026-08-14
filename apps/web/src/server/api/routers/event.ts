@@ -197,6 +197,7 @@ export const eventRouter = createTRPCRouter({
         roles: z.string().optional(),
         buttonEnabled: z.boolean(),
         buttonMessageText: z.string().nullable().optional(),
+        buttonRepostMode: z.enum(["live", "daily"]),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -235,11 +236,13 @@ export const eventRouter = createTRPCRouter({
           roles: input.roles ?? null,
           buttonEnabled: input.buttonEnabled,
           buttonMessageText: buttonMessageText ?? null,
+          buttonRepostMode: input.buttonRepostMode,
         },
         update: {
           roles: input.roles ?? null,
           buttonEnabled: input.buttonEnabled,
           buttonMessageText,
+          buttonRepostMode: input.buttonRepostMode,
         },
       });
       return { ok: true };

@@ -47,18 +47,21 @@ const DEFAULT_BUTTON_TEXT =
 // Per-row editor for the text shown above a channel's "Create new event"
 // button — separate from the create-preset form below since it edits an
 // existing row in place rather than a new one.
+type ChannelPreset = {
+  id: string;
+  discordChannelId: string;
+  roles: string | null;
+  buttonEnabled: boolean;
+  buttonMessageText: string | null;
+  buttonRepostMode: string;
+};
+
 function ButtonMessageTextEditor({
   guildId,
   preset,
 }: {
   guildId: string;
-  preset: {
-    id: string;
-    discordChannelId: string;
-    roles: string | null;
-    buttonEnabled: boolean;
-    buttonMessageText: string | null;
-  };
+  preset: ChannelPreset;
 }) {
   const [text, setText] = useState(preset.buttonMessageText ?? "");
   const utils = api.useUtils();
@@ -84,6 +87,7 @@ function ButtonMessageTextEditor({
             roles: preset.roles ?? undefined,
             buttonEnabled: preset.buttonEnabled,
             buttonMessageText: text.trim() === "" ? null : text,
+            buttonRepostMode: preset.buttonRepostMode === "daily" ? "daily" : "live",
           })
         }
         disabled={save.isPending}
@@ -95,12 +99,54 @@ function ButtonMessageTextEditor({
   );
 }
 
+// Every message ("live") keeps the button glued to the bottom as people
+// chat, which can spam an active channel — "Once a day" instead leaves it
+// wherever it drifts to and only forces it back down on a 24h clock (see
+// buttonRepostMode in schema.prisma). Mutates immediately on change, same
+// as the Button checkbox next to it, rather than needing a separate save.
+function RepostModeSelect({
+  guildId,
+  preset,
+}: {
+  guildId: string;
+  preset: ChannelPreset;
+}) {
+  const utils = api.useUtils();
+  const save = api.event.setChannelPreset.useMutation({
+    onSuccess: async () => utils.event.channelPresets.invalidate({ guildId }),
+  });
+
+  return (
+    <select
+      className="bg-discord-elevated text-discord-text-muted rounded-full px-2 py-1 text-xs"
+      value={preset.buttonRepostMode === "daily" ? "daily" : "live"}
+      onChange={(e) =>
+        save.mutate({
+          guildId,
+          discordChannelId: preset.discordChannelId,
+          roles: preset.roles ?? undefined,
+          buttonEnabled: preset.buttonEnabled,
+          buttonRepostMode: e.target.value === "daily" ? "daily" : "live",
+        })
+      }
+      disabled={save.isPending}
+      title="How often the button repositions itself to the bottom of the channel"
+    >
+      <option value="live">Every message</option>
+      <option value="daily">Once a day</option>
+    </select>
+  );
+}
+
 export function GuildEventChannelPresets({ guildId }: { guildId: string }) {
   const [collapsed, setCollapsed] = useState(true);
   const [channelId, setChannelId] = useState("");
   const [roles, setRoles] = useState("");
   const [buttonEnabled, setButtonEnabled] = useState(false);
   const [buttonMessageText, setButtonMessageText] = useState("");
+  const [buttonRepostMode, setButtonRepostMode] = useState<"live" | "daily">(
+    "live",
+  );
 
   const channels = api.guild.discordChannelsForEvents.useQuery(
     { guildId },
@@ -119,6 +165,7 @@ export function GuildEventChannelPresets({ guildId }: { guildId: string }) {
       setRoles("");
       setButtonEnabled(false);
       setButtonMessageText("");
+      setButtonRepostMode("live");
     },
   });
   const deletePreset = api.event.deleteChannelPreset.useMutation({
@@ -130,16 +177,13 @@ export function GuildEventChannelPresets({ guildId }: { guildId: string }) {
 
   // Flips just the button toggle on an existing row, keeping its roles
   // preset (if any) untouched.
-  function toggleButton(p: {
-    discordChannelId: string;
-    roles: string | null;
-    buttonEnabled: boolean;
-  }) {
+  function toggleButton(p: ChannelPreset) {
     savePreset.mutate({
       guildId,
       discordChannelId: p.discordChannelId,
       roles: p.roles ?? undefined,
       buttonEnabled: !p.buttonEnabled,
+      buttonRepostMode: p.buttonRepostMode === "daily" ? "daily" : "live",
     });
   }
 
@@ -199,6 +243,9 @@ export function GuildEventChannelPresets({ guildId }: { guildId: string }) {
                         Button
                       </label>
                       {p.buttonEnabled && (
+                        <RepostModeSelect guildId={guildId} preset={p} />
+                      )}
+                      {p.buttonEnabled && (
                         <button
                           type="button"
                           onClick={() =>
@@ -251,13 +298,30 @@ export function GuildEventChannelPresets({ guildId }: { guildId: string }) {
             Show a &quot;Create new event&quot; button in this channel
           </label>
           {buttonEnabled && (
-            <textarea
-              className="bg-discord-base text-discord-text w-full rounded-lg px-3 py-2 text-sm"
-              rows={2}
-              value={buttonMessageText}
-              onChange={(e) => setButtonMessageText(e.target.value)}
-              placeholder={DEFAULT_BUTTON_TEXT}
-            />
+            <>
+              <textarea
+                className="bg-discord-base text-discord-text w-full rounded-lg px-3 py-2 text-sm"
+                rows={2}
+                value={buttonMessageText}
+                onChange={(e) => setButtonMessageText(e.target.value)}
+                placeholder={DEFAULT_BUTTON_TEXT}
+              />
+              <label className="text-discord-text-muted flex items-center gap-1.5 text-sm">
+                Reposition it
+                <select
+                  className="bg-discord-base text-discord-text rounded-full px-3 py-1"
+                  value={buttonRepostMode}
+                  onChange={(e) =>
+                    setButtonRepostMode(
+                      e.target.value === "daily" ? "daily" : "live",
+                    )
+                  }
+                >
+                  <option value="live">on every message</option>
+                  <option value="daily">once a day</option>
+                </select>
+              </label>
+            </>
           )}
           <button
             type="button"
@@ -268,6 +332,7 @@ export function GuildEventChannelPresets({ guildId }: { guildId: string }) {
                 roles: roles.trim() || undefined,
                 buttonEnabled,
                 buttonMessageText: buttonMessageText.trim() || null,
+                buttonRepostMode,
               })
             }
             disabled={savePreset.isPending || channelId.trim() === ""}

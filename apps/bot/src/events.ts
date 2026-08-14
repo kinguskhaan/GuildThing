@@ -1699,7 +1699,7 @@ export async function ensureEventCreateButtons(
       const message = await channel.send(desired);
       await db.eventChannelPreset.update({
         where: { id: preset.id },
-        data: { buttonMessageId: message.id },
+        data: { buttonMessageId: message.id, lastButtonRepostAt: new Date() },
       });
     } catch (err) {
       console.error(
@@ -1757,6 +1757,36 @@ export async function repostDriftedEventButtons(
   }
 }
 
+const DAILY_BUTTON_REPOST_INTERVAL_MS = 24 * 60 * 60 * 1_000;
+
+// Counterpart to the live per-message repost path, for buttonRepostMode
+// "daily": forces the button back to the bottom once every 24h regardless
+// of channel activity, rather than tracking every new message. A preset
+// that's never been reposted (lastButtonRepostAt null — e.g. just switched
+// into "daily" mode) is treated as due immediately.
+export async function repostDailyEventButtons(
+  client: Client<true>,
+): Promise<void> {
+  const presets = await db.eventChannelPreset.findMany({
+    where: { buttonEnabled: true, buttonMessageId: { not: null }, buttonRepostMode: "daily" },
+  });
+
+  const now = Date.now();
+  for (const preset of presets) {
+    const due =
+      !preset.lastButtonRepostAt ||
+      now - preset.lastButtonRepostAt.getTime() >= DAILY_BUTTON_REPOST_INTERVAL_MS;
+    if (!due) continue;
+
+    await repostSingleEventButton(client, preset.id).catch((err: unknown) => {
+      console.error(
+        `[bot] failed to run daily repost for channel ${preset.discordChannelId}:`,
+        err,
+      );
+    });
+  }
+}
+
 const BUTTON_REPOST_DEBOUNCE_MS = 5_000;
 // Per-channel-preset debounce timers — a burst of messages in the same
 // channel should only trigger one repost, not one per message.
@@ -1802,7 +1832,7 @@ async function repostSingleEventButton(
     );
     await db.eventChannelPreset.update({
       where: { id: preset.id },
-      data: { buttonMessageId: message.id },
+      data: { buttonMessageId: message.id, lastButtonRepostAt: new Date() },
     });
   } catch (err) {
     console.error(
@@ -1823,6 +1853,9 @@ async function repostSingleEventButton(
 // Reacts to bot-authored messages too (e.g. a newly posted event embed
 // should push the button down) — selfRepostGuard is what specifically
 // stops the repost from re-triggering itself, not a blanket bot filter.
+// Skipped entirely for buttonRepostMode "daily" — that mode's button is
+// meant to sit still between its once-a-day reposts (see
+// repostDailyEventButtons) rather than track the channel's activity.
 export function scheduleEventButtonRepostOnMessage(
   client: Client<true>,
   message: { guildId: string | null; channelId: string; id: string },
@@ -1841,6 +1874,7 @@ export function scheduleEventButtonRepostOnMessage(
     .then((preset) => {
       if (
         !preset ||
+        preset.buttonRepostMode === "daily" ||
         message.id === preset.buttonMessageId ||
         selfRepostGuard.has(preset.id)
       ) {

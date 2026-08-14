@@ -314,7 +314,9 @@ exports.Prisma.EventChannelPresetScalarFieldEnum = {
   roles: 'roles',
   buttonEnabled: 'buttonEnabled',
   buttonMessageId: 'buttonMessageId',
-  buttonMessageText: 'buttonMessageText'
+  buttonMessageText: 'buttonMessageText',
+  buttonRepostMode: 'buttonRepostMode',
+  lastButtonRepostAt: 'lastButtonRepostAt'
 };
 
 exports.Prisma.EventScalarFieldEnum = {

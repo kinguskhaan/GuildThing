@@ -27,6 +27,7 @@ import {
 } from "./onboardingButton.js";
 import {
   ensureEventCreateButtons,
+  repostDailyEventButtons,
   EVENT_CREATE_BUTTON_ID,
   handleEventComponentInteraction,
   handleEventCreateCommand,
@@ -59,6 +60,13 @@ const EVENT_TICK_INTERVAL_MS = 15_000;
 // button-enabled channel per check is cheap enough to run this often
 // without worrying about Discord's rate limits.
 const EVENT_BUTTON_DRIFT_CHECK_INTERVAL_MS = 60_000;
+
+// How often to check whether a "daily" repost-mode button is due for its
+// once-a-day reposition (see repostDailyEventButtons). Doesn't need to be
+// precise to the minute — checking every 15min keeps the actual repost
+// within 15min of the 24h mark, which is plenty for something meant to
+// happen once a day.
+const DAILY_BUTTON_REPOST_CHECK_INTERVAL_MS = 15 * 60_000;
 
 const token = process.env.DISCORD_BOT_TOKEN;
 if (!token) {
@@ -205,6 +213,14 @@ client.once(Events.ClientReady, (readyClient) => {
   };
   checkEventButtonDrift();
   setInterval(checkEventButtonDrift, EVENT_BUTTON_DRIFT_CHECK_INTERVAL_MS);
+
+  const checkDailyButtonRepost = () => {
+    repostDailyEventButtons(readyClient).catch((err: unknown) => {
+      console.error("[bot] daily event-create button repost failed:", err);
+    });
+  };
+  checkDailyButtonRepost();
+  setInterval(checkDailyButtonRepost, DAILY_BUTTON_REPOST_CHECK_INTERVAL_MS);
 });
 
 // Runs the same full roster/role/channel-grant sync as the daily job, but

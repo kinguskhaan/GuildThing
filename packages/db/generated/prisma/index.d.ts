@@ -25516,6 +25516,8 @@ export namespace Prisma {
     buttonEnabled: boolean | null
     buttonMessageId: string | null
     buttonMessageText: string | null
+    buttonRepostMode: string | null
+    lastButtonRepostAt: Date | null
   }
 
   export type EventChannelPresetMaxAggregateOutputType = {
@@ -25526,6 +25528,8 @@ export namespace Prisma {
     buttonEnabled: boolean | null
     buttonMessageId: string | null
     buttonMessageText: string | null
+    buttonRepostMode: string | null
+    lastButtonRepostAt: Date | null
   }
 
   export type EventChannelPresetCountAggregateOutputType = {
@@ -25536,6 +25540,8 @@ export namespace Prisma {
     buttonEnabled: number
     buttonMessageId: number
     buttonMessageText: number
+    buttonRepostMode: number
+    lastButtonRepostAt: number
     _all: number
   }
 
@@ -25548,6 +25554,8 @@ export namespace Prisma {
     buttonEnabled?: true
     buttonMessageId?: true
     buttonMessageText?: true
+    buttonRepostMode?: true
+    lastButtonRepostAt?: true
   }
 
   export type EventChannelPresetMaxAggregateInputType = {
@@ -25558,6 +25566,8 @@ export namespace Prisma {
     buttonEnabled?: true
     buttonMessageId?: true
     buttonMessageText?: true
+    buttonRepostMode?: true
+    lastButtonRepostAt?: true
   }
 
   export type EventChannelPresetCountAggregateInputType = {
@@ -25568,6 +25578,8 @@ export namespace Prisma {
     buttonEnabled?: true
     buttonMessageId?: true
     buttonMessageText?: true
+    buttonRepostMode?: true
+    lastButtonRepostAt?: true
     _all?: true
   }
 
@@ -25651,6 +25663,8 @@ export namespace Prisma {
     buttonEnabled: boolean
     buttonMessageId: string | null
     buttonMessageText: string | null
+    buttonRepostMode: string
+    lastButtonRepostAt: Date | null
     _count: EventChannelPresetCountAggregateOutputType | null
     _min: EventChannelPresetMinAggregateOutputType | null
     _max: EventChannelPresetMaxAggregateOutputType | null
@@ -25678,6 +25692,8 @@ export namespace Prisma {
     buttonEnabled?: boolean
     buttonMessageId?: boolean
     buttonMessageText?: boolean
+    buttonRepostMode?: boolean
+    lastButtonRepostAt?: boolean
     guild?: boolean | GuildDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["eventChannelPreset"]>
 
@@ -25689,6 +25705,8 @@ export namespace Prisma {
     buttonEnabled?: boolean
     buttonMessageId?: boolean
     buttonMessageText?: boolean
+    buttonRepostMode?: boolean
+    lastButtonRepostAt?: boolean
     guild?: boolean | GuildDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["eventChannelPreset"]>
 
@@ -25700,6 +25718,8 @@ export namespace Prisma {
     buttonEnabled?: boolean
     buttonMessageId?: boolean
     buttonMessageText?: boolean
+    buttonRepostMode?: boolean
+    lastButtonRepostAt?: boolean
     guild?: boolean | GuildDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["eventChannelPreset"]>
 
@@ -25711,9 +25731,11 @@ export namespace Prisma {
     buttonEnabled?: boolean
     buttonMessageId?: boolean
     buttonMessageText?: boolean
+    buttonRepostMode?: boolean
+    lastButtonRepostAt?: boolean
   }
 
-  export type EventChannelPresetOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "discordChannelId" | "roles" | "buttonEnabled" | "buttonMessageId" | "buttonMessageText", ExtArgs["result"]["eventChannelPreset"]>
+  export type EventChannelPresetOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "discordChannelId" | "roles" | "buttonEnabled" | "buttonMessageId" | "buttonMessageText" | "buttonRepostMode" | "lastButtonRepostAt", ExtArgs["result"]["eventChannelPreset"]>
   export type EventChannelPresetInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     guild?: boolean | GuildDefaultArgs<ExtArgs>
   }
@@ -25737,6 +25759,8 @@ export namespace Prisma {
       buttonEnabled: boolean
       buttonMessageId: string | null
       buttonMessageText: string | null
+      buttonRepostMode: string
+      lastButtonRepostAt: Date | null
     }, ExtArgs["result"]["eventChannelPreset"]>
     composites: {}
   }
@@ -26168,6 +26192,8 @@ export namespace Prisma {
     readonly buttonEnabled: FieldRef<"EventChannelPreset", 'Boolean'>
     readonly buttonMessageId: FieldRef<"EventChannelPreset", 'String'>
     readonly buttonMessageText: FieldRef<"EventChannelPreset", 'String'>
+    readonly buttonRepostMode: FieldRef<"EventChannelPreset", 'String'>
+    readonly lastButtonRepostAt: FieldRef<"EventChannelPreset", 'DateTime'>
   }
     
 
@@ -39875,7 +39901,9 @@ export namespace Prisma {
     roles: 'roles',
     buttonEnabled: 'buttonEnabled',
     buttonMessageId: 'buttonMessageId',
-    buttonMessageText: 'buttonMessageText'
+    buttonMessageText: 'buttonMessageText',
+    buttonRepostMode: 'buttonRepostMode',
+    lastButtonRepostAt: 'lastButtonRepostAt'
   };
 
   export type EventChannelPresetScalarFieldEnum = (typeof EventChannelPresetScalarFieldEnum)[keyof typeof EventChannelPresetScalarFieldEnum]
@@ -41414,6 +41442,8 @@ export namespace Prisma {
     buttonEnabled?: BoolFilter<"EventChannelPreset"> | boolean
     buttonMessageId?: StringNullableFilter<"EventChannelPreset"> | string | null
     buttonMessageText?: StringNullableFilter<"EventChannelPreset"> | string | null
+    buttonRepostMode?: StringFilter<"EventChannelPreset"> | string
+    lastButtonRepostAt?: DateTimeNullableFilter<"EventChannelPreset"> | Date | string | null
     guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
   }
 
@@ -41425,6 +41455,8 @@ export namespace Prisma {
     buttonEnabled?: SortOrder
     buttonMessageId?: SortOrderInput | SortOrder
     buttonMessageText?: SortOrderInput | SortOrder
+    buttonRepostMode?: SortOrder
+    lastButtonRepostAt?: SortOrderInput | SortOrder
     guild?: GuildOrderByWithRelationInput
   }
 
@@ -41440,6 +41472,8 @@ export namespace Prisma {
     buttonEnabled?: BoolFilter<"EventChannelPreset"> | boolean
     buttonMessageId?: StringNullableFilter<"EventChannelPreset"> | string | null
     buttonMessageText?: StringNullableFilter<"EventChannelPreset"> | string | null
+    buttonRepostMode?: StringFilter<"EventChannelPreset"> | string
+    lastButtonRepostAt?: DateTimeNullableFilter<"EventChannelPreset"> | Date | string | null
     guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
   }, "id" | "guildId_discordChannelId">
 
@@ -41451,6 +41485,8 @@ export namespace Prisma {
     buttonEnabled?: SortOrder
     buttonMessageId?: SortOrderInput | SortOrder
     buttonMessageText?: SortOrderInput | SortOrder
+    buttonRepostMode?: SortOrder
+    lastButtonRepostAt?: SortOrderInput | SortOrder
     _count?: EventChannelPresetCountOrderByAggregateInput
     _max?: EventChannelPresetMaxOrderByAggregateInput
     _min?: EventChannelPresetMinOrderByAggregateInput
@@ -41467,6 +41503,8 @@ export namespace Prisma {
     buttonEnabled?: BoolWithAggregatesFilter<"EventChannelPreset"> | boolean
     buttonMessageId?: StringNullableWithAggregatesFilter<"EventChannelPreset"> | string | null
     buttonMessageText?: StringNullableWithAggregatesFilter<"EventChannelPreset"> | string | null
+    buttonRepostMode?: StringWithAggregatesFilter<"EventChannelPreset"> | string
+    lastButtonRepostAt?: DateTimeNullableWithAggregatesFilter<"EventChannelPreset"> | Date | string | null
   }
 
   export type EventWhereInput = {
@@ -43626,6 +43664,8 @@ export namespace Prisma {
     buttonEnabled?: boolean
     buttonMessageId?: string | null
     buttonMessageText?: string | null
+    buttonRepostMode?: string
+    lastButtonRepostAt?: Date | string | null
     guild: GuildCreateNestedOneWithoutEventChannelPresetsInput
   }
 
@@ -43637,6 +43677,8 @@ export namespace Prisma {
     buttonEnabled?: boolean
     buttonMessageId?: string | null
     buttonMessageText?: string | null
+    buttonRepostMode?: string
+    lastButtonRepostAt?: Date | string | null
   }
 
   export type EventChannelPresetUpdateInput = {
@@ -43646,6 +43688,8 @@ export namespace Prisma {
     buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
     buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     buttonMessageText?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonRepostMode?: StringFieldUpdateOperationsInput | string
+    lastButtonRepostAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     guild?: GuildUpdateOneRequiredWithoutEventChannelPresetsNestedInput
   }
 
@@ -43657,6 +43701,8 @@ export namespace Prisma {
     buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
     buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     buttonMessageText?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonRepostMode?: StringFieldUpdateOperationsInput | string
+    lastButtonRepostAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type EventChannelPresetCreateManyInput = {
@@ -43667,6 +43713,8 @@ export namespace Prisma {
     buttonEnabled?: boolean
     buttonMessageId?: string | null
     buttonMessageText?: string | null
+    buttonRepostMode?: string
+    lastButtonRepostAt?: Date | string | null
   }
 
   export type EventChannelPresetUpdateManyMutationInput = {
@@ -43676,6 +43724,8 @@ export namespace Prisma {
     buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
     buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     buttonMessageText?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonRepostMode?: StringFieldUpdateOperationsInput | string
+    lastButtonRepostAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type EventChannelPresetUncheckedUpdateManyInput = {
@@ -43686,6 +43736,8 @@ export namespace Prisma {
     buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
     buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     buttonMessageText?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonRepostMode?: StringFieldUpdateOperationsInput | string
+    lastButtonRepostAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type EventCreateInput = {
@@ -45492,6 +45544,8 @@ export namespace Prisma {
     buttonEnabled?: SortOrder
     buttonMessageId?: SortOrder
     buttonMessageText?: SortOrder
+    buttonRepostMode?: SortOrder
+    lastButtonRepostAt?: SortOrder
   }
 
   export type EventChannelPresetMaxOrderByAggregateInput = {
@@ -45502,6 +45556,8 @@ export namespace Prisma {
     buttonEnabled?: SortOrder
     buttonMessageId?: SortOrder
     buttonMessageText?: SortOrder
+    buttonRepostMode?: SortOrder
+    lastButtonRepostAt?: SortOrder
   }
 
   export type EventChannelPresetMinOrderByAggregateInput = {
@@ -45512,6 +45568,8 @@ export namespace Prisma {
     buttonEnabled?: SortOrder
     buttonMessageId?: SortOrder
     buttonMessageText?: SortOrder
+    buttonRepostMode?: SortOrder
+    lastButtonRepostAt?: SortOrder
   }
 
   export type EventTimeOptionListRelationFilter = {
@@ -49511,6 +49569,8 @@ export namespace Prisma {
     buttonEnabled?: boolean
     buttonMessageId?: string | null
     buttonMessageText?: string | null
+    buttonRepostMode?: string
+    lastButtonRepostAt?: Date | string | null
   }
 
   export type EventChannelPresetUncheckedCreateWithoutGuildInput = {
@@ -49520,6 +49580,8 @@ export namespace Prisma {
     buttonEnabled?: boolean
     buttonMessageId?: string | null
     buttonMessageText?: string | null
+    buttonRepostMode?: string
+    lastButtonRepostAt?: Date | string | null
   }
 
   export type EventChannelPresetCreateOrConnectWithoutGuildInput = {
@@ -50024,6 +50086,8 @@ export namespace Prisma {
     buttonEnabled?: BoolFilter<"EventChannelPreset"> | boolean
     buttonMessageId?: StringNullableFilter<"EventChannelPreset"> | string | null
     buttonMessageText?: StringNullableFilter<"EventChannelPreset"> | string | null
+    buttonRepostMode?: StringFilter<"EventChannelPreset"> | string
+    lastButtonRepostAt?: DateTimeNullableFilter<"EventChannelPreset"> | Date | string | null
   }
 
   export type GuildApiKeyUpsertWithWhereUniqueWithoutGuildInput = {
@@ -54493,6 +54557,8 @@ export namespace Prisma {
     buttonEnabled?: boolean
     buttonMessageId?: string | null
     buttonMessageText?: string | null
+    buttonRepostMode?: string
+    lastButtonRepostAt?: Date | string | null
   }
 
   export type GuildApiKeyCreateManyGuildInput = {
@@ -54813,6 +54879,8 @@ export namespace Prisma {
     buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
     buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     buttonMessageText?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonRepostMode?: StringFieldUpdateOperationsInput | string
+    lastButtonRepostAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type EventChannelPresetUncheckedUpdateWithoutGuildInput = {
@@ -54822,6 +54890,8 @@ export namespace Prisma {
     buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
     buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     buttonMessageText?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonRepostMode?: StringFieldUpdateOperationsInput | string
+    lastButtonRepostAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type EventChannelPresetUncheckedUpdateManyWithoutGuildInput = {
@@ -54831,6 +54901,8 @@ export namespace Prisma {
     buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
     buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     buttonMessageText?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonRepostMode?: StringFieldUpdateOperationsInput | string
+    lastButtonRepostAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type GuildApiKeyUpdateWithoutGuildInput = {

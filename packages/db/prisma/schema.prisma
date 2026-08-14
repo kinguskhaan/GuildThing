@@ -462,6 +462,18 @@ model EventChannelPreset {
   // bot's built-in default (see EVENT_BUTTON_MESSAGE_TEXT in events.ts).
   buttonMessageText String?
 
+  // "live" (default) — the button reposts to the bottom of the channel on
+  // every new message (debounced, see scheduleEventButtonRepostOnMessage
+  // in events.ts), so it never gets buried but can spam an active channel.
+  // "daily" — the button is left wherever it drifts to as people chat, and
+  // only gets forced back to the bottom once every 24h (see
+  // repostDailyEventButtons in events.ts).
+  buttonRepostMode String @default("live")
+  // When the button message was last (re)posted, in either mode — the
+  // clock "daily" mode checks against. Set on every repost, including the
+  // very first post, so a fresh preset doesn't immediately re-fire.
+  lastButtonRepostAt DateTime?
+
   @@unique([guildId, discordChannelId])
 }
 
