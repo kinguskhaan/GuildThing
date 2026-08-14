@@ -456,8 +456,11 @@ model EventChannelPreset {
   // Whether the bot keeps a standing "Create new event" button message at
   // the bottom of this channel — same idea as Guild.onboardingChannelId's
   // button, for people who'd rather click than type /guildthing event.
-  buttonEnabled   Boolean @default(false)
-  buttonMessageId String?
+  buttonEnabled     Boolean @default(false)
+  buttonMessageId   String?
+  // Admin-customizable text shown above the button — null means use the
+  // bot's built-in default (see EVENT_BUTTON_MESSAGE_TEXT in events.ts).
+  buttonMessageText String?
 
   @@unique([guildId, discordChannelId])
 }

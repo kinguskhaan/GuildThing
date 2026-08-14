@@ -41,11 +41,66 @@ function ChannelSelect({
   );
 }
 
+const DEFAULT_BUTTON_TEXT =
+  'Click below to create a new event signup in this channel.\nYou can always use the `/guildthing event` command as well.';
+
+// Per-row editor for the text shown above a channel's "Create new event"
+// button — separate from the create-preset form below since it edits an
+// existing row in place rather than a new one.
+function ButtonMessageTextEditor({
+  guildId,
+  preset,
+}: {
+  guildId: string;
+  preset: {
+    id: string;
+    discordChannelId: string;
+    roles: string | null;
+    buttonEnabled: boolean;
+    buttonMessageText: string | null;
+  };
+}) {
+  const [text, setText] = useState(preset.buttonMessageText ?? "");
+  const utils = api.useUtils();
+  const save = api.event.setChannelPreset.useMutation({
+    onSuccess: async () => utils.event.channelPresets.invalidate({ guildId }),
+  });
+
+  return (
+    <div className="flex flex-col gap-1">
+      <textarea
+        className="bg-discord-elevated text-discord-text w-full rounded-lg px-3 py-2 text-sm"
+        rows={2}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder={DEFAULT_BUTTON_TEXT}
+      />
+      <button
+        type="button"
+        onClick={() =>
+          save.mutate({
+            guildId,
+            discordChannelId: preset.discordChannelId,
+            roles: preset.roles ?? undefined,
+            buttonEnabled: preset.buttonEnabled,
+            buttonMessageText: text.trim() === "" ? null : text,
+          })
+        }
+        disabled={save.isPending}
+        className="text-discord-text-muted hover:text-discord-text self-start text-xs underline disabled:opacity-50"
+      >
+        {save.isPending ? "Saving..." : "Save message text"}
+      </button>
+    </div>
+  );
+}
+
 export function GuildEventChannelPresets({ guildId }: { guildId: string }) {
   const [collapsed, setCollapsed] = useState(true);
   const [channelId, setChannelId] = useState("");
   const [roles, setRoles] = useState("");
   const [buttonEnabled, setButtonEnabled] = useState(false);
+  const [buttonMessageText, setButtonMessageText] = useState("");
 
   const channels = api.guild.discordChannelsForEvents.useQuery(
     { guildId },
@@ -63,6 +118,7 @@ export function GuildEventChannelPresets({ guildId }: { guildId: string }) {
       setChannelId("");
       setRoles("");
       setButtonEnabled(false);
+      setButtonMessageText("");
     },
   });
   const deletePreset = api.event.deleteChannelPreset.useMutation({
@@ -119,50 +175,55 @@ export function GuildEventChannelPresets({ guildId }: { guildId: string }) {
               {presets.data.map((p) => (
                 <li
                   key={p.id}
-                  className="bg-discord-base flex items-center justify-between gap-2 rounded-lg px-4 py-2"
+                  className="bg-discord-base flex flex-col gap-2 rounded-lg px-4 py-2"
                 >
-                  <div className="flex flex-col">
-                    <span className="font-semibold">
-                      {channelName(p.discordChannelId)}
-                    </span>
-                    {p.roles && (
-                      <span className="text-discord-text-muted text-sm">
-                        {p.roles}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-col">
+                      <span className="font-semibold">
+                        {channelName(p.discordChannelId)}
                       </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <label className="text-discord-text-muted flex items-center gap-1.5 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={p.buttonEnabled}
-                        onChange={() => toggleButton(p)}
-                        disabled={savePreset.isPending}
-                      />
-                      Button
-                    </label>
-                    {p.buttonEnabled && (
+                      {p.roles && (
+                        <span className="text-discord-text-muted text-sm">
+                          {p.roles}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <label className="text-discord-text-muted flex items-center gap-1.5 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={p.buttonEnabled}
+                          onChange={() => toggleButton(p)}
+                          disabled={savePreset.isPending}
+                        />
+                        Button
+                      </label>
+                      {p.buttonEnabled && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            repostButton.mutate({ guildId, id: p.id })
+                          }
+                          disabled={repostButton.isPending}
+                          className="text-discord-text-muted hover:text-discord-text text-xs underline disabled:opacity-50"
+                          title="Move the button back to the bottom of the channel"
+                        >
+                          ↓ Move to bottom
+                        </button>
+                      )}
                       <button
                         type="button"
-                        onClick={() =>
-                          repostButton.mutate({ guildId, id: p.id })
-                        }
-                        disabled={repostButton.isPending}
-                        className="text-discord-text-muted hover:text-discord-text text-xs underline disabled:opacity-50"
-                        title="Move the button back to the bottom of the channel"
+                        onClick={() => deletePreset.mutate({ guildId, id: p.id })}
+                        disabled={deletePreset.isPending}
+                        className="text-discord-text-muted hover:text-discord-red px-2 disabled:opacity-50"
                       >
-                        ↓ Move to bottom
+                        ✕
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => deletePreset.mutate({ guildId, id: p.id })}
-                      disabled={deletePreset.isPending}
-                      className="text-discord-text-muted hover:text-discord-red px-2 disabled:opacity-50"
-                    >
-                      ✕
-                    </button>
+                    </div>
                   </div>
+                  {p.buttonEnabled && (
+                    <ButtonMessageTextEditor guildId={guildId} preset={p} />
+                  )}
                 </li>
               ))}
             </ul>
@@ -189,6 +250,15 @@ export function GuildEventChannelPresets({ guildId }: { guildId: string }) {
             />
             Show a &quot;Create new event&quot; button in this channel
           </label>
+          {buttonEnabled && (
+            <textarea
+              className="bg-discord-base text-discord-text w-full rounded-lg px-3 py-2 text-sm"
+              rows={2}
+              value={buttonMessageText}
+              onChange={(e) => setButtonMessageText(e.target.value)}
+              placeholder={DEFAULT_BUTTON_TEXT}
+            />
+          )}
           <button
             type="button"
             onClick={() =>
@@ -197,6 +267,7 @@ export function GuildEventChannelPresets({ guildId }: { guildId: string }) {
                 discordChannelId: channelId,
                 roles: roles.trim() || undefined,
                 buttonEnabled,
+                buttonMessageText: buttonMessageText.trim() || null,
               })
             }
             disabled={savePreset.isPending || channelId.trim() === ""}

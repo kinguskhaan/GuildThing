@@ -196,6 +196,7 @@ export const eventRouter = createTRPCRouter({
         discordChannelId: z.string().min(1),
         roles: z.string().optional(),
         buttonEnabled: z.boolean(),
+        buttonMessageText: z.string().nullable().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -210,6 +211,14 @@ export const eventRouter = createTRPCRouter({
           : forbiddenOrRateLimited(retryAfterSeconds);
       }
 
+      // undefined ("not passed", e.g. the checkbox-only toggle in the UI)
+      // leaves an existing custom text untouched on update; null/empty
+      // explicitly clears it back to the bot's default.
+      const buttonMessageText =
+        input.buttonMessageText === undefined
+          ? undefined
+          : input.buttonMessageText?.trim() || null;
+
       await ctx.db.eventChannelPreset.upsert({
         where: {
           guildId_discordChannelId: {
@@ -222,10 +231,12 @@ export const eventRouter = createTRPCRouter({
           discordChannelId: input.discordChannelId,
           roles: input.roles ?? null,
           buttonEnabled: input.buttonEnabled,
+          buttonMessageText: buttonMessageText ?? null,
         },
         update: {
           roles: input.roles ?? null,
           buttonEnabled: input.buttonEnabled,
+          buttonMessageText,
         },
       });
       return { ok: true };

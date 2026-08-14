@@ -1626,9 +1626,9 @@ export const EVENT_CREATE_BUTTON_ID = "event-create-button";
 const EVENT_BUTTON_MESSAGE_TEXT =
   "Click below to create a new event signup in this channel.\nYou can always use the `/guildthing event` command as well.";
 
-function buildEventCreateButtonMessage() {
+function buildEventCreateButtonMessage(customText?: string | null) {
   return {
-    content: EVENT_BUTTON_MESSAGE_TEXT,
+    content: customText?.trim() || EVENT_BUTTON_MESSAGE_TEXT,
     components: [
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
@@ -1682,14 +1682,21 @@ export async function ensureEventCreateButtons(
       );
       if (!channel?.isTextBased()) continue;
 
+      const desired = buildEventCreateButtonMessage(preset.buttonMessageText);
+
       if (preset.buttonMessageId) {
         const existing = await channel.messages
           .fetch(preset.buttonMessageId)
           .catch(() => null);
-        if (existing) continue; // already posted, nothing to change
+        if (existing) {
+          if (existing.content !== desired.content) {
+            await existing.edit(desired);
+          }
+          continue;
+        }
       }
 
-      const message = await channel.send(buildEventCreateButtonMessage());
+      const message = await channel.send(desired);
       await db.eventChannelPreset.update({
         where: { id: preset.id },
         data: { buttonMessageId: message.id },
@@ -1790,7 +1797,9 @@ async function repostSingleEventButton(
       await stale?.delete().catch(() => {});
     }
 
-    const message = await channel.send(buildEventCreateButtonMessage());
+    const message = await channel.send(
+      buildEventCreateButtonMessage(preset.buttonMessageText),
+    );
     await db.eventChannelPreset.update({
       where: { id: preset.id },
       data: { buttonMessageId: message.id },

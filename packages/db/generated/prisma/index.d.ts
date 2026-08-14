@@ -25515,6 +25515,7 @@ export namespace Prisma {
     roles: string | null
     buttonEnabled: boolean | null
     buttonMessageId: string | null
+    buttonMessageText: string | null
   }
 
   export type EventChannelPresetMaxAggregateOutputType = {
@@ -25524,6 +25525,7 @@ export namespace Prisma {
     roles: string | null
     buttonEnabled: boolean | null
     buttonMessageId: string | null
+    buttonMessageText: string | null
   }
 
   export type EventChannelPresetCountAggregateOutputType = {
@@ -25533,6 +25535,7 @@ export namespace Prisma {
     roles: number
     buttonEnabled: number
     buttonMessageId: number
+    buttonMessageText: number
     _all: number
   }
 
@@ -25544,6 +25547,7 @@ export namespace Prisma {
     roles?: true
     buttonEnabled?: true
     buttonMessageId?: true
+    buttonMessageText?: true
   }
 
   export type EventChannelPresetMaxAggregateInputType = {
@@ -25553,6 +25557,7 @@ export namespace Prisma {
     roles?: true
     buttonEnabled?: true
     buttonMessageId?: true
+    buttonMessageText?: true
   }
 
   export type EventChannelPresetCountAggregateInputType = {
@@ -25562,6 +25567,7 @@ export namespace Prisma {
     roles?: true
     buttonEnabled?: true
     buttonMessageId?: true
+    buttonMessageText?: true
     _all?: true
   }
 
@@ -25644,6 +25650,7 @@ export namespace Prisma {
     roles: string | null
     buttonEnabled: boolean
     buttonMessageId: string | null
+    buttonMessageText: string | null
     _count: EventChannelPresetCountAggregateOutputType | null
     _min: EventChannelPresetMinAggregateOutputType | null
     _max: EventChannelPresetMaxAggregateOutputType | null
@@ -25670,6 +25677,7 @@ export namespace Prisma {
     roles?: boolean
     buttonEnabled?: boolean
     buttonMessageId?: boolean
+    buttonMessageText?: boolean
     guild?: boolean | GuildDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["eventChannelPreset"]>
 
@@ -25680,6 +25688,7 @@ export namespace Prisma {
     roles?: boolean
     buttonEnabled?: boolean
     buttonMessageId?: boolean
+    buttonMessageText?: boolean
     guild?: boolean | GuildDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["eventChannelPreset"]>
 
@@ -25690,6 +25699,7 @@ export namespace Prisma {
     roles?: boolean
     buttonEnabled?: boolean
     buttonMessageId?: boolean
+    buttonMessageText?: boolean
     guild?: boolean | GuildDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["eventChannelPreset"]>
 
@@ -25700,9 +25710,10 @@ export namespace Prisma {
     roles?: boolean
     buttonEnabled?: boolean
     buttonMessageId?: boolean
+    buttonMessageText?: boolean
   }
 
-  export type EventChannelPresetOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "discordChannelId" | "roles" | "buttonEnabled" | "buttonMessageId", ExtArgs["result"]["eventChannelPreset"]>
+  export type EventChannelPresetOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "discordChannelId" | "roles" | "buttonEnabled" | "buttonMessageId" | "buttonMessageText", ExtArgs["result"]["eventChannelPreset"]>
   export type EventChannelPresetInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     guild?: boolean | GuildDefaultArgs<ExtArgs>
   }
@@ -25725,6 +25736,7 @@ export namespace Prisma {
       roles: string | null
       buttonEnabled: boolean
       buttonMessageId: string | null
+      buttonMessageText: string | null
     }, ExtArgs["result"]["eventChannelPreset"]>
     composites: {}
   }
@@ -26155,6 +26167,7 @@ export namespace Prisma {
     readonly roles: FieldRef<"EventChannelPreset", 'String'>
     readonly buttonEnabled: FieldRef<"EventChannelPreset", 'Boolean'>
     readonly buttonMessageId: FieldRef<"EventChannelPreset", 'String'>
+    readonly buttonMessageText: FieldRef<"EventChannelPreset", 'String'>
   }
     
 
@@ -39861,7 +39874,8 @@ export namespace Prisma {
     discordChannelId: 'discordChannelId',
     roles: 'roles',
     buttonEnabled: 'buttonEnabled',
-    buttonMessageId: 'buttonMessageId'
+    buttonMessageId: 'buttonMessageId',
+    buttonMessageText: 'buttonMessageText'
   };
 
   export type EventChannelPresetScalarFieldEnum = (typeof EventChannelPresetScalarFieldEnum)[keyof typeof EventChannelPresetScalarFieldEnum]
@@ -41399,6 +41413,7 @@ export namespace Prisma {
     roles?: StringNullableFilter<"EventChannelPreset"> | string | null
     buttonEnabled?: BoolFilter<"EventChannelPreset"> | boolean
     buttonMessageId?: StringNullableFilter<"EventChannelPreset"> | string | null
+    buttonMessageText?: StringNullableFilter<"EventChannelPreset"> | string | null
     guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
   }
 
@@ -41409,6 +41424,7 @@ export namespace Prisma {
     roles?: SortOrderInput | SortOrder
     buttonEnabled?: SortOrder
     buttonMessageId?: SortOrderInput | SortOrder
+    buttonMessageText?: SortOrderInput | SortOrder
     guild?: GuildOrderByWithRelationInput
   }
 
@@ -41423,6 +41439,7 @@ export namespace Prisma {
     roles?: StringNullableFilter<"EventChannelPreset"> | string | null
     buttonEnabled?: BoolFilter<"EventChannelPreset"> | boolean
     buttonMessageId?: StringNullableFilter<"EventChannelPreset"> | string | null
+    buttonMessageText?: StringNullableFilter<"EventChannelPreset"> | string | null
     guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
   }, "id" | "guildId_discordChannelId">
 
@@ -41433,6 +41450,7 @@ export namespace Prisma {
     roles?: SortOrderInput | SortOrder
     buttonEnabled?: SortOrder
     buttonMessageId?: SortOrderInput | SortOrder
+    buttonMessageText?: SortOrderInput | SortOrder
     _count?: EventChannelPresetCountOrderByAggregateInput
     _max?: EventChannelPresetMaxOrderByAggregateInput
     _min?: EventChannelPresetMinOrderByAggregateInput
@@ -41448,6 +41466,7 @@ export namespace Prisma {
     roles?: StringNullableWithAggregatesFilter<"EventChannelPreset"> | string | null
     buttonEnabled?: BoolWithAggregatesFilter<"EventChannelPreset"> | boolean
     buttonMessageId?: StringNullableWithAggregatesFilter<"EventChannelPreset"> | string | null
+    buttonMessageText?: StringNullableWithAggregatesFilter<"EventChannelPreset"> | string | null
   }
 
   export type EventWhereInput = {
@@ -43606,6 +43625,7 @@ export namespace Prisma {
     roles?: string | null
     buttonEnabled?: boolean
     buttonMessageId?: string | null
+    buttonMessageText?: string | null
     guild: GuildCreateNestedOneWithoutEventChannelPresetsInput
   }
 
@@ -43616,6 +43636,7 @@ export namespace Prisma {
     roles?: string | null
     buttonEnabled?: boolean
     buttonMessageId?: string | null
+    buttonMessageText?: string | null
   }
 
   export type EventChannelPresetUpdateInput = {
@@ -43624,6 +43645,7 @@ export namespace Prisma {
     roles?: NullableStringFieldUpdateOperationsInput | string | null
     buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
     buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonMessageText?: NullableStringFieldUpdateOperationsInput | string | null
     guild?: GuildUpdateOneRequiredWithoutEventChannelPresetsNestedInput
   }
 
@@ -43634,6 +43656,7 @@ export namespace Prisma {
     roles?: NullableStringFieldUpdateOperationsInput | string | null
     buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
     buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonMessageText?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EventChannelPresetCreateManyInput = {
@@ -43643,6 +43666,7 @@ export namespace Prisma {
     roles?: string | null
     buttonEnabled?: boolean
     buttonMessageId?: string | null
+    buttonMessageText?: string | null
   }
 
   export type EventChannelPresetUpdateManyMutationInput = {
@@ -43651,6 +43675,7 @@ export namespace Prisma {
     roles?: NullableStringFieldUpdateOperationsInput | string | null
     buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
     buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonMessageText?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EventChannelPresetUncheckedUpdateManyInput = {
@@ -43660,6 +43685,7 @@ export namespace Prisma {
     roles?: NullableStringFieldUpdateOperationsInput | string | null
     buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
     buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonMessageText?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EventCreateInput = {
@@ -45465,6 +45491,7 @@ export namespace Prisma {
     roles?: SortOrder
     buttonEnabled?: SortOrder
     buttonMessageId?: SortOrder
+    buttonMessageText?: SortOrder
   }
 
   export type EventChannelPresetMaxOrderByAggregateInput = {
@@ -45474,6 +45501,7 @@ export namespace Prisma {
     roles?: SortOrder
     buttonEnabled?: SortOrder
     buttonMessageId?: SortOrder
+    buttonMessageText?: SortOrder
   }
 
   export type EventChannelPresetMinOrderByAggregateInput = {
@@ -45483,6 +45511,7 @@ export namespace Prisma {
     roles?: SortOrder
     buttonEnabled?: SortOrder
     buttonMessageId?: SortOrder
+    buttonMessageText?: SortOrder
   }
 
   export type EventTimeOptionListRelationFilter = {
@@ -49481,6 +49510,7 @@ export namespace Prisma {
     roles?: string | null
     buttonEnabled?: boolean
     buttonMessageId?: string | null
+    buttonMessageText?: string | null
   }
 
   export type EventChannelPresetUncheckedCreateWithoutGuildInput = {
@@ -49489,6 +49519,7 @@ export namespace Prisma {
     roles?: string | null
     buttonEnabled?: boolean
     buttonMessageId?: string | null
+    buttonMessageText?: string | null
   }
 
   export type EventChannelPresetCreateOrConnectWithoutGuildInput = {
@@ -49992,6 +50023,7 @@ export namespace Prisma {
     roles?: StringNullableFilter<"EventChannelPreset"> | string | null
     buttonEnabled?: BoolFilter<"EventChannelPreset"> | boolean
     buttonMessageId?: StringNullableFilter<"EventChannelPreset"> | string | null
+    buttonMessageText?: StringNullableFilter<"EventChannelPreset"> | string | null
   }
 
   export type GuildApiKeyUpsertWithWhereUniqueWithoutGuildInput = {
@@ -54460,6 +54492,7 @@ export namespace Prisma {
     roles?: string | null
     buttonEnabled?: boolean
     buttonMessageId?: string | null
+    buttonMessageText?: string | null
   }
 
   export type GuildApiKeyCreateManyGuildInput = {
@@ -54779,6 +54812,7 @@ export namespace Prisma {
     roles?: NullableStringFieldUpdateOperationsInput | string | null
     buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
     buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonMessageText?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EventChannelPresetUncheckedUpdateWithoutGuildInput = {
@@ -54787,6 +54821,7 @@ export namespace Prisma {
     roles?: NullableStringFieldUpdateOperationsInput | string | null
     buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
     buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonMessageText?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EventChannelPresetUncheckedUpdateManyWithoutGuildInput = {
@@ -54795,6 +54830,7 @@ export namespace Prisma {
     roles?: NullableStringFieldUpdateOperationsInput | string | null
     buttonEnabled?: BoolFieldUpdateOperationsInput | boolean
     buttonMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    buttonMessageText?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type GuildApiKeyUpdateWithoutGuildInput = {

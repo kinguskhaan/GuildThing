@@ -1192,7 +1192,7 @@ export const guildRouter = createTRPCRouter({
         .filter((m) => !m.bot)
         .filter((m) => !pugIds.has(m.id))
         .filter((m) => !claimedIds.has(m.id))
-        .map((m) => ({ id: m.id, tag: m.tag }));
+        .map((m) => ({ id: m.id, tag: m.tag, roleIds: m.roleIds }));
     }),
 
   // DMs each given member a reminder to onboard, via the bot's own token

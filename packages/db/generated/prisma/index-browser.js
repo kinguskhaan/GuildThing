@@ -313,7 +313,8 @@ exports.Prisma.EventChannelPresetScalarFieldEnum = {
   discordChannelId: 'discordChannelId',
   roles: 'roles',
   buttonEnabled: 'buttonEnabled',
-  buttonMessageId: 'buttonMessageId'
+  buttonMessageId: 'buttonMessageId',
+  buttonMessageText: 'buttonMessageText'
 };
 
 exports.Prisma.EventScalarFieldEnum = {

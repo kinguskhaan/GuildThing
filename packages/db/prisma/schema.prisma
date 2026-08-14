@@ -458,6 +458,9 @@ model EventChannelPreset {
   // button, for people who'd rather click than type /guildthing event.
   buttonEnabled   Boolean @default(false)
   buttonMessageId String?
+  // Admin-customizable text shown above the button — null means use the
+  // bot's built-in default (see EVENT_BUTTON_MESSAGE_TEXT in events.ts).
+  buttonMessageText String?
 
   @@unique([guildId, discordChannelId])
 }

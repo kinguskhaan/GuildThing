@@ -16,6 +16,7 @@ export function GuildUnclaimedMembers({
 }) {
   const [collapsed, setCollapsed] = useState(true);
   const [assignRoleId, setAssignRoleId] = useState("");
+  const [filterRoleId, setFilterRoleId] = useState("");
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(members.map((m) => m.id)),
   );
@@ -45,7 +46,15 @@ export function GuildUnclaimedMembers({
     });
   }
 
-  const memberIds = [...selected];
+  // Role filter narrows which members are shown/actionable, independent of
+  // the selection set — so switching filters doesn't clobber picks made
+  // under a different filter.
+  const visibleMembers = filterRoleId
+    ? members.filter((m) => m.roleIds.includes(filterRoleId))
+    : members;
+  const memberIds = visibleMembers
+    .filter((m) => selected.has(m.id))
+    .map((m) => m.id);
 
   return (
     <div className="flex w-full flex-col gap-2 rounded-xl bg-discord-elevated p-4">
@@ -69,8 +78,22 @@ export function GuildUnclaimedMembers({
             the actions below.
           </p>
           <div className="flex flex-wrap items-center gap-2">
+            <select
+              className="rounded-full bg-discord-base px-4 py-1.5 text-sm text-discord-text"
+              value={filterRoleId}
+              onChange={(e) => setFilterRoleId(e.target.value)}
+            >
+              <option value="">Filter by role (all)</option>
+              {discordRoles.data?.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
             <ul className="flex flex-wrap gap-2">
-              {members.map((m) => {
+              {visibleMembers.map((m) => {
                 const isSelected = selected.has(m.id);
                 return (
                   <li key={m.id}>
@@ -92,14 +115,22 @@ export function GuildUnclaimedMembers({
             </ul>
             <button
               type="button"
-              onClick={() => setSelected(new Set(members.map((m) => m.id)))}
+              onClick={() =>
+                setSelected(new Set(visibleMembers.map((m) => m.id)))
+              }
               className="text-xs text-discord-text-muted underline hover:text-discord-text"
             >
               Select all
             </button>
             <button
               type="button"
-              onClick={() => setSelected(new Set())}
+              onClick={() =>
+                setSelected((s) => {
+                  const next = new Set(s);
+                  for (const m of visibleMembers) next.delete(m.id);
+                  return next;
+                })
+              }
               className="text-xs text-discord-text-muted underline hover:text-discord-text"
             >
               Select none
