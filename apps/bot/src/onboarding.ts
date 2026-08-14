@@ -242,19 +242,15 @@ async function askNicknameSelectionInteractive(
     return rows;
   }
 
-  const interaction = cursor.interaction;
-  if (interaction.isButton()) {
-    await interaction.update({
-      content: buildContent(),
-      components: buildComponents(),
-    });
-  } else {
-    await interaction.reply({
-      content: buildContent(),
-      components: buildComponents(),
-      flags: MessageFlags.Ephemeral,
-    });
-  }
+  // cursor.interaction is always already deferred by the time this runs —
+  // it's only reachable via applyNicknameAndRoles's chooseNicknameNames
+  // callback, after runOnboarding has deferred the cursor up front (see
+  // the comment there) — so this edits that deferred response rather than
+  // trying to make an initial reply/update, which would throw.
+  await cursor.interaction.editReply({
+    content: buildContent(),
+    components: buildComponents(),
+  });
 
   for (;;) {
     let clicked: ButtonInteraction;
@@ -526,6 +522,19 @@ async function runOnboarding(
   }
 
   const cursor = { interaction: finalInteraction as ChoiceInteraction };
+  // Nickname/role/channel changes below are a handful of sequential
+  // Discord API calls each (see applyChannelGrants looping every managed
+  // channel) — easily enough to blow past Discord's 3-second first-response
+  // window, which turns the eventual reply into an "Unknown interaction"
+  // (10062) and shows the user "did not respond in time" even though the
+  // bot's still working. Acknowledging now buys the full ~15min follow-up
+  // window instead; createNotifier already sends via followUp once
+  // interaction.deferred is set, so no change needed there.
+  await cursor.interaction.deferUpdate();
+  await cursor.interaction.editReply({
+    content: "Setting up your roles and nickname…",
+    components: [],
+  });
   const notify = createNotifier(cursor);
   const { matchedCount, unmatchedCount } = await matchRosterAndApply(
     member,
