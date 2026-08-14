@@ -41,15 +41,17 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/apps/web/public ./apps/web/public
-# --chown matters here specifically: this directory is also the
-# sqlite-data volume's mount point (see docker-compose.yml) — Docker seeds
-# a fresh named volume from the image content at that path, ownership
-# included, and the container runs as the non-root `nextjs` user below, so
-# a root-owned seed means it can never create/open db.sqlite there.
-COPY --from=builder --chown=nextjs:nodejs /app/packages/db/prisma ./packages/db/prisma
+COPY --from=builder /app/packages/db/prisma ./packages/db/prisma
 COPY --from=builder /app/packages/db/generated ./packages/db/generated
 
 RUN mkdir -p apps/web/.next && chown nextjs:nodejs apps/web/.next
+# sqlite-data volume mount point (see docker-compose.yml) — deliberately
+# separate from packages/db/prisma (schema.prisma lives there) so the
+# volume never shadows the image's schema on later deploys. A fresh named
+# volume is seeded from whatever's here, ownership included, and the
+# container runs as the non-root `nextjs` user, so this needs to exist
+# and be owned by it ahead of time.
+RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
 
 # Next's standalone output (built with outputFileTracingRoot pointing at the
 # monorepo root, see apps/web/next.config.js) mirrors the workspace layout —
@@ -93,14 +95,15 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 bot
 
-# --chown matters here specifically — see the matching comment on the
-# runner stage above (same sqlite-data volume, mounted at this same path).
-COPY --from=builder --chown=bot:nodejs /app/packages/db/prisma ./packages/db/prisma
+COPY --from=builder /app/packages/db/prisma ./packages/db/prisma
 COPY --from=builder /app/packages/db/generated ./packages/db/generated
 COPY --from=builder /app/packages/db/src ./packages/db/src
 COPY --from=builder /app/packages/db/package.json ./packages/db/package.json
 COPY --from=builder /app/apps/bot/src ./apps/bot/src
 COPY --from=builder /app/apps/bot/package.json ./apps/bot/package.json
+# See the matching comment on the runner stage above — same sqlite-data
+# volume, deliberately not mounted over packages/db/prisma.
+RUN mkdir -p /app/data && chown bot:nodejs /app/data
 
 # Root node_modules for its .pnpm virtual store (the packages/db and
 # apps/bot bin shims below both resolve into it) and root-level tsx;

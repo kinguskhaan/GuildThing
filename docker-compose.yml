@@ -13,9 +13,17 @@ services:
       # Must be absolute, see the comment in .env.example — WORKDIR is /app,
       # so this is unambiguous for both the Prisma CLI (docker-entrypoint.sh)
       # and the Next.js runtime, unlike a relative file: URL would be.
-      DATABASE_URL: "file:/app/packages/db/prisma/db.sqlite"
+      #
+      # Deliberately NOT under packages/db/prisma (where schema.prisma also
+      # lives) — a named volume mounted over that directory only gets
+      # seeded from the image on first creation, so on every later deploy
+      # it would keep shadowing the freshly-built schema.prisma with
+      # whatever version was baked into the image the volume was first
+      # created from, silently freezing migrations. /app/data holds only
+      # the db file, so schema.prisma always comes from the current image.
+      DATABASE_URL: "file:/app/data/db.sqlite"
     volumes:
-      - sqlite-data:/app/packages/db/prisma
+      - sqlite-data:/app/data
     restart: unless-stopped
 
   bot:
@@ -25,9 +33,9 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: "file:/app/packages/db/prisma/db.sqlite"
+      DATABASE_URL: "file:/app/data/db.sqlite"
     volumes:
-      - sqlite-data:/app/packages/db/prisma
+      - sqlite-data:/app/data
     # Soft ordering, not a guarantee — both containers' entrypoints run
     # `prisma db push` against the same file on startup (harmless if it
     # races, worst case a transient "database is locked" that a restart
