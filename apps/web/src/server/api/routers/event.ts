@@ -214,10 +214,13 @@ export const eventRouter = createTRPCRouter({
       // undefined ("not passed", e.g. the checkbox-only toggle in the UI)
       // leaves an existing custom text untouched on update; null/empty
       // explicitly clears it back to the bot's default.
+      const trimmedButtonMessageText = input.buttonMessageText?.trim();
       const buttonMessageText =
         input.buttonMessageText === undefined
           ? undefined
-          : input.buttonMessageText?.trim() || null;
+          : trimmedButtonMessageText === ""
+            ? null
+            : (trimmedButtonMessageText ?? null);
 
       await ctx.db.eventChannelPreset.upsert({
         where: {
