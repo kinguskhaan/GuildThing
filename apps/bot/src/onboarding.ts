@@ -15,7 +15,6 @@ import {
 
 import { db } from "@guildthing/db";
 
-import { lookupCharacter } from "./battlenetApi.js";
 import {
   applyNicknameAndRoles,
   MAX_NICKNAME_LENGTH,
@@ -51,7 +50,10 @@ const activeOnboarding = new Set<string>();
 // whether the person has server-member DMs enabled. A "cursor" tracks the
 // most recent not-yet-acknowledged interaction; each step consumes it and
 // produces a new one.
-type ChoiceInteraction = ButtonInteraction | ModalSubmitInteraction;
+type ChoiceInteraction =
+  | ButtonInteraction
+  | ModalSubmitInteraction
+  | ChatInputCommandInteraction;
 type ModalTriggerInteraction = ButtonInteraction | ChatInputCommandInteraction;
 
 // Shows a single-field modal and waits for it to be submitted. Must be
@@ -380,24 +382,18 @@ async function runOnboarding(
     return;
   }
 
-  const mainNameResult = await askTextModal(
-    triggerInteraction,
-    `Welcome to ${discordGuild.name}!`,
-    "Exact character name (this guild)",
-    "Not a nickname — the real character name in-game, must be a member of this guild.",
-  );
-  if (mainNameResult == null) return;
-  const mainName = mainNameResult.value;
-
-  // Only asked at all if the guild has PUGs turned on — otherwise there's
-  // no meaningful choice to make (nowhere to route a "PUG" answer to), so
-  // skip straight into the guild-member flow instead of asking a question
-  // with only one real answer.
-  let hasAltsTrigger: ChoiceInteraction = mainNameResult.interaction;
-
+  // Asked first, before any name — so the name modal right after can be
+  // worded correctly for whichever path they're on (a PUG doesn't need to
+  // be told "must be a member of this guild"). Only asked at all if the
+  // guild has PUGs turned on — otherwise there's no meaningful choice to
+  // make (nowhere to route a "PUG" answer to), so skip straight into the
+  // guild-member flow instead of asking a question with only one real
+  // answer.
+  let affiliationTrigger: ModalTriggerInteraction = triggerInteraction;
+  let isPug = false;
   if (guild.pugEnabled) {
     const affiliationResult = await askChoice(
-      mainNameResult.interaction,
+      triggerInteraction,
       "Are you a guild member, or are you here to join a PUG?",
       [
         { id: "guild", label: "Guild member", primary: true },
@@ -405,107 +401,50 @@ async function runOnboarding(
       ],
     );
     if (affiliationResult == null) return;
+    isPug = affiliationResult.value === "pug";
+    affiliationTrigger = affiliationResult.interaction;
+  }
 
-    if (affiliationResult.value === "pug") {
-      let pugName = mainName;
-      let pugCursor: ChoiceInteraction = affiliationResult.interaction;
+  if (isPug) {
+    // No Battle.net verification here — PUGs aren't tracked against the
+    // roster or granted anything beyond a flat role, so there's nothing a
+    // lookup would change; just take the name as typed.
+    const pugNameResult = await askTextModal(
+      affiliationTrigger,
+      "Please enter exact ingame character name",
+      "Must be a real in-game character",
+      "Not a nickname people call you",
+    );
+    if (pugNameResult == null) return;
 
-      // A character must actually exist in-game to join as a PUG — same
-      // "must be the exact character name, not a nickname" enforcement as
-      // guild members get, just gating entry outright here instead of
-      // just flagging it. Only possible when the guild has armory lookup
-      // configured (see Guild.wowRegion etc.); otherwise falls back to
-      // trusting what they typed, same as before this existed.
-      const armoryConfig =
-        guild.wowRegion &&
-        guild.wowRealmSlug &&
-        guild.wowGuildName &&
-        guild.wowNamespaceFlavor
-          ? {
-              region: guild.wowRegion,
-              realmSlug: guild.wowRealmSlug,
-              guildName: guild.wowGuildName,
-              flavor: guild.wowNamespaceFlavor,
-            }
-          : null;
-
-      if (armoryConfig) {
-        for (;;) {
-          const lookup = await lookupCharacter(
-            armoryConfig.region,
-            armoryConfig.realmSlug,
-            pugName,
-            armoryConfig.flavor,
-            armoryConfig.guildName,
-          );
-          if (lookup.status === "unavailable") break; // can't verify right now — don't block on an outage
-          if (lookup.status !== "not_found") {
-            pugName = lookup.name; // Battle.net's canonical spelling/casing
-            break;
-          }
-
-          const retryResult = await askChoice(
-            pugCursor,
-            `I couldn't find a character named "${pugName}" in-game. Want to try a different name?`,
-            [
-              { id: "retry", label: "Try again", primary: true },
-              { id: "cancel", label: "Cancel" },
-            ],
-          );
-          if (retryResult == null) return;
-          if (retryResult.value === "cancel") {
-            await retryResult.interaction
-              .update({
-                content:
-                  "No problem — run `/onboarding` again whenever you're ready.",
-                components: [],
-              })
-              .catch(() => {});
-            return;
-          }
-          const nameResult = await askTextModal(
-            retryResult.interaction,
-            "Character name",
-            "Exact character name",
-            "Not a nickname — the real character name as it appears in-game.",
-          );
-          if (nameResult == null) return;
-          pugName = nameResult.value;
-          pugCursor = nameResult.interaction;
-        }
-      }
-
-      const cursor = { interaction: pugCursor };
-      await applyNicknameAndRoles(
-        member,
-        guild.id,
-        [pugName],
-        guild.pugRoleId ? [guild.pugRoleId] : [],
-        [],
-        { notify: createNotifier(cursor) },
-      );
-      // The authoritative "chose PUG" record — independent of whether a PUG
-      // role is even configured, or whether the role assignment above
-      // actually succeeded — so the site's "hasn't claimed a character" view
-      // can correctly exclude them either way.
-      await db.guildPugMember.upsert({
-        where: {
-          guildId_discordUserId: {
-            guildId: guild.id,
-            discordUserId: member.id,
-          },
-        },
-        create: {
+    const cursor = { interaction: pugNameResult.interaction };
+    await applyNicknameAndRoles(
+      member,
+      guild.id,
+      [pugNameResult.value],
+      guild.pugRoleId ? [guild.pugRoleId] : [],
+      [],
+      { notify: createNotifier(cursor) },
+    );
+    // The authoritative "chose PUG" record — independent of whether a PUG
+    // role is even configured, or whether the role assignment above
+    // actually succeeded — so the site's "hasn't claimed a character" view
+    // can correctly exclude them either way.
+    await db.guildPugMember.upsert({
+      where: {
+        guildId_discordUserId: {
           guildId: guild.id,
           discordUserId: member.id,
-          discordUserTag: member.user.tag,
         },
-        update: { discordUserTag: member.user.tag },
-      });
-      return;
-    }
-
-    hasAltsTrigger = affiliationResult.interaction;
+      },
+      create: {
+        guildId: guild.id,
+        discordUserId: member.id,
+        discordUserTag: member.user.tag,
+      },
+      update: { discordUserTag: member.user.tag },
+    });
+    return;
   }
 
   // They're onboarding as a guild member now — clear any stale "chose PUG"
@@ -514,16 +453,25 @@ async function runOnboarding(
     .deleteMany({ where: { guildId: guild.id, discordUserId: member.id } })
     .catch(() => {});
 
+  const mainNameResult = await askTextModal(
+    affiliationTrigger,
+    "Enter exact character name",
+    "Must be a member of this guild",
+    "Not a nickname people call you",
+  );
+  if (mainNameResult == null) return;
+  const mainName = mainNameResult.value;
+
   // A play group with no in-game guild has no addon to read class from —
   // ask for it directly instead. Addon-sourced guilds get class from the
   // roster row once matched, so this is skipped entirely for them.
   const onboardingBuildsRoster = guild.rosterSource === "onboarding";
 
   let mainClass: string | null = null;
-  let classTrigger: ChoiceInteraction = hasAltsTrigger;
+  let classTrigger: ChoiceInteraction = mainNameResult.interaction;
   if (onboardingBuildsRoster) {
     const classResult = await askChoice(
-      hasAltsTrigger,
+      mainNameResult.interaction,
       `What class is **${mainName}**?`,
       WOW_CLASS_CHOICES,
     );
@@ -545,9 +493,9 @@ async function runOnboarding(
     while (addingAlts) {
       const altResult = await askTextModal(
         lastChoice,
-        "Add an alt",
-        "Exact alt character name (this guild)",
-        "Not a nickname — the real character name in-game, must be a member of this guild.",
+        "Alt's exact character name ingame",
+        "Must be a real in-game character",
+        "Not a nickname people call you",
       );
       if (altResult == null) return;
 
