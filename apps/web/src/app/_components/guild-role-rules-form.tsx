@@ -201,13 +201,15 @@ function ChannelGrantSelect({
   );
 }
 
-// "Who has role X right now, and do I want to keep it that way" — an audit/
-// cleanup view, separate from the rule-driven sync (unchecking someone here
-// only sticks if no GuildRoleRule still grants them the role; otherwise the
-// next sync re-adds it, same as any other manually-touched managed role).
-// Batched on purpose: unchecking just stages a pending removal locally,
-// nothing hits Discord until "Apply changes" — so a wrong click doesn't
-// immediately cost someone their role.
+// "Who has role X right now, and what else do they hold" — an audit/cleanup
+// grid, separate from the rule-driven sync (a change here only sticks if no
+// GuildRoleRule still grants that person that role; otherwise the next sync
+// puts it right back, same as any other manually-touched managed role).
+// Columns are every role that appears among the filtered members (not just
+// the filter role itself) — filtering to Core Raider but toggling PUG off
+// for all of them, say, is exactly what this is for. Batched on purpose:
+// toggling a cell only stages a change locally, nothing hits Discord until
+// "Apply changes".
 function MembersByRolePanel({
   guildId,
   roles,
@@ -215,100 +217,195 @@ function MembersByRolePanel({
   guildId: string;
   roles: { id: string; name: string }[] | undefined;
 }) {
-  const [roleId, setRoleId] = useState("");
-  // Member ids staged for removal (unchecked) — cleared whenever the
-  // selected role changes or an apply completes.
-  const [pendingRemoval, setPendingRemoval] = useState<Set<string>>(
-    new Set(),
-  );
+  const [filterRoleId, setFilterRoleId] = useState("");
+  // Staged desired state: memberId -> Set of roleIds they should end up
+  // with. Absent memberId = "use their current roles unmodified" (the
+  // common case — most cells never get touched). Reset whenever the filter
+  // changes or an apply completes, since both invalidate the baseline.
+  const [desired, setDesired] = useState<Map<string, Set<string>>>(new Map());
 
   const utils = api.useUtils();
   const members = api.guild.membersWithRole.useQuery(
-    { guildId, discordRoleId: roleId },
-    { enabled: roleId !== "" },
+    { guildId, discordRoleId: filterRoleId },
+    { enabled: filterRoleId !== "" },
   );
-  const apply = api.guild.removeRoleFromMembers.useMutation({
+  const apply = api.guild.applyMemberRoleChanges.useMutation({
     onSuccess: async () => {
-      setPendingRemoval(new Set());
+      setDesired(new Map());
       await utils.guild.membersWithRole.invalidate({
         guildId,
-        discordRoleId: roleId,
+        discordRoleId: filterRoleId,
       });
     },
   });
 
-  function selectRole(id: string) {
-    setRoleId(id);
-    setPendingRemoval(new Set());
+  function selectFilterRole(id: string) {
+    setFilterRoleId(id);
+    setDesired(new Map());
   }
 
-  function toggle(memberId: string) {
-    setPendingRemoval((ids) => {
-      const next = new Set(ids);
-      if (next.has(memberId)) next.delete(memberId);
-      else next.add(memberId);
+  function currentRoles(memberId: string, actual: string[]): Set<string> {
+    return desired.get(memberId) ?? new Set(actual);
+  }
+
+  function toggleCell(memberId: string, roleId: string, actual: string[]) {
+    setDesired((prev) => {
+      const next = new Map(prev);
+      const roleSet = new Set(currentRoles(memberId, actual));
+      if (roleSet.has(roleId)) roleSet.delete(roleId);
+      else roleSet.add(roleId);
+      next.set(memberId, roleSet);
       return next;
     });
   }
 
-  const roleName = roles?.find((r) => r.id === roleId)?.name;
+  // Columns = every role any filtered member currently holds, in the
+  // guild's own role order (roles is already position-sorted).
+  const columnIds = (() => {
+    const present = new Set<string>();
+    for (const m of members.data ?? []) {
+      for (const id of m.roleIds) present.add(id);
+    }
+    return (roles ?? [])
+      .map((r) => r.id)
+      .filter((id) => present.has(id));
+  })();
+
+  function columnState(roleId: string): "all" | "none" | "mixed" {
+    const rows = members.data ?? [];
+    if (rows.length === 0) return "none";
+    let checked = 0;
+    for (const m of rows) {
+      if (currentRoles(m.id, m.roleIds).has(roleId)) checked++;
+    }
+    if (checked === 0) return "none";
+    if (checked === rows.length) return "all";
+    return "mixed";
+  }
+
+  function toggleColumn(roleId: string) {
+    const rows = members.data ?? [];
+    const setTo = columnState(roleId) !== "all"; // mixed or none -> check all; all -> uncheck all
+    setDesired((prev) => {
+      const next = new Map(prev);
+      for (const m of rows) {
+        const roleSet = new Set(currentRoles(m.id, m.roleIds));
+        if (setTo) roleSet.add(roleId);
+        else roleSet.delete(roleId);
+        next.set(m.id, roleSet);
+      }
+      return next;
+    });
+  }
+
+  const filterRoleName = roles?.find((r) => r.id === filterRoleId)?.name;
+  const roleName = (id: string) => roles?.find((r) => r.id === id)?.name ?? id;
+
+  // Every (member, role) cell whose staged state differs from what Discord
+  // actually has — this IS the change set apply sends, one entry per cell.
+  const changes = (members.data ?? []).flatMap((m) => {
+    const staged = desired.get(m.id);
+    if (!staged) return [];
+    const actual = new Set(m.roleIds);
+    const diffs: { discordUserId: string; discordRoleId: string; add: boolean }[] =
+      [];
+    for (const roleId of columnIds) {
+      const wants = staged.has(roleId);
+      const has = actual.has(roleId);
+      if (wants !== has) {
+        diffs.push({ discordUserId: m.id, discordRoleId: roleId, add: wants });
+      }
+    }
+    return diffs;
+  });
 
   return (
     <div className="bg-discord-elevated flex flex-col gap-3 rounded-xl p-6">
       <h3 className="font-bold">Members by role</h3>
       <p className="text-discord-text-muted text-sm">
-        Pick a role to see everyone who currently holds it, uncheck the ones
-        who shouldn&apos;t, then apply — nothing changes in Discord until you
-        do. Only sticks for people no rule still grants this role to;
-        otherwise the next sync brings it right back.
+        Filter to everyone holding a role, see (and edit) everything else
+        they hold alongside it. Toggle a column header to check/uncheck that
+        role for every row at once. Nothing changes in Discord until you
+        apply — and a change only sticks if no rule still grants that
+        role/person combination; otherwise the next sync reverts it.
       </p>
       <RoleSelect
-        value={roleId}
-        onChange={selectRole}
+        value={filterRoleId}
+        onChange={selectFilterRole}
         roles={roles}
-        placeholder="Select a role"
+        placeholder="Filter by role"
       />
 
-      {roleId !== "" && members.isLoading && (
+      {filterRoleId !== "" && members.isLoading && (
         <p className="text-discord-text-muted text-sm">Loading...</p>
       )}
-      {roleId !== "" && members.data?.length === 0 && (
+      {filterRoleId !== "" && members.data?.length === 0 && (
         <p className="text-discord-text-muted text-sm">
-          Nobody currently holds {roleName ?? "this role"}.
+          Nobody currently holds {filterRoleName ?? "this role"}.
         </p>
       )}
       {members.data && members.data.length > 0 && (
         <>
-          <ul className="flex max-h-80 flex-col gap-1 overflow-y-auto">
-            {members.data.map((m) => (
-              <li key={m.id}>
-                <label className="hover:bg-discord-base flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={!pendingRemoval.has(m.id)}
-                    onChange={() => toggle(m.id)}
-                  />
-                  {m.tag}
-                </label>
-              </li>
-            ))}
-          </ul>
+          <div className="max-h-96 overflow-auto rounded-lg">
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr>
+                  <th className="bg-discord-base sticky top-0 left-0 z-10 px-3 py-2 text-left font-semibold">
+                    Name
+                  </th>
+                  {columnIds.map((roleId) => {
+                    const state = columnState(roleId);
+                    return (
+                      <th
+                        key={roleId}
+                        className="bg-discord-base sticky top-0 px-3 py-2 text-left font-semibold whitespace-nowrap"
+                      >
+                        <label className="flex items-center gap-1.5">
+                          <input
+                            type="checkbox"
+                            checked={state === "all"}
+                            ref={(el) => {
+                              if (el) el.indeterminate = state === "mixed";
+                            }}
+                            onChange={() => toggleColumn(roleId)}
+                          />
+                          {roleName(roleId)}
+                        </label>
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {members.data.map((m) => (
+                  <tr key={m.id} className="hover:bg-discord-base">
+                    <td className="bg-discord-elevated sticky left-0 px-3 py-1.5 whitespace-nowrap">
+                      {m.tag}
+                    </td>
+                    {columnIds.map((roleId) => (
+                      <td key={roleId} className="px-3 py-1.5">
+                        <input
+                          type="checkbox"
+                          checked={currentRoles(m.id, m.roleIds).has(roleId)}
+                          onChange={() => toggleCell(m.id, roleId, m.roleIds)}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           <button
             type="button"
-            onClick={() =>
-              apply.mutate({
-                guildId,
-                discordRoleId: roleId,
-                memberIds: [...pendingRemoval],
-              })
-            }
-            disabled={apply.isPending || pendingRemoval.size === 0}
+            onClick={() => apply.mutate({ guildId, changes })}
+            disabled={apply.isPending || changes.length === 0}
             className="bg-discord-brand self-start rounded-full px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
           >
             {apply.isPending
               ? "Applying..."
-              : pendingRemoval.size > 0
-                ? `Apply changes (remove from ${pendingRemoval.size})`
+              : changes.length > 0
+                ? `Apply changes (${changes.length})`
                 : "Apply changes"}
           </button>
         </>
@@ -318,7 +415,7 @@ function MembersByRolePanel({
       )}
       {apply.isSuccess && (
         <p className="text-discord-green text-sm">
-          Removed from {apply.data.succeeded}
+          Applied {apply.data.succeeded}
           {apply.data.failed > 0 ? `, ${apply.data.failed} failed` : ""}.
         </p>
       )}

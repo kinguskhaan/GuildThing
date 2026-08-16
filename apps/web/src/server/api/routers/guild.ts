@@ -1258,10 +1258,13 @@ export const guildRouter = createTRPCRouter({
       return { succeeded, failed: results.length - succeeded };
     }),
 
-  // Every non-bot member currently holding discordRoleId — the "who has
-  // this role right now" audit view. Live against Discord (via the bot's
-  // token), not cached, since the whole point is trusting what's actually
-  // there over whatever the roster/rules last computed.
+  // Every non-bot member currently holding discordRoleId, with their FULL
+  // current role list (not just the filtered one) — the role-audit view
+  // filters down to "everyone with Core Raider", say, but also shows what
+  // else each of them holds (e.g. a stale PUG role) so an admin can clean
+  // up more than the one filtered role at a glance. Live against Discord
+  // (via the bot's token), not cached, since the whole point is trusting
+  // what's actually there over whatever the roster/rules last computed.
   membersWithRole: protectedProcedure
     .input(z.object({ guildId: z.string(), discordRoleId: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
@@ -1276,21 +1279,29 @@ export const guildRouter = createTRPCRouter({
       const members = await getGuildMembers(guild.discordGuildId);
       return members
         .filter((m) => !m.bot && m.roleIds.includes(input.discordRoleId))
-        .map((m) => ({ id: m.id, tag: m.tag }));
+        .map((m) => ({ id: m.id, tag: m.tag, roleIds: m.roleIds }));
     }),
 
-  // Revokes discordRoleId from every given member — the batch "apply" step
-  // for the role-audit view's unchecked rows. Mirrors assignRoleToMembers
-  // above; same failures-counted-not-thrown handling. Note this only
-  // touches Discord directly — if a GuildRoleRule still grants this role to
-  // one of these people, the next sync re-adds it (see removeRoleFromMember
-  // in discord.ts).
-  removeRoleFromMembers: protectedProcedure
+  // Applies a batch of per-member/per-role add-or-remove decisions from the
+  // role-audit view's grid (each cell there is one entry here) — one
+  // Discord API call per entry, failures counted rather than thrown so one
+  // bad id doesn't lose the rest. Only touches Discord directly: any role a
+  // GuildRoleRule still grants to a given person gets re-added by the next
+  // sync regardless of what's staged here, same as elsewhere this panel
+  // manages roles by hand.
+  applyMemberRoleChanges: protectedProcedure
     .input(
       z.object({
         guildId: z.string(),
-        memberIds: z.array(z.string()).min(1),
-        discordRoleId: z.string().min(1),
+        changes: z
+          .array(
+            z.object({
+              discordUserId: z.string().min(1),
+              discordRoleId: z.string().min(1),
+              add: z.boolean(),
+            }),
+          )
+          .min(1),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -1303,8 +1314,14 @@ export const guildRouter = createTRPCRouter({
       }
 
       const results = await Promise.all(
-        input.memberIds.map((id) =>
-          removeRoleFromMember(guild.discordGuildId, id, input.discordRoleId),
+        input.changes.map((c) =>
+          c.add
+            ? addRoleToMember(guild.discordGuildId, c.discordUserId, c.discordRoleId)
+            : removeRoleFromMember(
+                guild.discordGuildId,
+                c.discordUserId,
+                c.discordRoleId,
+              ),
         ),
       );
       const succeeded = results.filter(Boolean).length;
