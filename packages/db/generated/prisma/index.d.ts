@@ -16161,6 +16161,7 @@ export namespace Prisma {
     officerNote: string | null
     claimedByDiscordUserId: string | null
     claimedByDiscordTag: string | null
+    manuallyAdded: boolean | null
   }
 
   export type GuildRosterMemberMaxAggregateOutputType = {
@@ -16174,6 +16175,7 @@ export namespace Prisma {
     officerNote: string | null
     claimedByDiscordUserId: string | null
     claimedByDiscordTag: string | null
+    manuallyAdded: boolean | null
   }
 
   export type GuildRosterMemberCountAggregateOutputType = {
@@ -16187,6 +16189,7 @@ export namespace Prisma {
     officerNote: number
     claimedByDiscordUserId: number
     claimedByDiscordTag: number
+    manuallyAdded: number
     _all: number
   }
 
@@ -16210,6 +16213,7 @@ export namespace Prisma {
     officerNote?: true
     claimedByDiscordUserId?: true
     claimedByDiscordTag?: true
+    manuallyAdded?: true
   }
 
   export type GuildRosterMemberMaxAggregateInputType = {
@@ -16223,6 +16227,7 @@ export namespace Prisma {
     officerNote?: true
     claimedByDiscordUserId?: true
     claimedByDiscordTag?: true
+    manuallyAdded?: true
   }
 
   export type GuildRosterMemberCountAggregateInputType = {
@@ -16236,6 +16241,7 @@ export namespace Prisma {
     officerNote?: true
     claimedByDiscordUserId?: true
     claimedByDiscordTag?: true
+    manuallyAdded?: true
     _all?: true
   }
 
@@ -16336,6 +16342,7 @@ export namespace Prisma {
     officerNote: string | null
     claimedByDiscordUserId: string | null
     claimedByDiscordTag: string | null
+    manuallyAdded: boolean
     _count: GuildRosterMemberCountAggregateOutputType | null
     _avg: GuildRosterMemberAvgAggregateOutputType | null
     _sum: GuildRosterMemberSumAggregateOutputType | null
@@ -16368,6 +16375,7 @@ export namespace Prisma {
     officerNote?: boolean
     claimedByDiscordUserId?: boolean
     claimedByDiscordTag?: boolean
+    manuallyAdded?: boolean
     guild?: boolean | GuildDefaultArgs<ExtArgs>
     claimConflicts?: boolean | GuildRosterMember$claimConflictsArgs<ExtArgs>
     _count?: boolean | GuildRosterMemberCountOutputTypeDefaultArgs<ExtArgs>
@@ -16384,6 +16392,7 @@ export namespace Prisma {
     officerNote?: boolean
     claimedByDiscordUserId?: boolean
     claimedByDiscordTag?: boolean
+    manuallyAdded?: boolean
     guild?: boolean | GuildDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["guildRosterMember"]>
 
@@ -16398,6 +16407,7 @@ export namespace Prisma {
     officerNote?: boolean
     claimedByDiscordUserId?: boolean
     claimedByDiscordTag?: boolean
+    manuallyAdded?: boolean
     guild?: boolean | GuildDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["guildRosterMember"]>
 
@@ -16412,9 +16422,10 @@ export namespace Prisma {
     officerNote?: boolean
     claimedByDiscordUserId?: boolean
     claimedByDiscordTag?: boolean
+    manuallyAdded?: boolean
   }
 
-  export type GuildRosterMemberOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "name" | "rank" | "level" | "class" | "note" | "officerNote" | "claimedByDiscordUserId" | "claimedByDiscordTag", ExtArgs["result"]["guildRosterMember"]>
+  export type GuildRosterMemberOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "name" | "rank" | "level" | "class" | "note" | "officerNote" | "claimedByDiscordUserId" | "claimedByDiscordTag" | "manuallyAdded", ExtArgs["result"]["guildRosterMember"]>
   export type GuildRosterMemberInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     guild?: boolean | GuildDefaultArgs<ExtArgs>
     claimConflicts?: boolean | GuildRosterMember$claimConflictsArgs<ExtArgs>
@@ -16444,6 +16455,7 @@ export namespace Prisma {
       officerNote: string | null
       claimedByDiscordUserId: string | null
       claimedByDiscordTag: string | null
+      manuallyAdded: boolean
     }, ExtArgs["result"]["guildRosterMember"]>
     composites: {}
   }
@@ -16879,6 +16891,7 @@ export namespace Prisma {
     readonly officerNote: FieldRef<"GuildRosterMember", 'String'>
     readonly claimedByDiscordUserId: FieldRef<"GuildRosterMember", 'String'>
     readonly claimedByDiscordTag: FieldRef<"GuildRosterMember", 'String'>
+    readonly manuallyAdded: FieldRef<"GuildRosterMember", 'Boolean'>
   }
     
 
@@ -43538,7 +43551,8 @@ export namespace Prisma {
     note: 'note',
     officerNote: 'officerNote',
     claimedByDiscordUserId: 'claimedByDiscordUserId',
-    claimedByDiscordTag: 'claimedByDiscordTag'
+    claimedByDiscordTag: 'claimedByDiscordTag',
+    manuallyAdded: 'manuallyAdded'
   };
 
   export type GuildRosterMemberScalarFieldEnum = (typeof GuildRosterMemberScalarFieldEnum)[keyof typeof GuildRosterMemberScalarFieldEnum]
@@ -44695,6 +44709,7 @@ export namespace Prisma {
     officerNote?: StringNullableFilter<"GuildRosterMember"> | string | null
     claimedByDiscordUserId?: StringNullableFilter<"GuildRosterMember"> | string | null
     claimedByDiscordTag?: StringNullableFilter<"GuildRosterMember"> | string | null
+    manuallyAdded?: BoolFilter<"GuildRosterMember"> | boolean
     guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
     claimConflicts?: GuildRosterClaimConflictListRelationFilter
   }
@@ -44710,6 +44725,7 @@ export namespace Prisma {
     officerNote?: SortOrderInput | SortOrder
     claimedByDiscordUserId?: SortOrderInput | SortOrder
     claimedByDiscordTag?: SortOrderInput | SortOrder
+    manuallyAdded?: SortOrder
     guild?: GuildOrderByWithRelationInput
     claimConflicts?: GuildRosterClaimConflictOrderByRelationAggregateInput
   }
@@ -44729,6 +44745,7 @@ export namespace Prisma {
     officerNote?: StringNullableFilter<"GuildRosterMember"> | string | null
     claimedByDiscordUserId?: StringNullableFilter<"GuildRosterMember"> | string | null
     claimedByDiscordTag?: StringNullableFilter<"GuildRosterMember"> | string | null
+    manuallyAdded?: BoolFilter<"GuildRosterMember"> | boolean
     guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
     claimConflicts?: GuildRosterClaimConflictListRelationFilter
   }, "id" | "guildId_name">
@@ -44744,6 +44761,7 @@ export namespace Prisma {
     officerNote?: SortOrderInput | SortOrder
     claimedByDiscordUserId?: SortOrderInput | SortOrder
     claimedByDiscordTag?: SortOrderInput | SortOrder
+    manuallyAdded?: SortOrder
     _count?: GuildRosterMemberCountOrderByAggregateInput
     _avg?: GuildRosterMemberAvgOrderByAggregateInput
     _max?: GuildRosterMemberMaxOrderByAggregateInput
@@ -44765,6 +44783,7 @@ export namespace Prisma {
     officerNote?: StringNullableWithAggregatesFilter<"GuildRosterMember"> | string | null
     claimedByDiscordUserId?: StringNullableWithAggregatesFilter<"GuildRosterMember"> | string | null
     claimedByDiscordTag?: StringNullableWithAggregatesFilter<"GuildRosterMember"> | string | null
+    manuallyAdded?: BoolWithAggregatesFilter<"GuildRosterMember"> | boolean
   }
 
   export type GuildRosterClaimConflictWhereInput = {
@@ -47146,6 +47165,7 @@ export namespace Prisma {
     officerNote?: string | null
     claimedByDiscordUserId?: string | null
     claimedByDiscordTag?: string | null
+    manuallyAdded?: boolean
     guild: GuildCreateNestedOneWithoutRosterMembersInput
     claimConflicts?: GuildRosterClaimConflictCreateNestedManyWithoutRosterMemberInput
   }
@@ -47161,6 +47181,7 @@ export namespace Prisma {
     officerNote?: string | null
     claimedByDiscordUserId?: string | null
     claimedByDiscordTag?: string | null
+    manuallyAdded?: boolean
     claimConflicts?: GuildRosterClaimConflictUncheckedCreateNestedManyWithoutRosterMemberInput
   }
 
@@ -47174,6 +47195,7 @@ export namespace Prisma {
     officerNote?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordUserId?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordTag?: NullableStringFieldUpdateOperationsInput | string | null
+    manuallyAdded?: BoolFieldUpdateOperationsInput | boolean
     guild?: GuildUpdateOneRequiredWithoutRosterMembersNestedInput
     claimConflicts?: GuildRosterClaimConflictUpdateManyWithoutRosterMemberNestedInput
   }
@@ -47189,6 +47211,7 @@ export namespace Prisma {
     officerNote?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordUserId?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordTag?: NullableStringFieldUpdateOperationsInput | string | null
+    manuallyAdded?: BoolFieldUpdateOperationsInput | boolean
     claimConflicts?: GuildRosterClaimConflictUncheckedUpdateManyWithoutRosterMemberNestedInput
   }
 
@@ -47203,6 +47226,7 @@ export namespace Prisma {
     officerNote?: string | null
     claimedByDiscordUserId?: string | null
     claimedByDiscordTag?: string | null
+    manuallyAdded?: boolean
   }
 
   export type GuildRosterMemberUpdateManyMutationInput = {
@@ -47215,6 +47239,7 @@ export namespace Prisma {
     officerNote?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordUserId?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordTag?: NullableStringFieldUpdateOperationsInput | string | null
+    manuallyAdded?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type GuildRosterMemberUncheckedUpdateManyInput = {
@@ -47228,6 +47253,7 @@ export namespace Prisma {
     officerNote?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordUserId?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordTag?: NullableStringFieldUpdateOperationsInput | string | null
+    manuallyAdded?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type GuildRosterClaimConflictCreateInput = {
@@ -49500,6 +49526,7 @@ export namespace Prisma {
     officerNote?: SortOrder
     claimedByDiscordUserId?: SortOrder
     claimedByDiscordTag?: SortOrder
+    manuallyAdded?: SortOrder
   }
 
   export type GuildRosterMemberAvgOrderByAggregateInput = {
@@ -49517,6 +49544,7 @@ export namespace Prisma {
     officerNote?: SortOrder
     claimedByDiscordUserId?: SortOrder
     claimedByDiscordTag?: SortOrder
+    manuallyAdded?: SortOrder
   }
 
   export type GuildRosterMemberMinOrderByAggregateInput = {
@@ -49530,6 +49558,7 @@ export namespace Prisma {
     officerNote?: SortOrder
     claimedByDiscordUserId?: SortOrder
     claimedByDiscordTag?: SortOrder
+    manuallyAdded?: SortOrder
   }
 
   export type GuildRosterMemberSumOrderByAggregateInput = {
@@ -53956,6 +53985,7 @@ export namespace Prisma {
     officerNote?: string | null
     claimedByDiscordUserId?: string | null
     claimedByDiscordTag?: string | null
+    manuallyAdded?: boolean
     claimConflicts?: GuildRosterClaimConflictCreateNestedManyWithoutRosterMemberInput
   }
 
@@ -53969,6 +53999,7 @@ export namespace Prisma {
     officerNote?: string | null
     claimedByDiscordUserId?: string | null
     claimedByDiscordTag?: string | null
+    manuallyAdded?: boolean
     claimConflicts?: GuildRosterClaimConflictUncheckedCreateNestedManyWithoutRosterMemberInput
   }
 
@@ -54554,6 +54585,7 @@ export namespace Prisma {
     officerNote?: StringNullableFilter<"GuildRosterMember"> | string | null
     claimedByDiscordUserId?: StringNullableFilter<"GuildRosterMember"> | string | null
     claimedByDiscordTag?: StringNullableFilter<"GuildRosterMember"> | string | null
+    manuallyAdded?: BoolFilter<"GuildRosterMember"> | boolean
   }
 
   export type GuildRoleRuleUpsertWithWhereUniqueWithoutGuildInput = {
@@ -55787,6 +55819,7 @@ export namespace Prisma {
     officerNote?: string | null
     claimedByDiscordUserId?: string | null
     claimedByDiscordTag?: string | null
+    manuallyAdded?: boolean
     guild: GuildCreateNestedOneWithoutRosterMembersInput
   }
 
@@ -55801,6 +55834,7 @@ export namespace Prisma {
     officerNote?: string | null
     claimedByDiscordUserId?: string | null
     claimedByDiscordTag?: string | null
+    manuallyAdded?: boolean
   }
 
   export type GuildRosterMemberCreateOrConnectWithoutClaimConflictsInput = {
@@ -55926,6 +55960,7 @@ export namespace Prisma {
     officerNote?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordUserId?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordTag?: NullableStringFieldUpdateOperationsInput | string | null
+    manuallyAdded?: BoolFieldUpdateOperationsInput | boolean
     guild?: GuildUpdateOneRequiredWithoutRosterMembersNestedInput
   }
 
@@ -55940,6 +55975,7 @@ export namespace Prisma {
     officerNote?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordUserId?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordTag?: NullableStringFieldUpdateOperationsInput | string | null
+    manuallyAdded?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type GuildCreateWithoutPendingRosterMatchesInput = {
@@ -60265,6 +60301,7 @@ export namespace Prisma {
     officerNote?: string | null
     claimedByDiscordUserId?: string | null
     claimedByDiscordTag?: string | null
+    manuallyAdded?: boolean
   }
 
   export type GuildRoleRuleCreateManyGuildInput = {
@@ -60449,6 +60486,7 @@ export namespace Prisma {
     officerNote?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordUserId?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordTag?: NullableStringFieldUpdateOperationsInput | string | null
+    manuallyAdded?: BoolFieldUpdateOperationsInput | boolean
     claimConflicts?: GuildRosterClaimConflictUpdateManyWithoutRosterMemberNestedInput
   }
 
@@ -60462,6 +60500,7 @@ export namespace Prisma {
     officerNote?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordUserId?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordTag?: NullableStringFieldUpdateOperationsInput | string | null
+    manuallyAdded?: BoolFieldUpdateOperationsInput | boolean
     claimConflicts?: GuildRosterClaimConflictUncheckedUpdateManyWithoutRosterMemberNestedInput
   }
 
@@ -60475,6 +60514,7 @@ export namespace Prisma {
     officerNote?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordUserId?: NullableStringFieldUpdateOperationsInput | string | null
     claimedByDiscordTag?: NullableStringFieldUpdateOperationsInput | string | null
+    manuallyAdded?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type GuildRoleRuleUpdateWithoutGuildInput = {

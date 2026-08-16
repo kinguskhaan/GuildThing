@@ -241,7 +241,8 @@ exports.Prisma.GuildRosterMemberScalarFieldEnum = {
   note: 'note',
   officerNote: 'officerNote',
   claimedByDiscordUserId: 'claimedByDiscordUserId',
-  claimedByDiscordTag: 'claimedByDiscordTag'
+  claimedByDiscordTag: 'claimedByDiscordTag',
+  manuallyAdded: 'manuallyAdded'
 };
 
 exports.Prisma.GuildRosterClaimConflictScalarFieldEnum = {

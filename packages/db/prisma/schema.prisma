@@ -310,6 +310,13 @@ model GuildRosterMember {
   claimedByDiscordUserId String?
   claimedByDiscordTag    String?
 
+  // Created by an admin via "Claim a character" (guild.adminClaimCharacter)
+  // instead of an addon roster scan — typically an out-of-guild alt that'll
+  // never appear in an export. applyRosterImport's per-import cleanup
+  // (delete anything not in the new export) skips these, otherwise the very
+  // next addon import would silently wipe them right back out.
+  manuallyAdded Boolean @default(false)
+
   claimConflicts GuildRosterClaimConflict[]
 
   @@unique([guildId, name])

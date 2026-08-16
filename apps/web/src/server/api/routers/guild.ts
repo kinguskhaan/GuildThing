@@ -1078,6 +1078,102 @@ export const guildRouter = createTRPCRouter({
       return { ok: true };
     }),
 
+  // Every non-bot Discord server member (id + tag), for the "Claim a
+  // character" admin form's member picker — not filtered to
+  // claimed/unclaimed like unclaimedMembers above, since an admin might be
+  // adding an ADDITIONAL alt for someone who already has a main claimed.
+  guildMembersForClaim: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const members = await getGuildMembers(guild.discordGuildId);
+      return members
+        .filter((m) => !m.bot)
+        .map((m) => ({ id: m.id, tag: m.tag }));
+    }),
+
+  // Manually claims a character for a Discord account — the admin
+  // counterpart to onboarding's own name-matching, for cases it can't
+  // handle: an out-of-guild alt that'll never show up in an addon export
+  // (see the "real character, not a guild member" admin notice in
+  // roleLogic.ts), or fixing up a claim by hand. If `name` already exists
+  // as an unclaimed roster row, claims that row as-is (rank/level/class
+  // untouched). If it doesn't exist, creates a new manuallyAdded row —
+  // survives future addon imports (see applyRosterImport's deleteMany).
+  // Refuses to steal a claim someone else already holds; use
+  // clearRosterClaim first if reassigning is really the intent.
+  adminClaimCharacter: protectedProcedure
+    .input(
+      z.object({
+        guildId: z.string(),
+        discordUserId: z.string().min(1),
+        discordUserTag: z.string().min(1),
+        name: z.string().min(1),
+        rank: z.string().optional(),
+        level: z.number().int().optional(),
+        class: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const existing = await ctx.db.guildRosterMember.findUnique({
+        where: { guildId_name: { guildId: input.guildId, name: input.name } },
+      });
+
+      if (existing) {
+        if (
+          existing.claimedByDiscordUserId &&
+          existing.claimedByDiscordUserId !== input.discordUserId
+        ) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: `"${input.name}" is already claimed by ${existing.claimedByDiscordTag ?? "someone else"} — clear that claim first if you want to reassign it.`,
+          });
+        }
+        await ctx.db.guildRosterMember.update({
+          where: { id: existing.id },
+          data: {
+            claimedByDiscordUserId: input.discordUserId,
+            claimedByDiscordTag: input.discordUserTag,
+          },
+        });
+        return { ok: true, created: false };
+      }
+
+      const trimmedRank = input.rank?.trim();
+      const trimmedClass = input.class?.trim();
+      await ctx.db.guildRosterMember.create({
+        data: {
+          guildId: input.guildId,
+          name: input.name,
+          rank: trimmedRank === "" || trimmedRank == null ? "Member" : trimmedRank,
+          level: input.level ?? 1,
+          class: trimmedClass === "" || trimmedClass == null ? null : trimmedClass,
+          claimedByDiscordUserId: input.discordUserId,
+          claimedByDiscordTag: input.discordUserTag,
+          manuallyAdded: true,
+        },
+      });
+      return { ok: true, created: true };
+    }),
+
   rosterImportStatus: protectedProcedure
     .input(z.object({ guildId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -1356,27 +1452,45 @@ export const guildRouter = createTRPCRouter({
 
   // GuildMemberNickname rows for the admin nickname-override panel —
   // computedName (what matchRosterAndApply would set with no override) next
-  // to any admin/self-set preferredNickname override. See
+  // to any admin/self-set preferredNickname override, PLUS what's actually
+  // live on Discord right now (currentDiscordNick) and the inactivity
+  // tracker's lastActiveAt — both read-only context, not editable here, so
+  // an admin isn't guessing whether "computed" ever actually landed. See
   // apps/bot/src/roleLogic.ts for where computedName gets refreshed and the
   // override applied.
   memberNicknames: protectedProcedure
     .input(z.object({ guildId: z.string() }))
     .query(async ({ ctx, input }) => {
-      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
-        ctx.db,
-        input.guildId,
-        ctx.session.user.id,
-      );
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
       if (!isAdmin) {
         throw needsReauth
           ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
           : forbiddenOrRateLimited(retryAfterSeconds);
       }
 
-      return ctx.db.guildMemberNickname.findMany({
-        where: { guildId: input.guildId },
-        orderBy: { updatedAt: "desc" },
-      });
+      const [rows, discordMembers, activityRows] = await Promise.all([
+        ctx.db.guildMemberNickname.findMany({
+          where: { guildId: input.guildId },
+          orderBy: { updatedAt: "desc" },
+        }),
+        getGuildMembers(guild.discordGuildId),
+        ctx.db.guildMemberActivity.findMany({
+          where: { guildId: input.guildId },
+          select: { discordUserId: true, lastActiveAt: true },
+        }),
+      ]);
+
+      const nickById = new Map(discordMembers.map((m) => [m.id, m.nick]));
+      const lastActiveById = new Map(
+        activityRows.map((a) => [a.discordUserId, a.lastActiveAt]),
+      );
+
+      return rows.map((row) => ({
+        ...row,
+        currentDiscordNick: nickById.get(row.discordUserId) ?? null,
+        lastActiveAt: lastActiveById.get(row.discordUserId) ?? null,
+      }));
     }),
 
   // Sets (nickname: string) or clears (nickname: null, reverting to

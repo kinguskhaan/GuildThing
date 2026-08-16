@@ -60,6 +60,25 @@ export function GuildMemberNicknames({
                 >
                   computed: {row.computedName}
                 </span>
+                <span
+                  className="max-w-[140px] truncate text-xs text-discord-text-muted"
+                  title={row.currentDiscordNick ?? "No server nickname set"}
+                >
+                  in Discord: {row.currentDiscordNick ?? "—"}
+                </span>
+                <span
+                  className="text-xs text-discord-text-muted"
+                  title={
+                    row.lastActiveAt
+                      ? new Date(row.lastActiveAt).toLocaleString()
+                      : "No activity tracked yet"
+                  }
+                >
+                  last active:{" "}
+                  {row.lastActiveAt
+                    ? new Date(row.lastActiveAt).toLocaleDateString()
+                    : "—"}
+                </span>
                 <input
                   className="w-40 rounded-full bg-discord-elevated px-3 py-1 text-sm text-discord-text"
                   value={draftFor(row)}

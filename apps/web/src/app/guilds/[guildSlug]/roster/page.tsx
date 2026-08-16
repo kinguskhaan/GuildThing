@@ -1,3 +1,4 @@
+import { GuildClaimCharacter } from "~/app/_components/guild-claim-character";
 import { GuildExportPanel } from "~/app/_components/guild-export-panel";
 import { GuildMemberNicknames } from "~/app/_components/guild-member-nicknames";
 import { GuildPendingMatches } from "~/app/_components/guild-pending-matches";
@@ -55,6 +56,7 @@ export default async function RosterPage({
       {guild.isAdmin && (
         <GuildMemberNicknames guildId={guildId} rows={memberNicknames} />
       )}
+      {guild.isAdmin && <GuildClaimCharacter guildId={guildId} />}
 
       {members.length === 0 ? (
         <div className="bg-discord-elevated text-discord-text-muted w-full rounded-xl p-6 text-center">

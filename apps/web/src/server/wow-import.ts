@@ -82,7 +82,11 @@ export async function applyRosterImport(
 
   await db.$transaction([
     db.guildRosterMember.deleteMany({
-      where: { guildId, name: { notIn: importedNames } },
+      where: {
+        guildId,
+        name: { notIn: importedNames },
+        manuallyAdded: false,
+      },
     }),
     ...members.map((m) =>
       db.guildRosterMember.upsert({

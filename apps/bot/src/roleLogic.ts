@@ -486,6 +486,12 @@ export async function matchRosterAndApply(
   // fire off an impersonated character. Each conflict is logged and, if
   // configured, posted to the guild's admin notify channel.
   const matched: MatchedCharacter[] = [];
+  // Names of the matched entries above, same order — kept separately since
+  // MatchedCharacter itself has no name (roleLogic only needs rank/level/
+  // class to evaluate rules). Used to give admin notices about a person's
+  // OTHER (unmatched/external) characters some context: who they actually
+  // are in the guild, not just the name that triggered the notice.
+  const matchedNames: string[] = [];
   const displayNames: string[] = [];
   const conflictNames: string[] = [];
   const unmatchedNames: string[] = [];
@@ -528,6 +534,7 @@ export async function matchRosterAndApply(
             },
           });
           displayNames.push(created.name);
+          matchedNames.push(created.name);
           matched.push({
             rank: created.rank,
             level: created.level,
@@ -609,8 +616,10 @@ export async function matchRosterAndApply(
         },
       });
       matched.push({ rank: row.rank, level: row.level, class: row.class });
+      matchedNames.push(row.name);
     } else if (row.claimedByDiscordUserId === member.id) {
       matched.push({ rank: row.rank, level: row.level, class: row.class });
+      matchedNames.push(row.name);
     } else {
       conflictNames.push(row.name);
       await db.guildRosterClaimConflict.create({
@@ -723,10 +732,14 @@ export async function matchRosterAndApply(
           : `\`${c.name}\` (no guild)`,
       )
       .join(", ");
+    const realCharactersNote =
+      matchedNames.length > 0
+        ? ` (real characters: ${matchedNames.map((n) => `\`${n}\``).join(", ")})`
+        : "";
     await notifyAdmins(
       member,
       guild.id,
-      `⚠️ ${member.user.tag} typed ${list} during onboarding — real character(s), but not a member of this guild. Granted level-range channel access only, no roles.`,
+      `⚠️ ${member.user.tag}${realCharactersNote} typed ${list} during onboarding, looked up via BNet API — real character(s), but not a member of this guild. Granted level-range channel access only, no roles.`,
     );
     await notify(
       `${externalCharacters.length === 1 ? "One of your characters isn't" : "Some of your characters aren't"} a member of this guild (${list}) — you'll get access to any level-range channels based on ${externalCharacters.length === 1 ? "it" : "them"}, not full member roles for now. If it ever shows up as a member of this guild, I'll notice automatically and set your roles up — no need to redo anything.`,

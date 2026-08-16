@@ -518,12 +518,14 @@ export async function getGuildChannelsForGrants(
 export interface DiscordMemberSummary {
   id: string;
   tag: string;
+  nick: string | null;
   roleIds: string[];
   bot: boolean;
 }
 
 interface RawDiscordMember {
   user: { id: string; username: string; discriminator: string; bot?: boolean };
+  nick?: string | null;
   roles: string[];
 }
 
@@ -570,6 +572,7 @@ export async function getGuildMembers(
       members.push({
         id: m.user.id,
         tag: memberTag(m.user),
+        nick: m.nick ?? null,
         roleIds: m.roles,
         bot: m.user.bot ?? false,
       });
