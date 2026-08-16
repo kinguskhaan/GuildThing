@@ -36,6 +36,7 @@ import {
   scheduleEventButtonRepostOnMessage,
   syncPendingWebEvents,
 } from "./events.js";
+import { syncExternalCharacters } from "./externalCharacters.js";
 import { syncPendingRosterMatches } from "./pendingMatches.js";
 import { ROLE_SYNC_INTERVAL_MS, runFullRoleSync } from "./roleSync.js";
 
@@ -168,6 +169,9 @@ client.once(Events.ClientReady, (readyClient) => {
     });
     syncPendingRosterMatches(readyClient).catch((err: unknown) => {
       console.error("[bot] pending roster match sync failed:", err);
+    });
+    syncExternalCharacters(readyClient).catch((err: unknown) => {
+      console.error("[bot] external character sync failed:", err);
     });
     runInactivityFilter(readyClient).catch((err: unknown) => {
       console.error("[bot] inactivity filter failed:", err);

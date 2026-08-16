@@ -6,6 +6,8 @@ import {
 
 import { db } from "@guildthing/db";
 
+import { lookupCharacter } from "./battlenetApi.js";
+
 export const MAX_NICKNAME_LENGTH = 32;
 
 export interface MatchedCharacter {
@@ -403,7 +405,14 @@ export interface NamedCharacter {
 // exact same matching/claiming/rule logic.
 export async function matchRosterAndApply(
   member: GuildMember,
-  guild: { id: string; rosterSource: string },
+  guild: {
+    id: string;
+    rosterSource: string;
+    wowRegion?: string | null;
+    wowRealmSlug?: string | null;
+    wowGuildName?: string | null;
+    wowNamespaceFlavor?: string | null;
+  },
   characters: NamedCharacter[],
   includeAltsInNickname: boolean,
   options: MatchAndApplyOptions = {},
@@ -411,6 +420,13 @@ export async function matchRosterAndApply(
   matchedCount: number;
   conflictCount: number;
   unmatchedCount: number;
+  // Subset of unmatchedCount that Battle.net confirmed really are members
+  // of this guild — matchRosterAndApply already sent its own confident
+  // member-facing notice for these, so callers should only add their own
+  // "probably not imported yet" message for (unmatchedCount - confirmedCount).
+  confirmedCount: number;
+  invalidCount: number;
+  externalCount: number;
 }> {
   const rosterRows = await db.guildRosterMember.findMany({
     where: { guildId: guild.id },
@@ -418,6 +434,25 @@ export async function matchRosterAndApply(
   const rosterByName = new Map(
     rosterRows.map((r) => [r.name.toLowerCase(), r]),
   );
+  const notify = options.notify ?? dmNotifier(member);
+
+  // Armory lookup is only worth attempting if the guild has fully
+  // configured it (see Guild.wowRegion etc.) and it's an addon-sourced
+  // guild in the first place — an "onboarding" guild builds its roster
+  // from claims directly, so there's no "wrong guild" concept to check.
+  const armoryConfig =
+    guild.rosterSource === "addon" &&
+    guild.wowRegion &&
+    guild.wowRealmSlug &&
+    guild.wowGuildName &&
+    guild.wowNamespaceFlavor
+      ? {
+          region: guild.wowRegion,
+          realmSlug: guild.wowRealmSlug,
+          guildName: guild.wowGuildName,
+          flavor: guild.wowNamespaceFlavor,
+        }
+      : null;
 
   // Prevents different Discord accounts from all claiming the same roster
   // character (e.g. several people all saying they're "Bubblekingen"): the
@@ -430,6 +465,23 @@ export async function matchRosterAndApply(
   const displayNames: string[] = [];
   const conflictNames: string[] = [];
   const unmatchedNames: string[] = [];
+  // Subset of unmatchedNames that Battle.net confirmed really are in this
+  // guild (just not in the locally-imported roster yet) — vs. the rest,
+  // where we genuinely don't know (no armory config, or the API call
+  // failed). Both still go through the same retry queue; only the message
+  // differs (confident vs. "probably").
+  const confirmedNames: string[] = [];
+  const invalidNames: string[] = [];
+  // Names that turned out to be in the local roster this run — used to
+  // purge any now-stale GuildExternalCharacter row for the same name (see
+  // after the loop below).
+  const graduatedNames: string[] = [];
+  const externalCharacters: {
+    name: string;
+    level: number;
+    class: string | null;
+    actualGuildName: string | null;
+  }[] = [];
   for (const character of characters) {
     const { name } = character;
     const row = rosterByName.get(name.toLowerCase());
@@ -484,10 +536,45 @@ export async function matchRosterAndApply(
       }
 
       displayNames.push(name);
+
+      if (armoryConfig) {
+        const lookup = await lookupCharacter(
+          armoryConfig.region,
+          armoryConfig.realmSlug,
+          name,
+          armoryConfig.flavor,
+          armoryConfig.guildName,
+        );
+        if (lookup.status === "not_found") {
+          invalidNames.push(name);
+          continue;
+        }
+        if (lookup.status === "wrong_guild" || lookup.status === "unguilded") {
+          externalCharacters.push({
+            name,
+            level: lookup.level,
+            class: lookup.class,
+            actualGuildName: lookup.actualGuildName,
+          });
+          continue;
+        }
+        if (lookup.status === "matches_expected_guild") {
+          confirmedNames.push(name);
+        }
+        // "matches_expected_guild" or "unavailable" — either way, fall
+        // through to the "not yet imported, retry" queue below (unchanged
+        // mechanism) — confirmedNames just gets a more confident message.
+      }
+
       unmatchedNames.push(name);
       continue;
     }
     displayNames.push(row.name);
+    // Now genuinely in the local roster — if a prior run had this name
+    // tracked as an external (wrong-guild/unguilded) character, that's
+    // stale now; cleaned up in a batch after the loop (see graduatedNames
+    // below).
+    graduatedNames.push(row.name);
 
     if (row.claimedByDiscordUserId == null) {
       await db.guildRosterMember.update({
@@ -513,6 +600,22 @@ export async function matchRosterAndApply(
     }
   }
 
+  if (graduatedNames.length > 0) {
+    const graduatedLower = new Set(graduatedNames.map((n) => n.toLowerCase()));
+    const staleExternal = await db.guildExternalCharacter.findMany({
+      where: { guildId: guild.id, discordUserId: member.id },
+      select: { id: true, name: true },
+    });
+    const staleIds = staleExternal
+      .filter((r) => graduatedLower.has(r.name.toLowerCase()))
+      .map((r) => r.id);
+    if (staleIds.length > 0) {
+      await db.guildExternalCharacter.deleteMany({
+        where: { id: { in: staleIds } },
+      });
+    }
+  }
+
   if (conflictNames.length > 0) {
     const list = conflictNames.map((n) => `\`${n}\``).join(", ");
     await notifyAdmins(
@@ -522,29 +625,157 @@ export async function matchRosterAndApply(
     );
   }
 
-  if (unmatchedNames.length > 0) {
-    const list = unmatchedNames.map((n) => `\`${n}\``).join(", ");
+  const uncertainNames = unmatchedNames.filter(
+    (n) => !confirmedNames.includes(n),
+  );
+  if (confirmedNames.length > 0) {
+    const list = confirmedNames.map((n) => `\`${n}\``).join(", ");
     await notifyAdmins(
       member,
       guild.id,
-      `❓ ${member.user.tag} typed ${list} during onboarding, but ${unmatchedNames.length === 1 ? "it wasn't" : "they weren't"} found in the roster — probably not imported yet. Their nickname was still set as typed; I'll keep retrying automatically for up to 42h.`,
+      `✅ ${member.user.tag} typed ${list} — Battle.net confirms ${confirmedNames.length === 1 ? "it's" : "they're"} a member of this guild, just not in the locally-imported roster yet. Their nickname was still set as typed; roles will apply automatically once the roster catches up.`,
+    );
+    await notify(
+      confirmedNames.length === 1
+        ? `Good news — I checked directly with Blizzard and \`${confirmedNames[0]}\` really is in this guild. Our member list on this bot just hasn't caught up with the game yet — I'll set your roles automatically the moment it does, nothing you need to do.`
+        : `Good news — I checked directly with Blizzard and ${list} really are in this guild. Our member list on this bot just hasn't caught up with the game yet — I'll set your roles automatically the moment it does, nothing you need to do.`,
+    );
+  }
+  if (uncertainNames.length > 0) {
+    const list = uncertainNames.map((n) => `\`${n}\``).join(", ");
+    await notifyAdmins(
+      member,
+      guild.id,
+      `❓ ${member.user.tag} typed ${list} during onboarding, but ${uncertainNames.length === 1 ? "it wasn't" : "they weren't"} found on our guild's member list — probably just hasn't been imported/re-synced yet. Their nickname was still set as typed; I'll keep retrying automatically for up to 42h.`,
+    );
+  }
+
+  if (invalidNames.length > 0) {
+    const list = invalidNames.map((n) => `\`${n}\``).join(", ");
+    await notifyAdmins(
+      member,
+      guild.id,
+      `❌ ${member.user.tag} typed ${list} during onboarding, but no such character exists in-game at all — probably typed a nickname instead of the exact character name. Not queued for retry.`,
+    );
+    await notify(
+      invalidNames.length === 1
+        ? `I couldn't find a character actually named "${invalidNames[0]}" in the game at all — double-check you typed the real character name, not a nickname people call you. Your Discord nickname was still set as typed either way; ask an officer if you'd like it fixed.`
+        : `I couldn't find characters actually named ${list} in the game at all — double-check you typed the real character names, not nicknames people call you. Your Discord nickname was still set as typed either way; ask an officer if you'd like it fixed.`,
+    );
+  }
+
+  if (externalCharacters.length > 0) {
+    for (const c of externalCharacters) {
+      await db.guildExternalCharacter.upsert({
+        where: {
+          guildId_discordUserId_name: {
+            guildId: guild.id,
+            discordUserId: member.id,
+            name: c.name,
+          },
+        },
+        create: {
+          guildId: guild.id,
+          discordUserId: member.id,
+          discordUserTag: member.user.tag,
+          name: c.name,
+          level: c.level,
+          class: c.class,
+          actualGuildName: c.actualGuildName,
+        },
+        update: {
+          discordUserTag: member.user.tag,
+          level: c.level,
+          class: c.class,
+          actualGuildName: c.actualGuildName,
+        },
+      });
+    }
+
+    const list = externalCharacters
+      .map((c) =>
+        c.actualGuildName
+          ? `\`${c.name}\` (in "${c.actualGuildName}")`
+          : `\`${c.name}\` (no guild)`,
+      )
+      .join(", ");
+    await notifyAdmins(
+      member,
+      guild.id,
+      `⚠️ ${member.user.tag} typed ${list} during onboarding — real character(s), but not a member of this guild. Granted level-range channel access only, no roles.`,
+    );
+    await notify(
+      `${externalCharacters.length === 1 ? "One of your characters isn't" : "Some of your characters aren't"} a member of this guild (${list}) — you'll get access to any level-range channels based on ${externalCharacters.length === 1 ? "it" : "them"}, not full member roles for now. If it ever shows up as a member of this guild, I'll notice automatically and set your roles up — no need to redo anything.`,
     );
   }
 
   let roleIds = new Set<string>();
   let channelGrants: ChannelGrant[] = [];
-  if (matched.length > 0) {
+  if (matched.length > 0 || externalCharacters.length > 0) {
     const rules = await db.guildRoleRule.findMany({
       where: { guildId: guild.id },
       include: { conditions: true, grantedRoles: true, grantedChannels: true },
     });
-    ({ roleIds, channelGrants } = evaluateRules(rules, matched));
+    if (matched.length > 0) {
+      ({ roleIds, channelGrants } = evaluateRules(rules, matched));
+    }
+    if (externalCharacters.length > 0) {
+      // Only channel-only rules (no granted roles) ever fire off an
+      // external character — they're not a member of this guild, so no
+      // rule should ever hand them a role through this path.
+      const channelOnlyRules = rules.filter(
+        (r) => r.grantedRoles.length === 0,
+      );
+      const externalAsMatched: MatchedCharacter[] = externalCharacters.map(
+        (c) => ({ rank: "", level: c.level, class: c.class }),
+      );
+      const { channelGrants: externalGrants } = evaluateRules(
+        channelOnlyRules,
+        [...matched, ...externalAsMatched],
+      );
+      const existingChannelIds = new Set(
+        channelGrants.map((g) => g.channelId),
+      );
+      for (const grant of externalGrants) {
+        if (!existingChannelIds.has(grant.channelId)) {
+          channelGrants.push(grant);
+          existingChannelIds.add(grant.channelId);
+        }
+      }
+    }
   }
 
   if (matched.length > 0 || (options.applyEvenIfNoMatch ?? true)) {
-    const nicknameNames = includeAltsInNickname
+    let nicknameNames = includeAltsInNickname
       ? displayNames
       : displayNames.slice(0, 1);
+
+    // Refresh the "what it'd be with no override" record every run, and
+    // apply a previously-set preferred-nickname override (from onboarding's
+    // own question, or set by an officer on the site) in place of the main
+    // name slot — alts, if included, are unaffected. See
+    // GuildMemberNickname in schema.prisma.
+    const nicknameRow = await db.guildMemberNickname.upsert({
+      where: {
+        guildId_discordUserId: { guildId: guild.id, discordUserId: member.id },
+      },
+      create: {
+        guildId: guild.id,
+        discordUserId: member.id,
+        discordUserTag: member.user.tag,
+        computedName: displayNames.join("/"),
+      },
+      update: {
+        discordUserTag: member.user.tag,
+        computedName: displayNames.join("/"),
+      },
+    });
+    if (nicknameRow.preferredNickname) {
+      nicknameNames = includeAltsInNickname
+        ? [nicknameRow.preferredNickname, ...displayNames.slice(1)]
+        : [nicknameRow.preferredNickname];
+    }
+
     await applyNicknameAndRoles(
       member,
       guild.id,
@@ -562,5 +793,8 @@ export async function matchRosterAndApply(
     matchedCount: matched.length,
     conflictCount: conflictNames.length,
     unmatchedCount: unmatchedNames.length,
+    confirmedCount: confirmedNames.length,
+    invalidCount: invalidNames.length,
+    externalCount: externalCharacters.length,
   };
 }

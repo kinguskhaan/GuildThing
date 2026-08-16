@@ -1,4 +1,5 @@
 import { GuildExportPanel } from "~/app/_components/guild-export-panel";
+import { GuildMemberNicknames } from "~/app/_components/guild-member-nicknames";
 import { GuildPendingMatches } from "~/app/_components/guild-pending-matches";
 import { GuildRosterImportForm } from "~/app/_components/guild-roster-import-form";
 import { GuildRosterTable } from "~/app/_components/guild-roster-table";
@@ -19,12 +20,13 @@ export default async function RosterPage({
     api.guild.rosterMembers({ guildId }),
     api.user.me(),
   ]);
-  const [pendingMatches, unclaimedMembers] = guild.isAdmin
+  const [pendingMatches, unclaimedMembers, memberNicknames] = guild.isAdmin
     ? await Promise.all([
         api.guild.pendingRosterMatches({ guildId }),
         api.guild.unclaimedMembers({ guildId }),
+        api.guild.memberNicknames({ guildId }),
       ])
-    : [[], []];
+    : [[], [], []];
 
   return (
     <div className="flex w-full max-w-3xl flex-col gap-4">
@@ -49,6 +51,9 @@ export default async function RosterPage({
       )}
       {guild.isAdmin && (
         <GuildUnclaimedMembers guildId={guildId} members={unclaimedMembers} />
+      )}
+      {guild.isAdmin && (
+        <GuildMemberNicknames guildId={guildId} rows={memberNicknames} />
       )}
 
       {members.length === 0 ? (

@@ -643,3 +643,30 @@ export async function addRoleToMember(
   );
   return res.ok;
 }
+
+/**
+ * Sets (or, with `nickname: null`, clears) a member's Discord nickname via
+ * the bot's own token — same hierarchy rules as everywhere else the bot
+ * renames someone: the bot's own role must sit above theirs, or this fails
+ * (returns false rather than throwing). Used by the admin nickname-override
+ * panel so a change takes effect immediately, instead of waiting for the
+ * member to re-run /onboarding.
+ */
+export async function setMemberNickname(
+  discordGuildId: string,
+  discordUserId: string,
+  nickname: string | null,
+): Promise<boolean> {
+  const res = await fetch(
+    `https://discord.com/api/v10/guilds/${discordGuildId}/members/${discordUserId}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bot ${env.DISCORD_BOT_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ nick: nickname }),
+    },
+  );
+  return res.ok;
+}

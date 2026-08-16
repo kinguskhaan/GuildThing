@@ -206,7 +206,11 @@ exports.Prisma.GuildScalarFieldEnum = {
   forceSyncRequestedAt: 'forceSyncRequestedAt',
   inactivityFilterEnabled: 'inactivityFilterEnabled',
   inactivityDays: 'inactivityDays',
-  inactivityRoleId: 'inactivityRoleId'
+  inactivityRoleId: 'inactivityRoleId',
+  wowRegion: 'wowRegion',
+  wowRealmSlug: 'wowRealmSlug',
+  wowGuildName: 'wowGuildName',
+  wowNamespaceFlavor: 'wowNamespaceFlavor'
 };
 
 exports.Prisma.GuildApiKeyScalarFieldEnum = {
@@ -265,6 +269,28 @@ exports.Prisma.GuildPugMemberScalarFieldEnum = {
   discordUserId: 'discordUserId',
   discordUserTag: 'discordUserTag',
   markedAt: 'markedAt'
+};
+
+exports.Prisma.GuildMemberNicknameScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  discordUserId: 'discordUserId',
+  discordUserTag: 'discordUserTag',
+  computedName: 'computedName',
+  preferredNickname: 'preferredNickname',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.GuildExternalCharacterScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  discordUserId: 'discordUserId',
+  discordUserTag: 'discordUserTag',
+  name: 'name',
+  level: 'level',
+  class: 'class',
+  actualGuildName: 'actualGuildName',
+  claimedAt: 'claimedAt'
 };
 
 exports.Prisma.GuildMemberActivityScalarFieldEnum = {
@@ -450,6 +476,8 @@ exports.Prisma.ModelName = {
   GuildRosterClaimConflict: 'GuildRosterClaimConflict',
   GuildPendingRosterMatch: 'GuildPendingRosterMatch',
   GuildPugMember: 'GuildPugMember',
+  GuildMemberNickname: 'GuildMemberNickname',
+  GuildExternalCharacter: 'GuildExternalCharacter',
   GuildMemberActivity: 'GuildMemberActivity',
   GuildRoleRule: 'GuildRoleRule',
   GuildRoleRuleGrantedRole: 'GuildRoleRuleGrantedRole',

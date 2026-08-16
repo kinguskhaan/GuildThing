@@ -29,6 +29,7 @@ import {
   hasGuildRole,
   isGuildMember,
   sendDirectMessage,
+  setMemberNickname,
 } from "~/server/discord";
 
 async function safeGuildIconUrl(
@@ -1256,6 +1257,75 @@ export const guildRouter = createTRPCRouter({
       return { succeeded, failed: results.length - succeeded };
     }),
 
+  // GuildMemberNickname rows for the admin nickname-override panel —
+  // computedName (what matchRosterAndApply would set with no override) next
+  // to any admin/self-set preferredNickname override. See
+  // apps/bot/src/roleLogic.ts for where computedName gets refreshed and the
+  // override applied.
+  memberNicknames: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      return ctx.db.guildMemberNickname.findMany({
+        where: { guildId: input.guildId },
+        orderBy: { updatedAt: "desc" },
+      });
+    }),
+
+  // Sets (nickname: string) or clears (nickname: null, reverting to
+  // computedName) an override, and applies it to Discord immediately via
+  // the bot's own token — see setMemberNickname in ~/server/discord — so
+  // the admin doesn't have to wait for the member to re-run /onboarding.
+  setMemberNicknameOverride: protectedProcedure
+    .input(
+      z.object({
+        guildId: z.string(),
+        discordUserId: z.string(),
+        nickname: z.string().nullable(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const row = await ctx.db.guildMemberNickname.findUnique({
+        where: {
+          guildId_discordUserId: {
+            guildId: input.guildId,
+            discordUserId: input.discordUserId,
+          },
+        },
+      });
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+
+      await ctx.db.guildMemberNickname.update({
+        where: { id: row.id },
+        data: { preferredNickname: input.nickname },
+      });
+
+      const applied = await setMemberNickname(
+        guild.discordGuildId,
+        input.discordUserId,
+        input.nickname ?? row.computedName,
+      );
+      return { ok: true, applied };
+    }),
+
   // Distinct rank/class values already in the roster, so the Discord-roles
   // admin UI can offer a datalist instead of the admin free-typing exact
   // strings that have to match GuildRosterMember rows verbatim.
@@ -1641,6 +1711,10 @@ export const guildRouter = createTRPCRouter({
             inactivityDays: true,
             inactivityRoleId: true,
             inactivityTargetRoles: { select: { discordRoleId: true } },
+            wowRegion: true,
+            wowRealmSlug: true,
+            wowGuildName: true,
+            wowNamespaceFlavor: true,
           },
         }),
         ctx.db.guildRoleRule.findMany({
@@ -1668,8 +1742,51 @@ export const guildRouter = createTRPCRouter({
           (r) => r.discordRoleId,
         ),
         inactivityRoleId: guild.inactivityRoleId,
+        wowRegion: guild.wowRegion,
+        wowRealmSlug: guild.wowRealmSlug,
+        wowGuildName: guild.wowGuildName,
+        wowNamespaceFlavor: guild.wowNamespaceFlavor,
         rules,
       };
+    }),
+
+  // Battle.net Game Data API lookup config — lets onboarding tell a typo'd/
+  // nickname-typed character name apart from a real character in a
+  // different guild, instead of treating both as "probably not imported
+  // yet". All four null (the default) skips the lookup entirely — see
+  // Guild.wowRegion etc. in schema.prisma and apps/bot/src/battlenetApi.ts.
+  setArmoryConfig: protectedProcedure
+    .input(
+      z.object({
+        guildId: z.string(),
+        wowRegion: z.string().nullable(),
+        wowRealmSlug: z.string().nullable(),
+        wowGuildName: z.string().nullable(),
+        wowNamespaceFlavor: z.string().nullable(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      await ctx.db.guild.update({
+        where: { id: input.guildId },
+        data: {
+          wowRegion: input.wowRegion,
+          wowRealmSlug: input.wowRealmSlug,
+          wowGuildName: input.wowGuildName,
+          wowNamespaceFlavor: input.wowNamespaceFlavor,
+        },
+      });
+      return { ok: true };
     }),
 
   // Full replace of a rule's conditions AND granted roles on update (delete

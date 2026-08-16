@@ -215,6 +215,10 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
   const [rosterSource, setRosterSource] = useState<"addon" | "onboarding">(
     "addon",
   );
+  const [wowRegion, setWowRegion] = useState("");
+  const [wowRealmSlug, setWowRealmSlug] = useState("");
+  const [wowGuildName, setWowGuildName] = useState("");
+  const [wowNamespaceFlavor, setWowNamespaceFlavor] = useState("classicann");
   const [pugEnabled, setPugEnabled] = useState(true);
   const [pugRoleId, setPugRoleId] = useState("");
   const [adminNotifyChannelId, setAdminNotifyChannelId] = useState("");
@@ -258,6 +262,10 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
         : [""],
     );
     setInactivityRoleId(config.data.inactivityRoleId ?? "");
+    setWowRegion(config.data.wowRegion ?? "");
+    setWowRealmSlug(config.data.wowRealmSlug ?? "");
+    setWowGuildName(config.data.wowGuildName ?? "");
+    setWowNamespaceFlavor(config.data.wowNamespaceFlavor ?? "classicann");
     setRules(
       config.data.rules.map((r) => ({
         id: r.id,
@@ -283,6 +291,10 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
       utils.guild.discordRoleConfig.invalidate({ guildId }),
   });
   const setPugRole = api.guild.setPugRole.useMutation({
+    onSuccess: async () =>
+      utils.guild.discordRoleConfig.invalidate({ guildId }),
+  });
+  const saveArmoryConfig = api.guild.setArmoryConfig.useMutation({
     onSuccess: async () =>
       utils.guild.discordRoleConfig.invalidate({ guildId }),
   });
@@ -506,6 +518,77 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
             </p>
           )}
           {saveRosterSource.isSuccess && (
+            <p className="text-discord-green text-sm">Saved!</p>
+          )}
+        </div>
+      )}
+
+      {activeTab === "general" && rosterSource === "addon" && (
+        <div className="bg-discord-elevated flex flex-col gap-2 rounded-xl p-6">
+          <h3 className="font-bold">Character lookup (optional)</h3>
+          <p className="text-discord-text-muted text-sm">
+            When set, onboarding checks a name that doesn&apos;t match the
+            roster against Battle.net directly — telling apart a typo&apos;d
+            or nickname-typed name (doesn&apos;t exist), a real character
+            currently in a <em>different</em> guild, and one that just
+            hasn&apos;t been (re-)imported yet, instead of treating all three
+            the same. A real character in a different guild (or none) still
+            gets level-range channel access, just no member roles. Leave
+            blank to skip this entirely.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              className="bg-discord-base text-discord-text rounded-full px-4 py-2"
+              value={wowRegion}
+              onChange={(e) => setWowRegion(e.target.value)}
+              placeholder="Region (e.g. eu)"
+            />
+            <input
+              className="bg-discord-base text-discord-text rounded-full px-4 py-2"
+              value={wowRealmSlug}
+              onChange={(e) => setWowRealmSlug(e.target.value)}
+              placeholder="Realm slug (e.g. spineshatter)"
+            />
+            <input
+              className="bg-discord-base text-discord-text rounded-full px-4 py-2"
+              value={wowGuildName}
+              onChange={(e) => setWowGuildName(e.target.value)}
+              placeholder='In-game guild name (e.g. "Socialism")'
+            />
+            <input
+              className="bg-discord-base text-discord-text rounded-full px-4 py-2"
+              value={wowNamespaceFlavor}
+              onChange={(e) => setWowNamespaceFlavor(e.target.value)}
+              placeholder="Namespace flavor (e.g. classicann)"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() =>
+              saveArmoryConfig.mutate({
+                guildId,
+                wowRegion: wowRegion.trim() === "" ? null : wowRegion.trim(),
+                wowRealmSlug:
+                  wowRealmSlug.trim() === "" ? null : wowRealmSlug.trim(),
+                wowGuildName:
+                  wowGuildName.trim() === "" ? null : wowGuildName.trim(),
+                wowNamespaceFlavor:
+                  wowNamespaceFlavor.trim() === ""
+                    ? null
+                    : wowNamespaceFlavor.trim(),
+              })
+            }
+            disabled={saveArmoryConfig.isPending}
+            className="bg-discord-elevated-hover self-start rounded-full px-4 py-1.5 text-sm font-semibold"
+          >
+            {saveArmoryConfig.isPending ? "Saving..." : "Save"}
+          </button>
+          {saveArmoryConfig.error && (
+            <p className="text-discord-red text-sm">
+              {saveArmoryConfig.error.message}
+            </p>
+          )}
+          {saveArmoryConfig.isSuccess && (
             <p className="text-discord-green text-sm">Saved!</p>
           )}
         </div>
