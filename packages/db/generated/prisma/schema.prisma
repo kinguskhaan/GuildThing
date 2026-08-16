@@ -141,6 +141,7 @@ model Guild {
   adminRoles            GuildAdminRole[]
   rosterMembers         GuildRosterMember[]
   roleRules             GuildRoleRule[]
+  rolePriorities        GuildRolePriority[]
   claimConflicts        GuildRosterClaimConflict[]
   pendingRosterMatches  GuildPendingRosterMatch[]
   memberActivity        GuildMemberActivity[]
@@ -373,7 +374,7 @@ model GuildPugMember {
 // joined, main first) — what the nickname would be with no override.
 // preferredNickname, when set, is what's actually used instead. Lets the
 // site show both side by side and clear preferredNickname to revert to
-// computedName with one click (see guild-roster-table.tsx).
+// computedName with one click (see guild-member-nicknames.tsx).
 model GuildMemberNickname {
   id                String   @id @default(cuid())
   guildId           String
@@ -690,6 +691,26 @@ model GuildAdminRole {
   guildId       String
   guild         Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
   discordRoleId String
+
+  @@unique([guildId, discordRoleId])
+}
+
+// A mutually-exclusive role tier (e.g. Core Raider > Trial Raider >
+// Guildie) — a person can independently qualify for more than one of
+// these via different alts (each GuildRoleRule only checks "does ANY of
+// their characters match", unaware of what other rules fired), which
+// without this would hand them every tier's role at once. See
+// evaluateRules in roleLogic.ts: when 2+ roles from this list would be
+// granted to the same person, only the lowest `priority` (0 = highest)
+// survives. Purely opt-in — a role not in this list is never touched by
+// it, so ordinary additive roles (class roles, PUG role, etc) are
+// unaffected.
+model GuildRolePriority {
+  id            String @id @default(cuid())
+  guildId       String
+  guild         Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  discordRoleId String
+  priority      Int
 
   @@unique([guildId, discordRoleId])
 }

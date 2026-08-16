@@ -22,6 +22,7 @@ async function loadGuildsWithRules() {
       roleRules: {
         include: { conditions: true, grantedRoles: true, grantedChannels: true },
       },
+      rolePriorities: true,
     },
   });
 }
@@ -82,6 +83,7 @@ async function syncGuildRoles(
     const { roleIds: desiredRoleIds, channelGrants } = evaluateRules(
       guildRow.roleRules,
       matched,
+      guildRow.rolePriorities,
     );
 
     let member;

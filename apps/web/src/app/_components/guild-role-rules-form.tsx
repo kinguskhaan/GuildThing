@@ -231,6 +231,7 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
   >([""]);
   const [inactivityRoleId, setInactivityRoleId] = useState("");
   const [rules, setRules] = useState<RuleDraft[]>([]);
+  const [rolePriorityIds, setRolePriorityIds] = useState<string[]>([]);
   // Index of the rule shown in the right-hand editor pane; null = none
   // selected (empty rule list, or not loaded yet).
   const [selectedRuleIndex, setSelectedRuleIndex] = useState<number | null>(
@@ -280,6 +281,7 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
         })),
       })),
     );
+    setRolePriorityIds(config.data.rolePriorityIds);
     if (!hasAutoSelected) {
       setHasAutoSelected(true);
       if (config.data.rules.length > 0) setSelectedRuleIndex(0);
@@ -322,6 +324,10 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
       utils.guild.discordRoleConfig.invalidate({ guildId }),
   });
   const deleteRule = api.guild.deleteRoleRule.useMutation({
+    onSuccess: async () =>
+      utils.guild.discordRoleConfig.invalidate({ guildId }),
+  });
+  const saveRolePriorities = api.guild.setRolePriorities.useMutation({
     onSuccess: async () =>
       utils.guild.discordRoleConfig.invalidate({ guildId }),
   });
@@ -407,6 +413,31 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
       if (current === index) return null;
       if (current > index) return current - 1;
       return current;
+    });
+  }
+
+  function addPriorityRole() {
+    setRolePriorityIds((ids) => [...ids, ""]);
+  }
+
+  function updatePriorityRole(index: number, roleId: string) {
+    setRolePriorityIds((ids) => ids.map((id, i) => (i === index ? roleId : id)));
+  }
+
+  function removePriorityRole(index: number) {
+    setRolePriorityIds((ids) => ids.filter((_, i) => i !== index));
+  }
+
+  function movePriorityRole(index: number, direction: -1 | 1) {
+    setRolePriorityIds((ids) => {
+      const target = index + direction;
+      if (target < 0 || target >= ids.length) return ids;
+      const next = [...ids];
+      const a = next[index]!;
+      const b = next[target]!;
+      next[index] = b;
+      next[target] = a;
+      return next;
     });
   }
 
@@ -1217,6 +1248,88 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
                 )}
               </div>
             </div>
+          </div>
+
+          <div className="bg-discord-elevated flex flex-col gap-2 rounded-xl p-6">
+            <h3 className="font-bold">Mutually exclusive roles</h3>
+            <p className="text-discord-text-muted text-sm">
+              A person can qualify for more than one rule via different
+              characters (e.g. a main that&apos;s Core Raider and an alt
+              that&apos;s a regular member) — normally they&apos;d get every
+              role that fires. List roles here, highest tier first, and
+              they&apos;ll only ever get the topmost one that applies, never
+              more than one at once. Leave empty to grant them all as usual.
+            </p>
+            <div className="flex flex-col gap-2">
+              {rolePriorityIds.map((roleId, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="text-discord-text-muted w-5 text-right text-sm">
+                    {i + 1}
+                  </span>
+                  <RoleSelect
+                    value={roleId}
+                    onChange={(v) => updatePriorityRole(i, v)}
+                    roles={discordRoles.data}
+                    placeholder="Select a role"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => movePriorityRole(i, -1)}
+                    disabled={i === 0}
+                    className="bg-discord-base hover:bg-discord-elevated-hover rounded-full px-2.5 py-1 text-sm disabled:opacity-30"
+                    title="Move up"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => movePriorityRole(i, 1)}
+                    disabled={i === rolePriorityIds.length - 1}
+                    className="bg-discord-base hover:bg-discord-elevated-hover rounded-full px-2.5 py-1 text-sm disabled:opacity-30"
+                    title="Move down"
+                  >
+                    ↓
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removePriorityRole(i)}
+                    className="bg-discord-base hover:bg-discord-elevated-hover rounded-full px-3 text-sm"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addPriorityRole}
+                className="bg-discord-base hover:bg-discord-elevated-hover self-start rounded-full px-3 py-1 text-xs"
+              >
+                + Add role
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                saveRolePriorities.mutate({
+                  guildId,
+                  discordRoleIds: rolePriorityIds.filter(
+                    (id) => id.trim() !== "",
+                  ),
+                })
+              }
+              disabled={saveRolePriorities.isPending}
+              className="bg-discord-elevated-hover self-start rounded-full px-4 py-1.5 text-sm font-semibold"
+            >
+              {saveRolePriorities.isPending ? "Saving..." : "Save"}
+            </button>
+            {saveRolePriorities.error && (
+              <p className="text-discord-red text-sm">
+                {saveRolePriorities.error.message}
+              </p>
+            )}
+            {saveRolePriorities.isSuccess && (
+              <p className="text-discord-green text-sm">Saved!</p>
+            )}
           </div>
 
           <datalist id="rank-options">

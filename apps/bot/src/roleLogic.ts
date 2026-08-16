@@ -34,12 +34,18 @@ interface RuleWithGrants {
   grantedChannels: { discordChannelId: string; channelType: string }[];
 }
 
+export interface RolePriorityEntry {
+  discordRoleId: string;
+  priority: number;
+}
+
 // Shared by matchRosterAndApply (onboarding) and roleSync.ts (the daily
 // background resync) so both decide "what should this person have right
 // now" via the exact same rule-firing logic.
 export function evaluateRules(
   rules: RuleWithGrants[],
   matched: MatchedCharacter[],
+  priorityRoles: RolePriorityEntry[] = [],
 ): { roleIds: Set<string>; channelGrants: ChannelGrant[] } {
   const roleIds = new Set<string>();
   const channelGrants: ChannelGrant[] = [];
@@ -56,6 +62,18 @@ export function evaluateRules(
       });
     }
   }
+
+  // Collapse mutually-exclusive tiers down to just the highest-priority
+  // role actually granted (see GuildRolePriority in schema.prisma) — keep
+  // only the lowest `priority` number among the ones present, drop the
+  // rest from what gets granted.
+  const grantedPriority = priorityRoles
+    .filter((p) => roleIds.has(p.discordRoleId))
+    .sort((a, b) => a.priority - b.priority);
+  for (const { discordRoleId } of grantedPriority.slice(1)) {
+    roleIds.delete(discordRoleId);
+  }
+
   return { roleIds, channelGrants };
 }
 
@@ -722,8 +740,11 @@ export async function matchRosterAndApply(
       where: { guildId: guild.id },
       include: { conditions: true, grantedRoles: true, grantedChannels: true },
     });
+    const rolePriorities = await db.guildRolePriority.findMany({
+      where: { guildId: guild.id },
+    });
     if (matched.length > 0) {
-      ({ roleIds, channelGrants } = evaluateRules(rules, matched));
+      ({ roleIds, channelGrants } = evaluateRules(rules, matched, rolePriorities));
     }
     if (externalCharacters.length > 0) {
       // Only channel-only rules (no granted roles) ever fire off an

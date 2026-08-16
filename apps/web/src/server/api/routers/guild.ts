@@ -1697,7 +1697,7 @@ export const guildRouter = createTRPCRouter({
           : forbiddenOrRateLimited(retryAfterSeconds);
       }
 
-      const [guild, rules] = await Promise.all([
+      const [guild, rules, rolePriorities] = await Promise.all([
         ctx.db.guild.findUnique({
           where: { id: input.guildId },
           select: {
@@ -1726,6 +1726,10 @@ export const guildRouter = createTRPCRouter({
           },
           orderBy: { id: "asc" },
         }),
+        ctx.db.guildRolePriority.findMany({
+          where: { guildId: input.guildId },
+          orderBy: { priority: "asc" },
+        }),
       ]);
       if (!guild) throw new TRPCError({ code: "NOT_FOUND" });
 
@@ -1747,6 +1751,7 @@ export const guildRouter = createTRPCRouter({
         wowGuildName: guild.wowGuildName,
         wowNamespaceFlavor: guild.wowNamespaceFlavor,
         rules,
+        rolePriorityIds: rolePriorities.map((p) => p.discordRoleId),
       };
     }),
 
@@ -1909,6 +1914,44 @@ export const guildRouter = createTRPCRouter({
       await ctx.db.guildRoleRule.deleteMany({
         where: { id: input.id, guildId: input.guildId },
       });
+      return { ok: true };
+    }),
+
+  // Full replace, ordered array = priority (index 0 is highest) — see
+  // GuildRolePriority in schema.prisma and evaluateRules in roleLogic.ts.
+  // An empty array just clears the list, same as removing every role from
+  // it one at a time would.
+  setRolePriorities: protectedProcedure
+    .input(
+      z.object({
+        guildId: z.string(),
+        discordRoleIds: z.array(z.string().min(1)),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      await ctx.db.$transaction([
+        ctx.db.guildRolePriority.deleteMany({
+          where: { guildId: input.guildId },
+        }),
+        ctx.db.guildRolePriority.createMany({
+          data: input.discordRoleIds.map((discordRoleId, priority) => ({
+            guildId: input.guildId,
+            discordRoleId,
+            priority,
+          })),
+        }),
+      ]);
       return { ok: true };
     }),
 

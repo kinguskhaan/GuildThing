@@ -410,6 +410,13 @@ exports.Prisma.GuildAdminRoleScalarFieldEnum = {
   discordRoleId: 'discordRoleId'
 };
 
+exports.Prisma.GuildRolePriorityScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  discordRoleId: 'discordRoleId',
+  priority: 'priority'
+};
+
 exports.Prisma.GuildCharacterScalarFieldEnum = {
   id: 'id',
   guildId: 'guildId',
@@ -491,6 +498,7 @@ exports.Prisma.ModelName = {
   EventSignup: 'EventSignup',
   GuildRequiredRole: 'GuildRequiredRole',
   GuildAdminRole: 'GuildAdminRole',
+  GuildRolePriority: 'GuildRolePriority',
   GuildCharacter: 'GuildCharacter',
   Profession: 'Profession',
   Recipe: 'Recipe',
