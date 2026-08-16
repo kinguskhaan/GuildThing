@@ -340,14 +340,20 @@ export async function applyNicknameAndRoles(
     managedRoleIds.has(r.id),
   );
   const toAdd = desiredRoleIds.filter((id) => !currentManaged.has(id));
-  const toRemove = currentManaged
-    .filter((r) => !desired.has(r.id))
-    .map((r) => r.id);
+  const toRemoveRoles = currentManaged.filter((r) => !desired.has(r.id));
+  const toRemove = toRemoveRoles.map((r) => r.id);
 
   if (toAdd.length > 0 || toRemove.length > 0) {
     try {
       if (toAdd.length > 0) await member.roles.add(toAdd);
       if (toRemove.length > 0) await member.roles.remove(toRemove);
+      const roleName = (id: string) =>
+        member.guild.roles.cache.get(id)?.name ?? id;
+      const added = toAdd.map(roleName).join(", ") || "none";
+      const removed = toRemoveRoles.map((r) => r.name).join(", ") || "none";
+      console.log(
+        `[bot] role update for ${member.user.tag} in ${member.guild.name}: +[${added}] -[${removed}]`,
+      );
     } catch (err) {
       console.error(
         `[bot] failed to update roles for ${member.user.tag}:`,

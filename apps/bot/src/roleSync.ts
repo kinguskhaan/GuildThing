@@ -93,16 +93,19 @@ async function syncGuildRoles(
 
     const currentManaged = member.roles.cache.filter((r) => managedRoleIds.has(r.id));
     const toAdd = [...desiredRoleIds].filter((id) => !currentManaged.has(id));
-    const toRemove = currentManaged
-      .filter((r) => !desiredRoleIds.has(r.id))
-      .map((r) => r.id);
+    const toRemoveRoles = currentManaged.filter((r) => !desiredRoleIds.has(r.id));
+    const toRemove = toRemoveRoles.map((r) => r.id);
 
     if (toAdd.length > 0 || toRemove.length > 0) {
       try {
         if (toAdd.length > 0) await member.roles.add(toAdd);
         if (toRemove.length > 0) await member.roles.remove(toRemove);
+        const roleName = (id: string) =>
+          discordGuild.roles.cache.get(id)?.name ?? id;
+        const added = toAdd.map(roleName).join(", ") || "none";
+        const removed = toRemoveRoles.map((r) => r.name).join(", ") || "none";
         console.log(
-          `[bot] role sync for ${member.user.tag} in ${discordGuild.name}: +${toAdd.length} -${toRemove.length}`,
+          `[bot] role sync for ${member.user.tag} in ${discordGuild.name}: +[${added}] -[${removed}]`,
         );
       } catch (err) {
         console.error(
