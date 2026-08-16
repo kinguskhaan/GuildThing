@@ -45,7 +45,7 @@ export function GuildMemberNicknames({
             just the main-name slot — set by the member during onboarding, or
             here. Clearing it reverts them to the computed name.
           </p>
-          <div className="max-h-96 overflow-auto rounded-lg">
+          <div className="max-h-[70vh] overflow-auto rounded-lg">
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr>

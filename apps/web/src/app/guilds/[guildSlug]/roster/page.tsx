@@ -33,36 +33,40 @@ export default async function RosterPage({
       : [[], [], [], []];
 
   return (
-    <div className="flex w-full max-w-3xl flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <h2 className="text-center text-2xl font-bold">Members</h2>
 
-      <NicknameEditor initialNickname={me.nickname} fallback={me.name} />
-      <ImportPanel guildId={guildId} guildSlug={guildSlug} />
-      <GuildExportPanel guildId={guildId} />
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
+        <NicknameEditor initialNickname={me.nickname} fallback={me.name} />
+        <ImportPanel guildId={guildId} guildSlug={guildSlug} />
+        <GuildExportPanel guildId={guildId} />
 
-      {guild.isAdmin && guild.rosterSource === "onboarding" && (
-        <div className="bg-discord-elevated text-discord-text-muted w-full rounded-xl p-4 text-sm">
-          This guild builds its roster from Discord onboarding — there&apos;s
-          nothing to import here. Switch back to &quot;Addon export&quot; on the
-          Discord Server Controls admin page if that changes.
-        </div>
-      )}
-      {guild.isAdmin && guild.rosterSource !== "onboarding" && (
-        <GuildRosterImportForm guildId={guildId} />
-      )}
-      {guild.isAdmin && (
-        <GuildPendingMatches guildId={guildId} entries={pendingMatches} />
-      )}
-      {guild.isAdmin && (
-        <GuildUnclaimedMembers guildId={guildId} members={unclaimedMembers} />
-      )}
+        {guild.isAdmin && guild.rosterSource === "onboarding" && (
+          <div className="bg-discord-elevated text-discord-text-muted w-full rounded-xl p-4 text-sm">
+            This guild builds its roster from Discord onboarding —
+            there&apos;s nothing to import here. Switch back to &quot;Addon
+            export&quot; on the Discord Server Controls admin page if that
+            changes.
+          </div>
+        )}
+        {guild.isAdmin && guild.rosterSource !== "onboarding" && (
+          <GuildRosterImportForm guildId={guildId} />
+        )}
+        {guild.isAdmin && (
+          <GuildPendingMatches guildId={guildId} entries={pendingMatches} />
+        )}
+        {guild.isAdmin && (
+          <GuildUnclaimedMembers guildId={guildId} members={unclaimedMembers} />
+        )}
+        {guild.isAdmin && <GuildClaimCharacter guildId={guildId} />}
+      </div>
+
       {guild.isAdmin && (
         <GuildMemberNicknames guildId={guildId} rows={memberNicknames} />
       )}
       {guild.isAdmin && (
         <GuildExternalCharacters guildId={guildId} rows={externalCharacters} />
       )}
-      {guild.isAdmin && <GuildClaimCharacter guildId={guildId} />}
 
       {members.length === 0 ? (
         <div className="bg-discord-elevated text-discord-text-muted w-full rounded-xl p-6 text-center">

@@ -47,7 +47,7 @@ export function GuildExternalCharacters({
             channel access only, no roles. Auto-promotes to a full claim if
             the character ever shows up in an addon import.
           </p>
-          <div className="max-h-96 overflow-auto rounded-lg">
+          <div className="max-h-[70vh] overflow-auto rounded-lg">
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr>

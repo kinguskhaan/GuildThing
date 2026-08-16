@@ -301,6 +301,43 @@ function MembersByRolePanel({
   const filterRoleName = roles?.find((r) => r.id === filterRoleId)?.name;
   const roleName = (id: string) => roles?.find((r) => r.id === id)?.name ?? id;
 
+  // Snapshots exactly what's currently on screen — staged checkbox state
+  // included, not just what Discord has right now — as a Markdown table,
+  // and saves it via a plain browser download (no server round-trip).
+  function downloadMarkdown() {
+    const rows = members.data ?? [];
+    const header = [
+      "Discord account",
+      "Discord nickname",
+      "Character(s)",
+      ...columnIds.map(roleName),
+    ];
+    const lines = [
+      `| ${header.join(" | ")} |`,
+      `| ${header.map(() => "---").join(" | ")} |`,
+      ...rows.map((m) => {
+        const cells = [
+          m.tag,
+          m.nick ?? "",
+          m.characterNames.join(", "),
+          ...columnIds.map((roleId) =>
+            currentRoles(m.id, m.roleIds).has(roleId) ? "x" : "",
+          ),
+        ];
+        return `| ${cells.join(" | ")} |`;
+      }),
+    ];
+    const blob = new Blob([lines.join("\n") + "\n"], {
+      type: "text/markdown",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `members-by-role-${filterRoleName ?? "export"}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   // Every (member, role) cell whose staged state differs from what Discord
   // actually has — this IS the change set apply sends, one entry per cell.
   const changes = (members.data ?? []).flatMap((m) => {
@@ -346,7 +383,7 @@ function MembersByRolePanel({
       )}
       {members.data && members.data.length > 0 && (
         <>
-          <div className="max-h-96 overflow-auto rounded-lg">
+          <div className="max-h-[70vh] overflow-auto rounded-lg">
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr>
@@ -410,18 +447,27 @@ function MembersByRolePanel({
               </tbody>
             </table>
           </div>
-          <button
-            type="button"
-            onClick={() => apply.mutate({ guildId, changes })}
-            disabled={apply.isPending || changes.length === 0}
-            className="bg-discord-brand self-start rounded-full px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
-          >
-            {apply.isPending
-              ? "Applying..."
-              : changes.length > 0
-                ? `Apply changes (${changes.length})`
-                : "Apply changes"}
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => apply.mutate({ guildId, changes })}
+              disabled={apply.isPending || changes.length === 0}
+              className="bg-discord-brand self-start rounded-full px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              {apply.isPending
+                ? "Applying..."
+                : changes.length > 0
+                  ? `Apply changes (${changes.length})`
+                  : "Apply changes"}
+            </button>
+            <button
+              type="button"
+              onClick={downloadMarkdown}
+              className="bg-discord-base hover:bg-discord-elevated-hover self-start rounded-full px-4 py-1.5 text-sm font-semibold"
+            >
+              Download as Markdown
+            </button>
+          </div>
         </>
       )}
       {apply.error && (
@@ -681,7 +727,7 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
   return (
     <div
       className={`flex w-full flex-col gap-6 ${
-        activeTab === "rules" ? "max-w-4xl" : "max-w-2xl"
+        activeTab === "rules" || activeTab === "members" ? "" : "max-w-2xl"
       }`}
     >
       <div className="bg-discord-elevated flex gap-1 self-start rounded-full p-1">
