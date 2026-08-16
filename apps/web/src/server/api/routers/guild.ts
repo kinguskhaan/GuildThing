@@ -1277,9 +1277,35 @@ export const guildRouter = createTRPCRouter({
       }
 
       const members = await getGuildMembers(guild.discordGuildId);
-      return members
-        .filter((m) => !m.bot && m.roleIds.includes(input.discordRoleId))
-        .map((m) => ({ id: m.id, tag: m.tag, roleIds: m.roleIds }));
+      const matched = members.filter(
+        (m) => !m.bot && m.roleIds.includes(input.discordRoleId),
+      );
+
+      // No main/alt distinction exists on GuildRosterMember — every claimed
+      // row (main or alt) looks the same — so this is "every character
+      // claimed by this person," not specifically their main.
+      const claims = await ctx.db.guildRosterMember.findMany({
+        where: {
+          guildId: input.guildId,
+          claimedByDiscordUserId: { in: matched.map((m) => m.id) },
+        },
+        select: { name: true, claimedByDiscordUserId: true },
+      });
+      const namesByUser = new Map<string, string[]>();
+      for (const c of claims) {
+        if (!c.claimedByDiscordUserId) continue;
+        namesByUser.set(c.claimedByDiscordUserId, [
+          ...(namesByUser.get(c.claimedByDiscordUserId) ?? []),
+          c.name,
+        ]);
+      }
+
+      return matched.map((m) => ({
+        id: m.id,
+        tag: m.tag,
+        roleIds: m.roleIds,
+        characterNames: namesByUser.get(m.id) ?? [],
+      }));
     }),
 
   // Applies a batch of per-member/per-role add-or-remove decisions from the

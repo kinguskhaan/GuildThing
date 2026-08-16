@@ -353,6 +353,9 @@ function MembersByRolePanel({
                   <th className="bg-discord-base sticky top-0 left-0 z-10 px-3 py-2 text-left font-semibold">
                     Name
                   </th>
+                  <th className="bg-discord-base sticky top-0 px-3 py-2 text-left font-semibold">
+                    Character(s)
+                  </th>
                   {columnIds.map((roleId) => {
                     const state = columnState(roleId);
                     return (
@@ -381,6 +384,11 @@ function MembersByRolePanel({
                   <tr key={m.id} className="hover:bg-discord-base">
                     <td className="bg-discord-elevated sticky left-0 px-3 py-1.5 whitespace-nowrap">
                       {m.tag}
+                    </td>
+                    <td className="text-discord-text-muted px-3 py-1.5 whitespace-nowrap">
+                      {m.characterNames.length > 0
+                        ? m.characterNames.join(", ")
+                        : "—"}
                     </td>
                     {columnIds.map((roleId) => (
                       <td key={roleId} className="px-3 py-1.5">
