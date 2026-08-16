@@ -1399,6 +1399,7 @@ export const guildRouter = createTRPCRouter({
       return matched.map((m) => ({
         id: m.id,
         tag: m.tag,
+        nick: m.nick,
         roleIds: m.roleIds,
         characterNames: namesByUser.get(m.id) ?? [],
       }));

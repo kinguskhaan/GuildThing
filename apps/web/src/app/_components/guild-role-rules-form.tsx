@@ -383,7 +383,12 @@ function MembersByRolePanel({
                 {members.data.map((m) => (
                   <tr key={m.id} className="hover:bg-discord-base">
                     <td className="bg-discord-elevated sticky left-0 px-3 py-1.5 whitespace-nowrap">
-                      {m.tag}
+                      {m.nick ?? m.tag}
+                      {m.nick && (
+                        <span className="text-discord-text-muted ml-1 text-xs">
+                          ({m.tag})
+                        </span>
+                      )}
                     </td>
                     <td className="text-discord-text-muted px-3 py-1.5 whitespace-nowrap">
                       {m.characterNames.length > 0
