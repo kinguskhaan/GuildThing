@@ -645,6 +645,29 @@ export async function addRoleToMember(
 }
 
 /**
+ * Revokes a Discord role from a member via the bot's own token — mirrors
+ * addRoleToMember above, same hierarchy rules and same "returns false
+ * rather than throwing" failure handling. Note this only affects Discord
+ * directly: if the role is still granted by a GuildRoleRule the member
+ * qualifies for, the next sync (daily or force-sync) re-adds it, same as
+ * any other manually-touched managed role.
+ */
+export async function removeRoleFromMember(
+  discordGuildId: string,
+  discordUserId: string,
+  discordRoleId: string,
+): Promise<boolean> {
+  const res = await fetch(
+    `https://discord.com/api/v10/guilds/${discordGuildId}/members/${discordUserId}/roles/${discordRoleId}`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bot ${env.DISCORD_BOT_TOKEN}` },
+    },
+  );
+  return res.ok;
+}
+
+/**
  * Sets (or, with `nickname: null`, clears) a member's Discord nickname via
  * the bot's own token — same hierarchy rules as everywhere else the bot
  * renames someone: the bot's own role must sit above theirs, or this fails

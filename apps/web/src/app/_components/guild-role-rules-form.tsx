@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 
 import { api } from "~/trpc/react";
 
-type Tab = "general" | "onboarding" | "rules" | "inactivity";
+type Tab = "general" | "onboarding" | "rules" | "inactivity" | "members";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "general", label: "General" },
   { id: "onboarding", label: "Onboarding" },
   { id: "rules", label: "Role rules" },
   { id: "inactivity", label: "Inactivity" },
+  { id: "members", label: "Members by role" },
 ];
 
 type Field = "rank" | "level" | "class";
@@ -197,6 +198,131 @@ function ChannelGrantSelect({
         </optgroup>
       )}
     </select>
+  );
+}
+
+// "Who has role X right now, and do I want to keep it that way" — an audit/
+// cleanup view, separate from the rule-driven sync (unchecking someone here
+// only sticks if no GuildRoleRule still grants them the role; otherwise the
+// next sync re-adds it, same as any other manually-touched managed role).
+// Batched on purpose: unchecking just stages a pending removal locally,
+// nothing hits Discord until "Apply changes" — so a wrong click doesn't
+// immediately cost someone their role.
+function MembersByRolePanel({
+  guildId,
+  roles,
+}: {
+  guildId: string;
+  roles: { id: string; name: string }[] | undefined;
+}) {
+  const [roleId, setRoleId] = useState("");
+  // Member ids staged for removal (unchecked) — cleared whenever the
+  // selected role changes or an apply completes.
+  const [pendingRemoval, setPendingRemoval] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const utils = api.useUtils();
+  const members = api.guild.membersWithRole.useQuery(
+    { guildId, discordRoleId: roleId },
+    { enabled: roleId !== "" },
+  );
+  const apply = api.guild.removeRoleFromMembers.useMutation({
+    onSuccess: async () => {
+      setPendingRemoval(new Set());
+      await utils.guild.membersWithRole.invalidate({
+        guildId,
+        discordRoleId: roleId,
+      });
+    },
+  });
+
+  function selectRole(id: string) {
+    setRoleId(id);
+    setPendingRemoval(new Set());
+  }
+
+  function toggle(memberId: string) {
+    setPendingRemoval((ids) => {
+      const next = new Set(ids);
+      if (next.has(memberId)) next.delete(memberId);
+      else next.add(memberId);
+      return next;
+    });
+  }
+
+  const roleName = roles?.find((r) => r.id === roleId)?.name;
+
+  return (
+    <div className="bg-discord-elevated flex flex-col gap-3 rounded-xl p-6">
+      <h3 className="font-bold">Members by role</h3>
+      <p className="text-discord-text-muted text-sm">
+        Pick a role to see everyone who currently holds it, uncheck the ones
+        who shouldn&apos;t, then apply — nothing changes in Discord until you
+        do. Only sticks for people no rule still grants this role to;
+        otherwise the next sync brings it right back.
+      </p>
+      <RoleSelect
+        value={roleId}
+        onChange={selectRole}
+        roles={roles}
+        placeholder="Select a role"
+      />
+
+      {roleId !== "" && members.isLoading && (
+        <p className="text-discord-text-muted text-sm">Loading...</p>
+      )}
+      {roleId !== "" && members.data?.length === 0 && (
+        <p className="text-discord-text-muted text-sm">
+          Nobody currently holds {roleName ?? "this role"}.
+        </p>
+      )}
+      {members.data && members.data.length > 0 && (
+        <>
+          <ul className="flex max-h-80 flex-col gap-1 overflow-y-auto">
+            {members.data.map((m) => (
+              <li key={m.id}>
+                <label className="hover:bg-discord-base flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={!pendingRemoval.has(m.id)}
+                    onChange={() => toggle(m.id)}
+                  />
+                  {m.tag}
+                </label>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={() =>
+              apply.mutate({
+                guildId,
+                discordRoleId: roleId,
+                memberIds: [...pendingRemoval],
+              })
+            }
+            disabled={apply.isPending || pendingRemoval.size === 0}
+            className="bg-discord-brand self-start rounded-full px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {apply.isPending
+              ? "Applying..."
+              : pendingRemoval.size > 0
+                ? `Apply changes (remove from ${pendingRemoval.size})`
+                : "Apply changes"}
+          </button>
+        </>
+      )}
+      {apply.error && (
+        <p className="text-discord-red text-sm">{apply.error.message}</p>
+      )}
+      {apply.isSuccess && (
+        <p className="text-discord-green text-sm">
+          Removed from {apply.data.succeeded}
+          {apply.data.failed > 0 ? `, ${apply.data.failed} failed` : ""}.
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -926,6 +1052,10 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
             <p className="text-discord-green text-sm">Saved!</p>
           )}
         </div>
+      )}
+
+      {activeTab === "members" && (
+        <MembersByRolePanel guildId={guildId} roles={discordRoles.data} />
       )}
 
       {activeTab === "rules" && (

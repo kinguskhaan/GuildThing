@@ -28,6 +28,7 @@ import {
   getMyRoleIds,
   hasGuildRole,
   isGuildMember,
+  removeRoleFromMember,
   sendDirectMessage,
   setMemberNickname,
 } from "~/server/discord";
@@ -1251,6 +1252,59 @@ export const guildRouter = createTRPCRouter({
       const results = await Promise.all(
         input.memberIds.map((id) =>
           addRoleToMember(guild.discordGuildId, id, input.discordRoleId),
+        ),
+      );
+      const succeeded = results.filter(Boolean).length;
+      return { succeeded, failed: results.length - succeeded };
+    }),
+
+  // Every non-bot member currently holding discordRoleId — the "who has
+  // this role right now" audit view. Live against Discord (via the bot's
+  // token), not cached, since the whole point is trusting what's actually
+  // there over whatever the roster/rules last computed.
+  membersWithRole: protectedProcedure
+    .input(z.object({ guildId: z.string(), discordRoleId: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const members = await getGuildMembers(guild.discordGuildId);
+      return members
+        .filter((m) => !m.bot && m.roleIds.includes(input.discordRoleId))
+        .map((m) => ({ id: m.id, tag: m.tag }));
+    }),
+
+  // Revokes discordRoleId from every given member — the batch "apply" step
+  // for the role-audit view's unchecked rows. Mirrors assignRoleToMembers
+  // above; same failures-counted-not-thrown handling. Note this only
+  // touches Discord directly — if a GuildRoleRule still grants this role to
+  // one of these people, the next sync re-adds it (see removeRoleFromMember
+  // in discord.ts).
+  removeRoleFromMembers: protectedProcedure
+    .input(
+      z.object({
+        guildId: z.string(),
+        memberIds: z.array(z.string()).min(1),
+        discordRoleId: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const results = await Promise.all(
+        input.memberIds.map((id) =>
+          removeRoleFromMember(guild.discordGuildId, id, input.discordRoleId),
         ),
       );
       const succeeded = results.filter(Boolean).length;
