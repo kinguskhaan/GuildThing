@@ -49,7 +49,10 @@ export function GuildMemberNicknames({
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr>
-                  <th className="bg-discord-base sticky top-0 left-0 z-10 px-3 py-2 text-left font-semibold">
+                  <th className="bg-discord-base sticky top-0 left-0 z-10 px-3 py-2 text-right font-semibold">
+                    #
+                  </th>
+                  <th className="bg-discord-base sticky top-0 px-3 py-2 text-left font-semibold">
                     Discord account
                   </th>
                   <th className="bg-discord-base sticky top-0 px-3 py-2 text-left font-semibold">
@@ -70,8 +73,11 @@ export function GuildMemberNicknames({
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => (
+                {rows.map((row, i) => (
                   <tr key={row.id} className="hover:bg-discord-base">
+                    <td className="bg-discord-elevated text-discord-text-muted sticky left-0 px-3 py-1.5 text-right whitespace-nowrap">
+                      {i + 1}
+                    </td>
                     <td className="px-3 py-1.5 whitespace-nowrap font-semibold">
                       {row.discordUserTag}
                     </td>
@@ -161,6 +167,7 @@ export function GuildMemberNicknames({
               </tbody>
             </table>
           </div>
+          <p className="text-discord-text-muted text-xs">{rows.length} total</p>
           {setOverride.error && (
             <p className="text-discord-red text-sm">
               {setOverride.error.message}

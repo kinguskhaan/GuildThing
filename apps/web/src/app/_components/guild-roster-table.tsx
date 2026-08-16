@@ -180,6 +180,9 @@ export function GuildRosterTable({
           <table className="text-left text-sm">
             <thead>
               <tr className="border-b border-black/20 text-xs whitespace-nowrap text-discord-text-muted uppercase">
+                <th className="sticky top-0 left-0 bg-discord-elevated px-4 py-2 text-right font-semibold">
+                  #
+                </th>
                 <th
                   className="sticky top-0 cursor-pointer bg-discord-elevated px-4 py-2 font-semibold select-none"
                   onClick={() => toggleSort("name")}
@@ -220,11 +223,14 @@ export function GuildRosterTable({
               </tr>
             </thead>
             <tbody>
-              {sorted.map((member) => (
+              {sorted.map((member, i) => (
                 <tr
                   key={member.id}
                   className="border-b border-black/10 last:border-0"
                 >
+                  <td className="bg-discord-elevated sticky left-0 px-4 py-2 text-right text-discord-text-muted whitespace-nowrap">
+                    {i + 1}
+                  </td>
                   <td
                     className="px-4 py-2 font-semibold whitespace-nowrap"
                     style={{ color: classColor(member.class) }}
@@ -310,6 +316,9 @@ export function GuildRosterTable({
             </tbody>
           </table>
         </div>
+      )}
+      {sorted.length > 0 && (
+        <p className="text-xs text-discord-text-muted">{sorted.length} total</p>
       )}
     </div>
   );

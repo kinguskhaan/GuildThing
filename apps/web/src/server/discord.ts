@@ -521,12 +521,14 @@ export interface DiscordMemberSummary {
   nick: string | null;
   roleIds: string[];
   bot: boolean;
+  joinedAt: string | null;
 }
 
 interface RawDiscordMember {
   user: { id: string; username: string; discriminator: string; bot?: boolean };
   nick?: string | null;
   roles: string[];
+  joined_at?: string;
 }
 
 // Discord's own tag format: "name" for the new (discriminator "0")
@@ -575,6 +577,7 @@ export async function getGuildMembers(
         nick: m.nick ?? null,
         roleIds: m.roles,
         bot: m.user.bot ?? false,
+        joinedAt: m.joined_at ?? null,
       });
     }
 

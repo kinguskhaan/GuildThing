@@ -1502,6 +1502,217 @@ export const guildRouter = createTRPCRouter({
       return { succeeded, failed: results.length - succeeded };
     }),
 
+  // Every non-bot Discord member, joined with their GuildMemberActivity row
+  // (null if never tracked — e.g. someone who joined before the bot was,
+  // or who's simply never sent a message here). Live roleIds decide
+  // hasTargetRole/isMarkedInactive, not the DB, since Discord is the
+  // source of truth for what someone actually holds right now. Backs the
+  // bulk inactivity-management panel (Inactive tab).
+  inactivityOverview: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const guildRow = await ctx.db.guild.findUnique({
+        where: { id: input.guildId },
+        select: {
+          inactivityDays: true,
+          inactivityRoleId: true,
+          inactivityTargetRoles: { select: { discordRoleId: true } },
+        },
+      });
+      if (!guildRow) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const [members, activityRows] = await Promise.all([
+        getGuildMembers(guild.discordGuildId),
+        ctx.db.guildMemberActivity.findMany({ where: { guildId: input.guildId } }),
+      ]);
+      const activityByUser = new Map(activityRows.map((a) => [a.discordUserId, a]));
+      const targetRoleIds = new Set(
+        guildRow.inactivityTargetRoles.map((r) => r.discordRoleId),
+      );
+
+      return {
+        inactivityDays: guildRow.inactivityDays,
+        inactivityRoleId: guildRow.inactivityRoleId,
+        members: members
+          .filter((m) => !m.bot)
+          .map((m) => {
+            const activity = activityByUser.get(m.id);
+            return {
+              id: m.id,
+              tag: m.tag,
+              nick: m.nick,
+              hasTargetRole: m.roleIds.some((r) => targetRoleIds.has(r)),
+              isMarkedInactive: guildRow.inactivityRoleId
+                ? m.roleIds.includes(guildRow.inactivityRoleId)
+                : false,
+              lastActiveAt: activity?.lastActiveAt ?? null,
+              joinedAt: activity?.joinedAt ?? m.joinedAt,
+            };
+          }),
+      };
+    }),
+
+  // Resets the activity clock to right now for every given member — the
+  // bulk counterpart to "grant them a fresh grace period." Upserts rather
+  // than just updating: someone who's never sent a tracked message has no
+  // GuildMemberActivity row at all (see trackMessageActivity in the bot),
+  // so this is also how an admin backfills that for people the automatic
+  // tracker never caught. Does NOT touch the inactive role either way —
+  // use bulkReactivateMembers for that.
+  bulkResetActivity: protectedProcedure
+    .input(
+      z.object({ guildId: z.string(), discordUserIds: z.array(z.string()).min(1) }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const tagById = new Map(
+        (await getGuildMembers(guild.discordGuildId)).map((m) => [m.id, m.tag]),
+      );
+      const now = new Date();
+      await Promise.all(
+        input.discordUserIds.map((discordUserId) =>
+          ctx.db.guildMemberActivity.upsert({
+            where: {
+              guildId_discordUserId: { guildId: input.guildId, discordUserId },
+            },
+            create: {
+              guildId: input.guildId,
+              discordUserId,
+              discordUserTag: tagById.get(discordUserId) ?? discordUserId,
+              lastActiveAt: now,
+              joinedAt: now,
+            },
+            update: { lastActiveAt: now },
+          }),
+        ),
+      );
+      return { ok: true };
+    }),
+
+  // Manually marks the given members inactive right now — grants the
+  // inactive role directly (same additive add(), never a role-wipe, as
+  // the daily filter itself — see runInactivityFilter in
+  // apps/bot/src/activityTracking.ts) instead of waiting for the next
+  // daily pass. Also backfills a GuildMemberActivity row for anyone who
+  // didn't have one yet, same reasoning as bulkResetActivity.
+  bulkMarkInactive: protectedProcedure
+    .input(
+      z.object({ guildId: z.string(), discordUserIds: z.array(z.string()).min(1) }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+      const guildRow = await ctx.db.guild.findUnique({
+        where: { id: input.guildId },
+        select: { inactivityRoleId: true },
+      });
+      if (!guildRow?.inactivityRoleId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No inactive role configured for this guild.",
+        });
+      }
+      const inactivityRoleId = guildRow.inactivityRoleId;
+
+      const tagById = new Map(
+        (await getGuildMembers(guild.discordGuildId)).map((m) => [m.id, m.tag]),
+      );
+      const now = new Date();
+      const results = await Promise.all(
+        input.discordUserIds.map(async (discordUserId) => {
+          const added = await addRoleToMember(
+            guild.discordGuildId,
+            discordUserId,
+            inactivityRoleId,
+          );
+          await ctx.db.guildMemberActivity.upsert({
+            where: {
+              guildId_discordUserId: { guildId: input.guildId, discordUserId },
+            },
+            create: {
+              guildId: input.guildId,
+              discordUserId,
+              discordUserTag: tagById.get(discordUserId) ?? discordUserId,
+              lastActiveAt: now,
+              joinedAt: now,
+              markedInactiveAt: now,
+            },
+            update: { markedInactiveAt: now },
+          });
+          return added;
+        }),
+      );
+      const succeeded = results.filter(Boolean).length;
+      return { succeeded, failed: results.length - succeeded };
+    }),
+
+  // Bulk /reactivate — removes the inactive role and resets the activity
+  // clock for every given member, same effect as each of them running
+  // /reactivate themselves (see handleReactivate in
+  // apps/bot/src/activityTracking.ts).
+  bulkReactivateMembers: protectedProcedure
+    .input(
+      z.object({ guildId: z.string(), discordUserIds: z.array(z.string()).min(1) }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+      const guildRow = await ctx.db.guild.findUnique({
+        where: { id: input.guildId },
+        select: { inactivityRoleId: true },
+      });
+      if (!guildRow?.inactivityRoleId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No inactive role configured for this guild.",
+        });
+      }
+      const inactivityRoleId = guildRow.inactivityRoleId;
+
+      const now = new Date();
+      const results = await Promise.all(
+        input.discordUserIds.map(async (discordUserId) => {
+          const removed = await removeRoleFromMember(
+            guild.discordGuildId,
+            discordUserId,
+            inactivityRoleId,
+          );
+          await ctx.db.guildMemberActivity.updateMany({
+            where: { guildId: input.guildId, discordUserId },
+            data: { lastActiveAt: now, markedInactiveAt: null },
+          });
+          return removed;
+        }),
+      );
+      const succeeded = results.filter(Boolean).length;
+      return { succeeded, failed: results.length - succeeded };
+    }),
+
   // GuildMemberNickname rows for the admin nickname-override panel —
   // computedName (what matchRosterAndApply would set with no override) next
   // to any admin/self-set preferredNickname override, PLUS what's actually

@@ -387,7 +387,10 @@ function MembersByRolePanel({
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr>
-                  <th className="bg-discord-base sticky top-0 left-0 z-10 px-3 py-2 text-left font-semibold">
+                  <th className="bg-discord-base sticky top-0 left-0 z-10 px-3 py-2 text-right font-semibold">
+                    #
+                  </th>
+                  <th className="bg-discord-base sticky top-0 px-3 py-2 text-left font-semibold">
                     Discord account
                   </th>
                   <th className="bg-discord-base sticky top-0 px-3 py-2 text-left font-semibold">
@@ -420,9 +423,12 @@ function MembersByRolePanel({
                 </tr>
               </thead>
               <tbody>
-                {members.data.map((m) => (
+                {members.data.map((m, i) => (
                   <tr key={m.id} className="hover:bg-discord-base">
-                    <td className="bg-discord-elevated sticky left-0 px-3 py-1.5 whitespace-nowrap">
+                    <td className="bg-discord-elevated text-discord-text-muted sticky left-0 px-3 py-1.5 text-right whitespace-nowrap">
+                      {i + 1}
+                    </td>
+                    <td className="px-3 py-1.5 whitespace-nowrap">
                       {m.tag}
                     </td>
                     <td className="text-discord-text-muted px-3 py-1.5 whitespace-nowrap">
@@ -447,6 +453,9 @@ function MembersByRolePanel({
               </tbody>
             </table>
           </div>
+          <p className="text-discord-text-muted text-xs">
+            {members.data.length} total
+          </p>
           <div className="flex gap-2">
             <button
               type="button"
@@ -478,6 +487,279 @@ function MembersByRolePanel({
           Applied {apply.data.succeeded}
           {apply.data.failed > 0 ? `, ${apply.data.failed} failed` : ""}.
         </p>
+      )}
+    </div>
+  );
+}
+
+function daysAgo(date: string | Date): number {
+  return Math.floor((Date.now() - new Date(date).getTime()) / (24 * 60 * 60_000));
+}
+
+// Bulk counterpart to the daily inactivity filter and /reactivate — see
+// runInactivityFilter/handleReactivate in apps/bot/src/activityTracking.ts,
+// which this mirrors exactly (additive role grant, not a wipe; reactivate
+// just removes that one role). Exists because the daily pass and the
+// per-person slash command don't cover "I want to act on 40 people right
+// now" — a guild reorganizing after a raid tier, say.
+function InactivityManager({ guildId }: { guildId: string }) {
+  const [collapsed, setCollapsed] = useState(true);
+  const [search, setSearch] = useState("");
+  const [onlyTargetRole, setOnlyTargetRole] = useState(true);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const utils = api.useUtils();
+  const overview = api.guild.inactivityOverview.useQuery(
+    { guildId },
+    { enabled: !collapsed },
+  );
+  const invalidate = () => utils.guild.inactivityOverview.invalidate({ guildId });
+  const resetActivity = api.guild.bulkResetActivity.useMutation({
+    onSuccess: async () => {
+      setSelected(new Set());
+      await invalidate();
+    },
+  });
+  const markInactive = api.guild.bulkMarkInactive.useMutation({
+    onSuccess: async () => {
+      setSelected(new Set());
+      await invalidate();
+    },
+  });
+  const reactivate = api.guild.bulkReactivateMembers.useMutation({
+    onSuccess: async () => {
+      setSelected(new Set());
+      await invalidate();
+    },
+  });
+
+  const rows = (overview.data?.members ?? []).filter((m) => {
+    if (onlyTargetRole && !m.hasTargetRole) return false;
+    const query = search.trim().toLowerCase();
+    if (!query) return true;
+    return (
+      m.tag.toLowerCase().includes(query) ||
+      (m.nick ?? "").toLowerCase().includes(query)
+    );
+  });
+
+  function toggleRow(id: string) {
+    setSelected((s) => {
+      const next = new Set(s);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    setSelected((s) =>
+      s.size === rows.length ? new Set() : new Set(rows.map((r) => r.id)),
+    );
+  }
+
+  const anyPending =
+    resetActivity.isPending || markInactive.isPending || reactivate.isPending;
+  const hasInactiveRole = !!overview.data?.inactivityRoleId;
+
+  return (
+    <div className="bg-discord-elevated flex w-full flex-col gap-2 rounded-xl p-4">
+      <button
+        type="button"
+        onClick={() => setCollapsed((c) => !c)}
+        className="flex items-center justify-between text-left"
+      >
+        <h3 className="font-bold">Bulk manage inactivity</h3>
+        <span className="text-discord-text-muted">{collapsed ? "▸" : "▾"}</span>
+      </button>
+      {!collapsed && (
+        <>
+          <p className="text-discord-text-muted text-sm">
+            Act on many members at once: reset someone&apos;s activity clock
+            to right now (also fixes anyone who joined but never sent a
+            tracked message — they get today as a starting point), mark
+            people inactive immediately instead of waiting for the daily
+            pass, or bulk-reactivate. Role changes are additive/subtractive
+            for just the inactive role — nothing else is touched.
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              className="bg-discord-base text-discord-text rounded-full px-4 py-2"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search name/nickname"
+            />
+            <label className="text-discord-text-muted flex items-center gap-1.5 text-sm">
+              <input
+                type="checkbox"
+                checked={onlyTargetRole}
+                onChange={(e) => setOnlyTargetRole(e.target.checked)}
+              />
+              Only members with a tracked role
+            </label>
+          </div>
+          {overview.isLoading && (
+            <p className="text-discord-text-muted text-sm">Loading...</p>
+          )}
+          {!overview.isLoading && rows.length === 0 && (
+            <p className="text-discord-text-muted text-sm">No members match.</p>
+          )}
+          {rows.length > 0 && (
+            <>
+              <div className="max-h-[70vh] overflow-auto rounded-lg">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr>
+                      <th className="bg-discord-base sticky top-0 left-0 z-10 px-3 py-2 text-right font-semibold">
+                        #
+                      </th>
+                      <th className="bg-discord-base sticky top-0 px-3 py-2 text-left font-semibold">
+                        <input
+                          type="checkbox"
+                          checked={selected.size === rows.length}
+                          ref={(el) => {
+                            if (el) {
+                              el.indeterminate =
+                                selected.size > 0 && selected.size < rows.length;
+                            }
+                          }}
+                          onChange={toggleAll}
+                        />
+                      </th>
+                      <th className="bg-discord-base sticky top-0 px-3 py-2 text-left font-semibold">
+                        Discord account
+                      </th>
+                      <th className="bg-discord-base sticky top-0 px-3 py-2 text-left font-semibold">
+                        Discord nickname
+                      </th>
+                      <th className="bg-discord-base sticky top-0 px-3 py-2 text-left font-semibold">
+                        Tracked role
+                      </th>
+                      <th className="bg-discord-base sticky top-0 px-3 py-2 text-left font-semibold">
+                        Inactive now
+                      </th>
+                      <th className="bg-discord-base sticky top-0 px-3 py-2 text-left font-semibold">
+                        Last active
+                      </th>
+                      <th className="bg-discord-base sticky top-0 px-3 py-2 text-left font-semibold">
+                        Joined
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((m, i) => (
+                      <tr key={m.id} className="hover:bg-discord-base">
+                        <td className="bg-discord-elevated text-discord-text-muted sticky left-0 px-3 py-1.5 text-right whitespace-nowrap">
+                          {i + 1}
+                        </td>
+                        <td className="px-3 py-1.5">
+                          <input
+                            type="checkbox"
+                            checked={selected.has(m.id)}
+                            onChange={() => toggleRow(m.id)}
+                          />
+                        </td>
+                        <td className="px-3 py-1.5 whitespace-nowrap">{m.tag}</td>
+                        <td className="text-discord-text-muted px-3 py-1.5 whitespace-nowrap">
+                          {m.nick ?? "—"}
+                        </td>
+                        <td className="px-3 py-1.5 whitespace-nowrap">
+                          {m.hasTargetRole ? "✓" : ""}
+                        </td>
+                        <td className="px-3 py-1.5 whitespace-nowrap">
+                          {m.isMarkedInactive ? "💤" : ""}
+                        </td>
+                        <td
+                          className="text-discord-text-muted px-3 py-1.5 whitespace-nowrap"
+                          title={
+                            m.lastActiveAt
+                              ? new Date(m.lastActiveAt).toLocaleString()
+                              : "Never tracked"
+                          }
+                        >
+                          {m.lastActiveAt
+                            ? `${daysAgo(m.lastActiveAt)}d ago`
+                            : "never"}
+                        </td>
+                        <td className="text-discord-text-muted px-3 py-1.5 whitespace-nowrap">
+                          {m.joinedAt
+                            ? new Date(m.joinedAt).toLocaleDateString()
+                            : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-discord-text-muted text-xs">
+                {rows.length} total, {selected.size} selected
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    resetActivity.mutate({
+                      guildId,
+                      discordUserIds: [...selected],
+                    })
+                  }
+                  disabled={anyPending || selected.size === 0}
+                  className="bg-discord-brand rounded-full px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+                >
+                  {resetActivity.isPending
+                    ? "Resetting..."
+                    : `Reset activity to now (${selected.size})`}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    markInactive.mutate({
+                      guildId,
+                      discordUserIds: [...selected],
+                    })
+                  }
+                  disabled={anyPending || selected.size === 0 || !hasInactiveRole}
+                  title={
+                    hasInactiveRole
+                      ? undefined
+                      : "Set an inactive role above first"
+                  }
+                  className="bg-discord-base hover:bg-discord-elevated-hover rounded-full px-4 py-1.5 text-sm font-semibold disabled:opacity-50"
+                >
+                  {markInactive.isPending
+                    ? "Marking..."
+                    : `Mark inactive (${selected.size})`}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    reactivate.mutate({
+                      guildId,
+                      discordUserIds: [...selected],
+                    })
+                  }
+                  disabled={anyPending || selected.size === 0 || !hasInactiveRole}
+                  title={
+                    hasInactiveRole
+                      ? undefined
+                      : "Set an inactive role above first"
+                  }
+                  className="bg-discord-base hover:bg-discord-elevated-hover rounded-full px-4 py-1.5 text-sm font-semibold disabled:opacity-50"
+                >
+                  {reactivate.isPending
+                    ? "Reactivating..."
+                    : `Reactivate (${selected.size})`}
+                </button>
+              </div>
+            </>
+          )}
+          {(resetActivity.error ?? markInactive.error ?? reactivate.error) && (
+            <p className="text-discord-red text-sm">
+              {(resetActivity.error ?? markInactive.error ?? reactivate.error)
+                ?.message}
+            </p>
+          )}
+        </>
       )}
     </div>
   );
@@ -727,7 +1009,11 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
   return (
     <div
       className={`flex w-full flex-col gap-6 ${
-        activeTab === "rules" || activeTab === "members" ? "" : "max-w-2xl"
+        activeTab === "rules" ||
+        activeTab === "members" ||
+        activeTab === "inactivity"
+          ? ""
+          : "max-w-2xl"
       }`}
     >
       <div className="bg-discord-elevated flex gap-1 self-start rounded-full p-1">
@@ -1105,7 +1391,8 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
       )}
 
       {activeTab === "inactivity" && (
-        <div className="bg-discord-elevated flex flex-col gap-2 rounded-xl p-6">
+        <>
+        <div className="bg-discord-elevated flex w-full max-w-2xl flex-col gap-2 rounded-xl p-6">
           <h3 className="font-bold">Inactivity filter</h3>
           <p className="text-discord-text-muted text-sm">
             Members holding any of the tracked roles below who haven&apos;t sent
@@ -1209,6 +1496,8 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
             <p className="text-discord-green text-sm">Saved!</p>
           )}
         </div>
+        <InactivityManager guildId={guildId} />
+        </>
       )}
 
       {activeTab === "members" && (
