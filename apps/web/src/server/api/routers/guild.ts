@@ -1225,6 +1225,57 @@ export const guildRouter = createTRPCRouter({
       }));
     }),
 
+  // Real, Battle.net-verified characters typed during onboarding that
+  // aren't a member of THIS guild (wrong guild, or none) — see
+  // GuildExternalCharacter in schema.prisma and the "real character(s),
+  // but not a member of this guild" admin notice in roleLogic.ts. Doesn't
+  // show up in rosterMembers/unclaimedMembers at all (those are guild-
+  // roster-only), hence a dedicated view.
+  externalCharacters: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      return ctx.db.guildExternalCharacter.findMany({
+        where: { guildId: input.guildId },
+        orderBy: { claimedAt: "desc" },
+      });
+    }),
+
+  // Drops the tracking row — e.g. the admin knows that character will never
+  // join this guild and doesn't want it cluttering the list. Purely
+  // bookkeeping: doesn't touch the member's channel access, and the row
+  // just gets recreated on their next onboarding run if the character is
+  // still Battle.net-confirmed external at that point.
+  dismissExternalCharacter: protectedProcedure
+    .input(z.object({ guildId: z.string(), id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      await ctx.db.guildExternalCharacter.deleteMany({
+        where: { id: input.id, guildId: input.guildId },
+      });
+      return { ok: true };
+    }),
+
   // Gives up retrying a queued entry — e.g. the admin knows that name will
   // never show up in the roster and would rather stop the notices than
   // wait out the full 42h.
