@@ -424,9 +424,9 @@ model GuildExternalCharacter {
 // server, plus their join time — feeds the inactivity filter above
 // (Guild.inactivityFilterEnabled etc). Updated at most every 12h per
 // message (see ACTIVITY_UPDATE_THROTTLE_MS in the bot) to avoid writing on
-// every single message. previousRoleIds/markedInactiveAt are set when the
-// daily filter swaps someone to the inactive role, so /reactivate can
-// restore exactly what they had.
+// every single message. markedInactiveAt is set when the daily filter adds
+// the inactive role on top of someone's existing roles (nothing removed,
+// so nothing to restore) — /reactivate just removes that one role again.
 model GuildMemberActivity {
   id               String    @id @default(cuid())
   guildId          String
@@ -435,7 +435,6 @@ model GuildMemberActivity {
   discordUserTag   String
   lastActiveAt     DateTime
   joinedAt         DateTime
-  previousRoleIds  String? // JSON array, snapshotted right before being marked inactive
   markedInactiveAt DateTime?
 
   @@unique([guildId, discordUserId])

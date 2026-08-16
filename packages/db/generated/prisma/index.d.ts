@@ -22784,7 +22784,6 @@ export namespace Prisma {
     discordUserTag: string | null
     lastActiveAt: Date | null
     joinedAt: Date | null
-    previousRoleIds: string | null
     markedInactiveAt: Date | null
   }
 
@@ -22795,7 +22794,6 @@ export namespace Prisma {
     discordUserTag: string | null
     lastActiveAt: Date | null
     joinedAt: Date | null
-    previousRoleIds: string | null
     markedInactiveAt: Date | null
   }
 
@@ -22806,7 +22804,6 @@ export namespace Prisma {
     discordUserTag: number
     lastActiveAt: number
     joinedAt: number
-    previousRoleIds: number
     markedInactiveAt: number
     _all: number
   }
@@ -22819,7 +22816,6 @@ export namespace Prisma {
     discordUserTag?: true
     lastActiveAt?: true
     joinedAt?: true
-    previousRoleIds?: true
     markedInactiveAt?: true
   }
 
@@ -22830,7 +22826,6 @@ export namespace Prisma {
     discordUserTag?: true
     lastActiveAt?: true
     joinedAt?: true
-    previousRoleIds?: true
     markedInactiveAt?: true
   }
 
@@ -22841,7 +22836,6 @@ export namespace Prisma {
     discordUserTag?: true
     lastActiveAt?: true
     joinedAt?: true
-    previousRoleIds?: true
     markedInactiveAt?: true
     _all?: true
   }
@@ -22925,7 +22919,6 @@ export namespace Prisma {
     discordUserTag: string
     lastActiveAt: Date
     joinedAt: Date
-    previousRoleIds: string | null
     markedInactiveAt: Date | null
     _count: GuildMemberActivityCountAggregateOutputType | null
     _min: GuildMemberActivityMinAggregateOutputType | null
@@ -22953,7 +22946,6 @@ export namespace Prisma {
     discordUserTag?: boolean
     lastActiveAt?: boolean
     joinedAt?: boolean
-    previousRoleIds?: boolean
     markedInactiveAt?: boolean
     guild?: boolean | GuildDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["guildMemberActivity"]>
@@ -22965,7 +22957,6 @@ export namespace Prisma {
     discordUserTag?: boolean
     lastActiveAt?: boolean
     joinedAt?: boolean
-    previousRoleIds?: boolean
     markedInactiveAt?: boolean
     guild?: boolean | GuildDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["guildMemberActivity"]>
@@ -22977,7 +22968,6 @@ export namespace Prisma {
     discordUserTag?: boolean
     lastActiveAt?: boolean
     joinedAt?: boolean
-    previousRoleIds?: boolean
     markedInactiveAt?: boolean
     guild?: boolean | GuildDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["guildMemberActivity"]>
@@ -22989,11 +22979,10 @@ export namespace Prisma {
     discordUserTag?: boolean
     lastActiveAt?: boolean
     joinedAt?: boolean
-    previousRoleIds?: boolean
     markedInactiveAt?: boolean
   }
 
-  export type GuildMemberActivityOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "discordUserId" | "discordUserTag" | "lastActiveAt" | "joinedAt" | "previousRoleIds" | "markedInactiveAt", ExtArgs["result"]["guildMemberActivity"]>
+  export type GuildMemberActivityOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "discordUserId" | "discordUserTag" | "lastActiveAt" | "joinedAt" | "markedInactiveAt", ExtArgs["result"]["guildMemberActivity"]>
   export type GuildMemberActivityInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     guild?: boolean | GuildDefaultArgs<ExtArgs>
   }
@@ -23016,7 +23005,6 @@ export namespace Prisma {
       discordUserTag: string
       lastActiveAt: Date
       joinedAt: Date
-      previousRoleIds: string | null
       markedInactiveAt: Date | null
     }, ExtArgs["result"]["guildMemberActivity"]>
     composites: {}
@@ -23448,7 +23436,6 @@ export namespace Prisma {
     readonly discordUserTag: FieldRef<"GuildMemberActivity", 'String'>
     readonly lastActiveAt: FieldRef<"GuildMemberActivity", 'DateTime'>
     readonly joinedAt: FieldRef<"GuildMemberActivity", 'DateTime'>
-    readonly previousRoleIds: FieldRef<"GuildMemberActivity", 'String'>
     readonly markedInactiveAt: FieldRef<"GuildMemberActivity", 'DateTime'>
   }
     
@@ -43629,7 +43616,6 @@ export namespace Prisma {
     discordUserTag: 'discordUserTag',
     lastActiveAt: 'lastActiveAt',
     joinedAt: 'joinedAt',
-    previousRoleIds: 'previousRoleIds',
     markedInactiveAt: 'markedInactiveAt'
   };
 
@@ -45125,7 +45111,6 @@ export namespace Prisma {
     discordUserTag?: StringFilter<"GuildMemberActivity"> | string
     lastActiveAt?: DateTimeFilter<"GuildMemberActivity"> | Date | string
     joinedAt?: DateTimeFilter<"GuildMemberActivity"> | Date | string
-    previousRoleIds?: StringNullableFilter<"GuildMemberActivity"> | string | null
     markedInactiveAt?: DateTimeNullableFilter<"GuildMemberActivity"> | Date | string | null
     guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
   }
@@ -45137,7 +45122,6 @@ export namespace Prisma {
     discordUserTag?: SortOrder
     lastActiveAt?: SortOrder
     joinedAt?: SortOrder
-    previousRoleIds?: SortOrderInput | SortOrder
     markedInactiveAt?: SortOrderInput | SortOrder
     guild?: GuildOrderByWithRelationInput
   }
@@ -45153,7 +45137,6 @@ export namespace Prisma {
     discordUserTag?: StringFilter<"GuildMemberActivity"> | string
     lastActiveAt?: DateTimeFilter<"GuildMemberActivity"> | Date | string
     joinedAt?: DateTimeFilter<"GuildMemberActivity"> | Date | string
-    previousRoleIds?: StringNullableFilter<"GuildMemberActivity"> | string | null
     markedInactiveAt?: DateTimeNullableFilter<"GuildMemberActivity"> | Date | string | null
     guild?: XOR<GuildScalarRelationFilter, GuildWhereInput>
   }, "id" | "guildId_discordUserId">
@@ -45165,7 +45148,6 @@ export namespace Prisma {
     discordUserTag?: SortOrder
     lastActiveAt?: SortOrder
     joinedAt?: SortOrder
-    previousRoleIds?: SortOrderInput | SortOrder
     markedInactiveAt?: SortOrderInput | SortOrder
     _count?: GuildMemberActivityCountOrderByAggregateInput
     _max?: GuildMemberActivityMaxOrderByAggregateInput
@@ -45182,7 +45164,6 @@ export namespace Prisma {
     discordUserTag?: StringWithAggregatesFilter<"GuildMemberActivity"> | string
     lastActiveAt?: DateTimeWithAggregatesFilter<"GuildMemberActivity"> | Date | string
     joinedAt?: DateTimeWithAggregatesFilter<"GuildMemberActivity"> | Date | string
-    previousRoleIds?: StringNullableWithAggregatesFilter<"GuildMemberActivity"> | string | null
     markedInactiveAt?: DateTimeNullableWithAggregatesFilter<"GuildMemberActivity"> | Date | string | null
   }
 
@@ -47599,7 +47580,6 @@ export namespace Prisma {
     discordUserTag: string
     lastActiveAt: Date | string
     joinedAt: Date | string
-    previousRoleIds?: string | null
     markedInactiveAt?: Date | string | null
     guild: GuildCreateNestedOneWithoutMemberActivityInput
   }
@@ -47611,7 +47591,6 @@ export namespace Prisma {
     discordUserTag: string
     lastActiveAt: Date | string
     joinedAt: Date | string
-    previousRoleIds?: string | null
     markedInactiveAt?: Date | string | null
   }
 
@@ -47621,7 +47600,6 @@ export namespace Prisma {
     discordUserTag?: StringFieldUpdateOperationsInput | string
     lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    previousRoleIds?: NullableStringFieldUpdateOperationsInput | string | null
     markedInactiveAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     guild?: GuildUpdateOneRequiredWithoutMemberActivityNestedInput
   }
@@ -47633,7 +47611,6 @@ export namespace Prisma {
     discordUserTag?: StringFieldUpdateOperationsInput | string
     lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    previousRoleIds?: NullableStringFieldUpdateOperationsInput | string | null
     markedInactiveAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -47644,7 +47621,6 @@ export namespace Prisma {
     discordUserTag: string
     lastActiveAt: Date | string
     joinedAt: Date | string
-    previousRoleIds?: string | null
     markedInactiveAt?: Date | string | null
   }
 
@@ -47654,7 +47630,6 @@ export namespace Prisma {
     discordUserTag?: StringFieldUpdateOperationsInput | string
     lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    previousRoleIds?: NullableStringFieldUpdateOperationsInput | string | null
     markedInactiveAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -47665,7 +47640,6 @@ export namespace Prisma {
     discordUserTag?: StringFieldUpdateOperationsInput | string
     lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    previousRoleIds?: NullableStringFieldUpdateOperationsInput | string | null
     markedInactiveAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -49774,7 +49748,6 @@ export namespace Prisma {
     discordUserTag?: SortOrder
     lastActiveAt?: SortOrder
     joinedAt?: SortOrder
-    previousRoleIds?: SortOrder
     markedInactiveAt?: SortOrder
   }
 
@@ -49785,7 +49758,6 @@ export namespace Prisma {
     discordUserTag?: SortOrder
     lastActiveAt?: SortOrder
     joinedAt?: SortOrder
-    previousRoleIds?: SortOrder
     markedInactiveAt?: SortOrder
   }
 
@@ -49796,7 +49768,6 @@ export namespace Prisma {
     discordUserTag?: SortOrder
     lastActiveAt?: SortOrder
     joinedAt?: SortOrder
-    previousRoleIds?: SortOrder
     markedInactiveAt?: SortOrder
   }
 
@@ -54116,7 +54087,6 @@ export namespace Prisma {
     discordUserTag: string
     lastActiveAt: Date | string
     joinedAt: Date | string
-    previousRoleIds?: string | null
     markedInactiveAt?: Date | string | null
   }
 
@@ -54126,7 +54096,6 @@ export namespace Prisma {
     discordUserTag: string
     lastActiveAt: Date | string
     joinedAt: Date | string
-    previousRoleIds?: string | null
     markedInactiveAt?: Date | string | null
   }
 
@@ -54722,7 +54691,6 @@ export namespace Prisma {
     discordUserTag?: StringFilter<"GuildMemberActivity"> | string
     lastActiveAt?: DateTimeFilter<"GuildMemberActivity"> | Date | string
     joinedAt?: DateTimeFilter<"GuildMemberActivity"> | Date | string
-    previousRoleIds?: StringNullableFilter<"GuildMemberActivity"> | string | null
     markedInactiveAt?: DateTimeNullableFilter<"GuildMemberActivity"> | Date | string | null
   }
 
@@ -60338,7 +60306,6 @@ export namespace Prisma {
     discordUserTag: string
     lastActiveAt: Date | string
     joinedAt: Date | string
-    previousRoleIds?: string | null
     markedInactiveAt?: Date | string | null
   }
 
@@ -60613,7 +60580,6 @@ export namespace Prisma {
     discordUserTag?: StringFieldUpdateOperationsInput | string
     lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    previousRoleIds?: NullableStringFieldUpdateOperationsInput | string | null
     markedInactiveAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -60623,7 +60589,6 @@ export namespace Prisma {
     discordUserTag?: StringFieldUpdateOperationsInput | string
     lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    previousRoleIds?: NullableStringFieldUpdateOperationsInput | string | null
     markedInactiveAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
@@ -60633,7 +60598,6 @@ export namespace Prisma {
     discordUserTag?: StringFieldUpdateOperationsInput | string
     lastActiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    previousRoleIds?: NullableStringFieldUpdateOperationsInput | string | null
     markedInactiveAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 

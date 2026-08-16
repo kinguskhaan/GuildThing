@@ -83,7 +83,6 @@ export async function initializeMemberActivity(member: GuildMember): Promise<voi
       // Rejoined — restart their clock rather than keep stale history.
       lastActiveAt: member.joinedAt ?? new Date(),
       joinedAt: member.joinedAt ?? new Date(),
-      previousRoleIds: null,
       markedInactiveAt: null,
     },
   });
@@ -159,18 +158,11 @@ export async function runInactivityFilter(client: Client<true>): Promise<void> {
       if (!member.roles.cache.some((r) => targetRoleIds.has(r.id))) continue;
       if (member.roles.cache.has(guildRow.inactivityRoleId)) continue;
 
-      const previousRoleIds = member.roles.cache
-        .filter((r) => r.id !== discordGuild.id) // exclude @everyone
-        .map((r) => r.id);
-
       try {
-        await member.roles.set([guildRow.inactivityRoleId]);
+        await member.roles.add(guildRow.inactivityRoleId);
         await db.guildMemberActivity.update({
           where: { id: row.id },
-          data: {
-            previousRoleIds: JSON.stringify(previousRoleIds),
-            markedInactiveAt: new Date(),
-          },
+          data: { markedInactiveAt: new Date() },
         });
         count++;
       } catch (err) {
@@ -199,9 +191,11 @@ export async function runInactivityFilter(client: Client<true>): Promise<void> {
   }
 }
 
-// /reactivate — lets a member marked inactive restore their own previous
-// roles themselves, mirroring the source pattern's recovery command,
-// rather than requiring an officer to do it by hand.
+// /reactivate — lets a member marked inactive remove the inactive role
+// themselves, rather than requiring an officer to do it by hand. Only the
+// inactive role itself is touched (see runInactivityFilter above — it adds
+// that role on top rather than replacing everything else), so there's
+// nothing to restore.
 export async function handleReactivate(
   interaction: ChatInputCommandInteraction,
 ): Promise<void> {
@@ -228,34 +222,25 @@ export async function handleReactivate(
     return;
   }
 
-  const activity = await db.guildMemberActivity.findUnique({
-    where: { guildId_discordUserId: { guildId: guildRow.id, discordUserId: member.id } },
-  });
-  const previousRoleIds: string[] = activity?.previousRoleIds
-    ? (JSON.parse(activity.previousRoleIds) as string[])
-    : [];
-
   try {
-    await member.roles.set(previousRoleIds);
+    await member.roles.remove(guildRow.inactivityRoleId);
   } catch (err) {
-    console.error(`[bot] failed to restore roles for ${member.user.tag}:`, err);
+    console.error(`[bot] failed to remove inactive role for ${member.user.tag}:`, err);
     await interaction.reply({
       content:
-        "Heads up — I couldn't restore your roles, most likely a permissions issue on my end. Ask an officer to check.",
+        "Heads up — I couldn't remove your inactive role, most likely a permissions issue on my end. Ask an officer to check.",
       flags: MessageFlags.Ephemeral,
     });
     return;
   }
 
-  if (activity) {
-    await db.guildMemberActivity.update({
-      where: { id: activity.id },
-      data: { lastActiveAt: new Date(), markedInactiveAt: null, previousRoleIds: null },
-    });
-  }
+  await db.guildMemberActivity.updateMany({
+    where: { guildId: guildRow.id, discordUserId: member.id },
+    data: { lastActiveAt: new Date(), markedInactiveAt: null },
+  });
 
   await interaction.reply({
-    content: "Welcome back! Your previous roles have been restored.",
+    content: "Welcome back! Your inactive role has been removed.",
     flags: MessageFlags.Ephemeral,
   });
 }

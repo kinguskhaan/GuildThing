@@ -1062,9 +1062,9 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
           <h3 className="font-bold">Inactivity filter</h3>
           <p className="text-discord-text-muted text-sm">
             Members holding any of the tracked roles below who haven&apos;t sent
-            a message in this many days get their other roles saved and swapped
-            for the inactive role — not kicked. They can restore themselves any
-            time with <code>/reactivate</code>.
+            a message in this many days get the inactive role added on top —
+            existing roles are untouched, nobody&apos;s kicked. They can remove
+            it themselves any time with <code>/reactivate</code>.
           </p>
           <label className="flex items-center gap-2 text-sm">
             <input

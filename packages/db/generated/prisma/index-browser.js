@@ -301,7 +301,6 @@ exports.Prisma.GuildMemberActivityScalarFieldEnum = {
   discordUserTag: 'discordUserTag',
   lastActiveAt: 'lastActiveAt',
   joinedAt: 'joinedAt',
-  previousRoleIds: 'previousRoleIds',
   markedInactiveAt: 'markedInactiveAt'
 };
 
