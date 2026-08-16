@@ -20,17 +20,21 @@
     "db:studio": "pnpm --filter @guildthing/db db:studio",
     "wowhead:sync": "pnpm --filter @guildthing/wowhead-data sync",
     "resolve-spell-ids": "pnpm --filter @guildthing/wowhead-data resolve-spell-ids",
-    "addon:package": "pnpm --filter @guildthing/addon package"
+    "addon:package": "pnpm --filter @guildthing/addon package",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:status": "changeset status"
   },
   "devDependencies": {
+    "@changesets/cli": "^3.0.0",
     "@eslint/eslintrc": "^3.3.1",
     "dotenv-cli": "^8.0.0",
     "eslint": "^9.23.0",
     "eslint-config-next": "^15.2.3",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
-    "turbo": "^2.5.0",
     "tsx": "^4.23.1",
+    "turbo": "^2.5.0",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.27.0"
   },
