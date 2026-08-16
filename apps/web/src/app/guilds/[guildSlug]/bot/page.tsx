@@ -44,7 +44,7 @@ export default function BotPage() {
           <>
             Set up rank/level/class → role rules, and pick an onboarding
             button channel, on the{" "}
-            <span className="font-semibold">Discord onboarding roles</span>{" "}
+            <span className="font-semibold">Discord Server Controls</span>{" "}
             admin page for your guild.
           </>,
           "Done — new members get a nudge when they join, and can start onboarding any time from the button in that channel or the /onboarding command.",

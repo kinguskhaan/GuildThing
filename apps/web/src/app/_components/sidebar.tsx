@@ -87,7 +87,7 @@ export function Sidebar() {
         },
         {
           href: `/guilds/${guild.slug}/admin/discord-roles`,
-          label: "Discord onboarding roles",
+          label: "Discord Server Controls",
         },
       ]
     : [];

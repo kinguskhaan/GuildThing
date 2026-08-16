@@ -40,7 +40,7 @@ export default async function RosterPage({
         <div className="bg-discord-elevated text-discord-text-muted w-full rounded-xl p-4 text-sm">
           This guild builds its roster from Discord onboarding — there&apos;s
           nothing to import here. Switch back to &quot;Addon export&quot; on the
-          Discord onboarding roles admin page if that changes.
+          Discord Server Controls admin page if that changes.
         </div>
       )}
       {guild.isAdmin && guild.rosterSource !== "onboarding" && (
