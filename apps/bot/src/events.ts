@@ -1760,15 +1760,28 @@ export async function repostDriftedEventButtons(
 const DAILY_BUTTON_REPOST_INTERVAL_MS = 24 * 60 * 60 * 1_000;
 
 // Counterpart to the live per-message repost path, for buttonRepostMode
-// "daily": forces the button back to the bottom once every 24h regardless
-// of channel activity, rather than tracking every new message. A preset
-// that's never been reposted (lastButtonRepostAt null — e.g. just switched
-// into "daily" mode) is treated as due immediately.
+// "daily": moves the button back to the bottom at most once every 24h,
+// rather than tracking every new message individually. A preset that's
+// never been reposted (lastButtonRepostAt null — e.g. just switched into
+// "daily" mode) is treated as due immediately.
+//
+// Only actually reposts if something's been posted in the channel since
+// the button went up — deleting+resending it when it's already the last
+// message would just mark the channel unread/re-notify everyone for no
+// reason (the exact complaint that led to this check). A due-but-still-
+// current preset is left with its old lastButtonRepostAt so it gets
+// re-checked on every following tick instead of waiting out another full
+// 24h — the button still moves promptly once real activity happens.
 export async function repostDailyEventButtons(
   client: Client<true>,
 ): Promise<void> {
   const presets = await db.eventChannelPreset.findMany({
-    where: { buttonEnabled: true, buttonMessageId: { not: null }, buttonRepostMode: "daily" },
+    where: {
+      buttonEnabled: true,
+      buttonMessageId: { not: null },
+      buttonRepostMode: "daily",
+    },
+    include: { guild: { select: { discordGuildId: true } } },
   });
 
   const now = Date.now();
@@ -1776,7 +1789,26 @@ export async function repostDailyEventButtons(
     const due =
       !preset.lastButtonRepostAt ||
       now - preset.lastButtonRepostAt.getTime() >= DAILY_BUTTON_REPOST_INTERVAL_MS;
-    if (!due) continue;
+    if (!due || !preset.buttonMessageId) continue;
+
+    const discordGuild = client.guilds.cache.get(preset.guild.discordGuildId);
+    if (!discordGuild) continue;
+
+    try {
+      const channel = await discordGuild.channels.fetch(
+        preset.discordChannelId,
+      );
+      if (!channel?.isTextBased()) continue;
+
+      const latest = (await channel.messages.fetch({ limit: 1 })).first();
+      if (latest && latest.id === preset.buttonMessageId) continue; // still at the bottom — nothing to do
+    } catch (err) {
+      console.error(
+        `[bot] failed to check channel activity before daily button repost for ${preset.discordChannelId}:`,
+        err,
+      );
+      continue;
+    }
 
     await repostSingleEventButton(client, preset.id).catch((err: unknown) => {
       console.error(
