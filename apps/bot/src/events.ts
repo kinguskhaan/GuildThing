@@ -398,8 +398,9 @@ function buildEventEmbeds(event: EventWithRelations): EmbedBuilder[] {
 }
 
 function buildEventComponents(event: EventWithRelations) {
-  // Cancelled events get their post deleted outright (see syncEventMessage)
-  // so this never actually renders for one, but stay defensive anyway.
+  // Cancelled events keep their post up as an archived record (see
+  // syncEventMessage) but with no interactive components — nothing left to
+  // sign up for or vote on.
   if (event.status === "cancelled") return [];
 
   // "Locked" only means the TIME is decided — it shouldn't also freeze who's
@@ -1437,15 +1438,14 @@ export async function handleEventComponentInteraction(
       where: { id: eventId },
       data: { status: "cancelled" },
     });
-    // Cancelling removes the post outright (clean, not just marked
-    // cancelled) — acknowledge first since the message this interaction
-    // came from is about to disappear. syncEventMessage does the actual
-    // deletion (both the channel message and its attached thread, or the
-    // forum post — whichever this event used), same cleanup path a
-    // web-triggered cancel goes through.
+    // The post stays up — marked cancelled, signup components gone — and
+    // its thread gets locked + archived instead of deleted, so there's
+    // still a browsable record afterward instead of it just vanishing.
+    // syncEventMessage does the actual edit/lock, same path a web-triggered
+    // cancel goes through.
     await interaction
       .reply({
-        content: "Event cancelled — removing the post.",
+        content: "Event cancelled — the post stays up as an archived record.",
         flags: MessageFlags.Ephemeral,
       })
       .catch(() => {});
@@ -1611,9 +1611,10 @@ export async function handleEventComponentInteraction(
 // Re-fetches an event and brings its Discord thread/message in line with
 // current DB state — creates the thread if it doesn't exist yet (bot- or
 // web-created events both funnel through here for that), edits the message
-// in place for any other change, or deletes the thread outright once
-// cancelled. Used by the auto-lock tick, syncPendingWebEvents, and directly
-// by handleEventCreateCommand.
+// in place for any other change, or edits it to the cancelled state and
+// locks+archives the thread once cancelled (kept, not deleted, so there's
+// still an archived record afterward). Used by the auto-lock tick,
+// syncPendingWebEvents, and directly by handleEventCreateCommand.
 async function syncEventMessage(
   client: Client<true>,
   eventId: string,
@@ -1627,28 +1628,41 @@ async function syncEventMessage(
 
   try {
     if (event.status === "cancelled") {
-      // The attached thread and the channel message are two separate
-      // objects for a text-channel event (see createEventPost) — deleting
-      // one doesn't remove the other, so both need cleaning up. For a
-      // forum event the "message" IS the thread, so the thread delete
-      // alone already covers it.
-      if (event.discordThreadId) {
-        const thread = await discordGuild.channels
-          .fetch(event.discordThreadId)
-          .catch(() => null);
-        await thread?.delete().catch(() => {});
-      }
-      const parentChannel = await discordGuild.channels
-        .fetch(event.discordChannelId)
-        .catch(() => null);
-      // isTextBased() already excludes forum channels (they aren't
-      // message-sendable directly), so this only matches the text-channel
-      // case where the message is separate from the thread.
-      if (event.discordMessageId && parentChannel?.isTextBased()) {
-        const message = await parentChannel.messages
+      const payload = {
+        embeds: buildEventEmbeds(event),
+        components: buildEventComponents(event),
+      };
+
+      const thread = event.discordThreadId
+        ? await discordGuild.channels
+            .fetch(event.discordThreadId)
+            .catch(() => null)
+        : null;
+
+      // For a forum event the message IS the thread's starter message; for
+      // a text-channel event it's the separate parent-channel message the
+      // thread is attached to (see createEventPost).
+      if (thread?.isThread() && event.discordMessageId) {
+        const message = await thread.messages
           .fetch(event.discordMessageId)
           .catch(() => null);
-        await message?.delete().catch(() => {});
+        await message?.edit(payload).catch(() => {});
+      } else if (event.discordMessageId) {
+        const parentChannel = await discordGuild.channels
+          .fetch(event.discordChannelId)
+          .catch(() => null);
+        if (parentChannel?.isTextBased()) {
+          const message = await parentChannel.messages
+            .fetch(event.discordMessageId)
+            .catch(() => null);
+          await message?.edit(payload).catch(() => {});
+        }
+      }
+
+      // Locked + archived rather than deleted — still browsable in the
+      // channel's thread list afterward instead of just gone.
+      if (thread?.isThread()) {
+        await thread.edit({ locked: true, archived: true }).catch(() => {});
       }
       return;
     }
@@ -1751,10 +1765,11 @@ export async function syncPendingWebEvents(
 }
 
 // 24h after an event's own date (not creation date) has passed, auto-cancel
-// it — same cleanup as clicking "Cancel group" (Discord thread/post
-// deleted via syncEventMessage), except the DB row is kept as a cancelled
-// record for history instead of being touched by whoever happens to notice
-// and click it themselves. Events with no date set never expire this way —
+// it — same cleanup as clicking "Cancel group" (post edited to cancelled,
+// thread locked+archived via syncEventMessage), except the DB row is kept
+// as a cancelled record for history instead of being touched by whoever
+// happens to notice and click it themselves. Events with no date set never
+// expire this way —
 // nothing to compare against.
 export async function runEventExpiry(client: Client<true>): Promise<void> {
   const candidates = await db.event.findMany({
