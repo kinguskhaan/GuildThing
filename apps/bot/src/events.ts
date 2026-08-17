@@ -121,6 +121,29 @@ function tomorrowISODate(): string {
   return d.toISOString().slice(0, 10);
 }
 
+// "today"/"tomorrow"/"in N days" (or the past-tense equivalents) — the
+// event card shows this next to the raw date so nobody has to do date
+// math in their head to tell when "2026-08-19" actually is.
+function relativeDayLabel(dateStr: string): string | null {
+  const target = new Date(`${dateStr}T00:00:00`);
+  if (Number.isNaN(target.getTime())) return null;
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const diffDays = Math.round(
+    (target.getTime() - startOfToday.getTime()) / (24 * 60 * 60_000),
+  );
+  if (diffDays === 0) return "today";
+  if (diffDays === 1) return "tomorrow";
+  if (diffDays === -1) return "yesterday";
+  return diffDays > 1 ? `in ${diffDays} days` : `${-diffDays} days ago`;
+}
+
+function formatEventDate(date: string | null): string {
+  if (!date) return "—";
+  const rel = relativeDayLabel(date);
+  return rel ? `${date} (${rel})` : date;
+}
+
 // Best-effort, not strict like parseEventDateTime below — these are extra
 // alternatives someone types straight into chat, not the anchor time, so a
 // stray typo shouldn't blow up the whole list.
@@ -248,7 +271,7 @@ function buildEventEmbeds(event: EventWithRelations): EmbedBuilder[] {
     .setTitle(event.title)
     .setDescription(event.description)
     .addFields(
-      { name: "📅 Date", value: event.date ?? "—", inline: true },
+      { name: "📅 Date", value: formatEventDate(event.date), inline: true },
       {
         name: "👥 Signed up",
         value:
