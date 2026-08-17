@@ -107,6 +107,18 @@ function parseRoleSlots(
   return slots;
 }
 
+// Inverse of parseRoleSlots — pre-fills the Edit modal's Roles field with
+// the event's current composition in the same "Name:Count:Emoji" format it
+// accepts back, so editing is "tweak what's there" instead of "retype the
+// whole thing from a blank field".
+function serializeRoleSlots(
+  slots: { roleName: string; capacity: number; emoji: string | null }[],
+): string {
+  return slots
+    .map((s) => (s.emoji ? `${s.roleName}:${s.capacity}:${s.emoji}` : `${s.roleName}:${s.capacity}`))
+    .join(", ");
+}
+
 function todayISODate(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -1027,6 +1039,50 @@ async function promptAddRoleModal(
 // current values — roles and time options aren't editable here since they
 // already have their own flows (role slots would need re-deriving existing
 // signups, time options have "+ Add time option").
+// Applies the Edit modal's Roles field against what's actually in the DB.
+// Matched by roleName (case-insensitive) so re-typing "Tank:1" just updates
+// capacity/emoji in place rather than treating it as a new slot. New role
+// names get created (this is the main point — adding a forgotten "DPS:3"
+// after the fact). A role name dropped from the text only gets deleted if
+// it has zero signups; one with people already in it is left alone instead
+// of cascade-deleting their signups over what's likely a typo, and shows up
+// again pre-filled next time the event is edited.
+async function reconcileRoleSlots(
+  eventId: string,
+  existingSlots: { id: string; roleName: string; signups: unknown[] }[],
+  parsedSlots: { roleName: string; capacity: number; emoji: string | null }[],
+): Promise<void> {
+  const remaining = new Map(existingSlots.map((s) => [s.id, s]));
+
+  for (const parsed of parsedSlots) {
+    const match = existingSlots.find(
+      (s) => s.roleName.toLowerCase() === parsed.roleName.toLowerCase(),
+    );
+    if (match) {
+      remaining.delete(match.id);
+      await db.eventRoleSlot.update({
+        where: { id: match.id },
+        data: { capacity: parsed.capacity, emoji: parsed.emoji },
+      });
+    } else {
+      await db.eventRoleSlot.create({
+        data: {
+          eventId,
+          roleName: parsed.roleName,
+          capacity: parsed.capacity,
+          emoji: parsed.emoji,
+        },
+      });
+    }
+  }
+
+  for (const leftover of remaining.values()) {
+    if (leftover.signups.length === 0) {
+      await db.eventRoleSlot.delete({ where: { id: leftover.id } });
+    }
+  }
+}
+
 async function promptEditModal(
   interaction: ButtonInteraction,
   event: EventWithRelations,
@@ -1070,6 +1126,14 @@ async function promptEditModal(
           .setMaxLength(1000)
           .setValue(event.description ?? ""),
       ),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("roles")
+          .setLabel("Roles, e.g. Tank:1:🛡️, Healer:1:✨, DPS:3")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true)
+          .setValue(serializeRoleSlots(event.roleSlots)),
+      ),
     );
 
   await interaction.showModal(modal);
@@ -1080,6 +1144,16 @@ async function promptEditModal(
         i.user.id === interaction.user.id &&
         i.customId === modal.data.custom_id,
     });
+
+    const roleSlots = parseRoleSlots(submitted.fields.getTextInputValue("roles"));
+    if (roleSlots.length === 0) {
+      await submitted.reply({
+        content:
+          'Couldn\'t parse any roles from that — use the format "Name:Count" or "Name:Count:Emoji", e.g. "Tank:1:🛡️, Healer:1, DPS:3". Nothing was changed, try editing again.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
 
     await db.event.update({
       where: { id: event.id },
@@ -1095,6 +1169,8 @@ async function promptEditModal(
           submitted.fields.getTextInputValue("description").trim() || null,
       },
     });
+
+    await reconcileRoleSlots(event.id, event.roleSlots, roleSlots);
 
     const updated = await fetchEventWithRelations(event.id);
     // Always true here — this modal only ever comes from the Edit button —
