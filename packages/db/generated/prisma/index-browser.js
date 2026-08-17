@@ -353,6 +353,7 @@ exports.Prisma.EventScalarFieldEnum = {
   date: 'date',
   description: 'description',
   allowTimeSuggestions: 'allowTimeSuggestions',
+  recurrenceIntervalDays: 'recurrenceIntervalDays',
   createdByDiscordUserId: 'createdByDiscordUserId',
   createdByDiscordTag: 'createdByDiscordTag',
   discordChannelId: 'discordChannelId',

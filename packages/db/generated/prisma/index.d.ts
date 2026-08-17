@@ -29272,8 +29272,18 @@ export namespace Prisma {
 
   export type AggregateEvent = {
     _count: EventCountAggregateOutputType | null
+    _avg: EventAvgAggregateOutputType | null
+    _sum: EventSumAggregateOutputType | null
     _min: EventMinAggregateOutputType | null
     _max: EventMaxAggregateOutputType | null
+  }
+
+  export type EventAvgAggregateOutputType = {
+    recurrenceIntervalDays: number | null
+  }
+
+  export type EventSumAggregateOutputType = {
+    recurrenceIntervalDays: number | null
   }
 
   export type EventMinAggregateOutputType = {
@@ -29284,6 +29294,7 @@ export namespace Prisma {
     date: string | null
     description: string | null
     allowTimeSuggestions: boolean | null
+    recurrenceIntervalDays: number | null
     createdByDiscordUserId: string | null
     createdByDiscordTag: string | null
     discordChannelId: string | null
@@ -29303,6 +29314,7 @@ export namespace Prisma {
     date: string | null
     description: string | null
     allowTimeSuggestions: boolean | null
+    recurrenceIntervalDays: number | null
     createdByDiscordUserId: string | null
     createdByDiscordTag: string | null
     discordChannelId: string | null
@@ -29322,6 +29334,7 @@ export namespace Prisma {
     date: number
     description: number
     allowTimeSuggestions: number
+    recurrenceIntervalDays: number
     createdByDiscordUserId: number
     createdByDiscordTag: number
     discordChannelId: number
@@ -29335,6 +29348,14 @@ export namespace Prisma {
   }
 
 
+  export type EventAvgAggregateInputType = {
+    recurrenceIntervalDays?: true
+  }
+
+  export type EventSumAggregateInputType = {
+    recurrenceIntervalDays?: true
+  }
+
   export type EventMinAggregateInputType = {
     id?: true
     guildId?: true
@@ -29343,6 +29364,7 @@ export namespace Prisma {
     date?: true
     description?: true
     allowTimeSuggestions?: true
+    recurrenceIntervalDays?: true
     createdByDiscordUserId?: true
     createdByDiscordTag?: true
     discordChannelId?: true
@@ -29362,6 +29384,7 @@ export namespace Prisma {
     date?: true
     description?: true
     allowTimeSuggestions?: true
+    recurrenceIntervalDays?: true
     createdByDiscordUserId?: true
     createdByDiscordTag?: true
     discordChannelId?: true
@@ -29381,6 +29404,7 @@ export namespace Prisma {
     date?: true
     description?: true
     allowTimeSuggestions?: true
+    recurrenceIntervalDays?: true
     createdByDiscordUserId?: true
     createdByDiscordTag?: true
     discordChannelId?: true
@@ -29431,6 +29455,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: EventAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EventSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: EventMinAggregateInputType
@@ -29461,6 +29497,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: EventCountAggregateInputType | true
+    _avg?: EventAvgAggregateInputType
+    _sum?: EventSumAggregateInputType
     _min?: EventMinAggregateInputType
     _max?: EventMaxAggregateInputType
   }
@@ -29473,6 +29511,7 @@ export namespace Prisma {
     date: string | null
     description: string | null
     allowTimeSuggestions: boolean
+    recurrenceIntervalDays: number | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -29483,6 +29522,8 @@ export namespace Prisma {
     pendingWebUpdate: boolean
     createdAt: Date
     _count: EventCountAggregateOutputType | null
+    _avg: EventAvgAggregateOutputType | null
+    _sum: EventSumAggregateOutputType | null
     _min: EventMinAggregateOutputType | null
     _max: EventMaxAggregateOutputType | null
   }
@@ -29509,6 +29550,7 @@ export namespace Prisma {
     date?: boolean
     description?: boolean
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: boolean
     createdByDiscordUserId?: boolean
     createdByDiscordTag?: boolean
     discordChannelId?: boolean
@@ -29534,6 +29576,7 @@ export namespace Prisma {
     date?: boolean
     description?: boolean
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: boolean
     createdByDiscordUserId?: boolean
     createdByDiscordTag?: boolean
     discordChannelId?: boolean
@@ -29554,6 +29597,7 @@ export namespace Prisma {
     date?: boolean
     description?: boolean
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: boolean
     createdByDiscordUserId?: boolean
     createdByDiscordTag?: boolean
     discordChannelId?: boolean
@@ -29574,6 +29618,7 @@ export namespace Prisma {
     date?: boolean
     description?: boolean
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: boolean
     createdByDiscordUserId?: boolean
     createdByDiscordTag?: boolean
     discordChannelId?: boolean
@@ -29585,7 +29630,7 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
-  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "title" | "imageUrl" | "date" | "description" | "allowTimeSuggestions" | "createdByDiscordUserId" | "createdByDiscordTag" | "discordChannelId" | "discordThreadId" | "discordMessageId" | "status" | "lockedTimeOptionId" | "pendingWebUpdate" | "createdAt", ExtArgs["result"]["event"]>
+  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "title" | "imageUrl" | "date" | "description" | "allowTimeSuggestions" | "recurrenceIntervalDays" | "createdByDiscordUserId" | "createdByDiscordTag" | "discordChannelId" | "discordThreadId" | "discordMessageId" | "status" | "lockedTimeOptionId" | "pendingWebUpdate" | "createdAt", ExtArgs["result"]["event"]>
   export type EventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     guild?: boolean | GuildDefaultArgs<ExtArgs>
     timeOptions?: boolean | Event$timeOptionsArgs<ExtArgs>
@@ -29618,6 +29663,7 @@ export namespace Prisma {
       date: string | null
       description: string | null
       allowTimeSuggestions: boolean
+      recurrenceIntervalDays: number | null
       createdByDiscordUserId: string
       createdByDiscordTag: string
       discordChannelId: string
@@ -30062,6 +30108,7 @@ export namespace Prisma {
     readonly date: FieldRef<"Event", 'String'>
     readonly description: FieldRef<"Event", 'String'>
     readonly allowTimeSuggestions: FieldRef<"Event", 'Boolean'>
+    readonly recurrenceIntervalDays: FieldRef<"Event", 'Int'>
     readonly createdByDiscordUserId: FieldRef<"Event", 'String'>
     readonly createdByDiscordTag: FieldRef<"Event", 'String'>
     readonly discordChannelId: FieldRef<"Event", 'String'>
@@ -43686,6 +43733,7 @@ export namespace Prisma {
     date: 'date',
     description: 'description',
     allowTimeSuggestions: 'allowTimeSuggestions',
+    recurrenceIntervalDays: 'recurrenceIntervalDays',
     createdByDiscordUserId: 'createdByDiscordUserId',
     createdByDiscordTag: 'createdByDiscordTag',
     discordChannelId: 'discordChannelId',
@@ -45470,6 +45518,7 @@ export namespace Prisma {
     date?: StringNullableFilter<"Event"> | string | null
     description?: StringNullableFilter<"Event"> | string | null
     allowTimeSuggestions?: BoolFilter<"Event"> | boolean
+    recurrenceIntervalDays?: IntNullableFilter<"Event"> | number | null
     createdByDiscordUserId?: StringFilter<"Event"> | string
     createdByDiscordTag?: StringFilter<"Event"> | string
     discordChannelId?: StringFilter<"Event"> | string
@@ -45494,6 +45543,7 @@ export namespace Prisma {
     date?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
     allowTimeSuggestions?: SortOrder
+    recurrenceIntervalDays?: SortOrderInput | SortOrder
     createdByDiscordUserId?: SortOrder
     createdByDiscordTag?: SortOrder
     discordChannelId?: SortOrder
@@ -45521,6 +45571,7 @@ export namespace Prisma {
     date?: StringNullableFilter<"Event"> | string | null
     description?: StringNullableFilter<"Event"> | string | null
     allowTimeSuggestions?: BoolFilter<"Event"> | boolean
+    recurrenceIntervalDays?: IntNullableFilter<"Event"> | number | null
     createdByDiscordUserId?: StringFilter<"Event"> | string
     createdByDiscordTag?: StringFilter<"Event"> | string
     discordChannelId?: StringFilter<"Event"> | string
@@ -45545,6 +45596,7 @@ export namespace Prisma {
     date?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
     allowTimeSuggestions?: SortOrder
+    recurrenceIntervalDays?: SortOrderInput | SortOrder
     createdByDiscordUserId?: SortOrder
     createdByDiscordTag?: SortOrder
     discordChannelId?: SortOrder
@@ -45555,8 +45607,10 @@ export namespace Prisma {
     pendingWebUpdate?: SortOrder
     createdAt?: SortOrder
     _count?: EventCountOrderByAggregateInput
+    _avg?: EventAvgOrderByAggregateInput
     _max?: EventMaxOrderByAggregateInput
     _min?: EventMinOrderByAggregateInput
+    _sum?: EventSumOrderByAggregateInput
   }
 
   export type EventScalarWhereWithAggregatesInput = {
@@ -45570,6 +45624,7 @@ export namespace Prisma {
     date?: StringNullableWithAggregatesFilter<"Event"> | string | null
     description?: StringNullableWithAggregatesFilter<"Event"> | string | null
     allowTimeSuggestions?: BoolWithAggregatesFilter<"Event"> | boolean
+    recurrenceIntervalDays?: IntNullableWithAggregatesFilter<"Event"> | number | null
     createdByDiscordUserId?: StringWithAggregatesFilter<"Event"> | string
     createdByDiscordTag?: StringWithAggregatesFilter<"Event"> | string
     discordChannelId?: StringWithAggregatesFilter<"Event"> | string
@@ -47944,6 +47999,7 @@ export namespace Prisma {
     date?: string | null
     description?: string | null
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: number | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -47968,6 +48024,7 @@ export namespace Prisma {
     date?: string | null
     description?: string | null
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: number | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -47990,6 +48047,7 @@ export namespace Prisma {
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
+    recurrenceIntervalDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -48014,6 +48072,7 @@ export namespace Prisma {
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
+    recurrenceIntervalDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -48037,6 +48096,7 @@ export namespace Prisma {
     date?: string | null
     description?: string | null
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: number | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -48055,6 +48115,7 @@ export namespace Prisma {
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
+    recurrenceIntervalDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -48074,6 +48135,7 @@ export namespace Prisma {
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
+    recurrenceIntervalDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -49992,6 +50054,7 @@ export namespace Prisma {
     date?: SortOrder
     description?: SortOrder
     allowTimeSuggestions?: SortOrder
+    recurrenceIntervalDays?: SortOrder
     createdByDiscordUserId?: SortOrder
     createdByDiscordTag?: SortOrder
     discordChannelId?: SortOrder
@@ -50003,6 +50066,10 @@ export namespace Prisma {
     createdAt?: SortOrder
   }
 
+  export type EventAvgOrderByAggregateInput = {
+    recurrenceIntervalDays?: SortOrder
+  }
+
   export type EventMaxOrderByAggregateInput = {
     id?: SortOrder
     guildId?: SortOrder
@@ -50011,6 +50078,7 @@ export namespace Prisma {
     date?: SortOrder
     description?: SortOrder
     allowTimeSuggestions?: SortOrder
+    recurrenceIntervalDays?: SortOrder
     createdByDiscordUserId?: SortOrder
     createdByDiscordTag?: SortOrder
     discordChannelId?: SortOrder
@@ -50030,6 +50098,7 @@ export namespace Prisma {
     date?: SortOrder
     description?: SortOrder
     allowTimeSuggestions?: SortOrder
+    recurrenceIntervalDays?: SortOrder
     createdByDiscordUserId?: SortOrder
     createdByDiscordTag?: SortOrder
     discordChannelId?: SortOrder
@@ -50039,6 +50108,10 @@ export namespace Prisma {
     lockedTimeOptionId?: SortOrder
     pendingWebUpdate?: SortOrder
     createdAt?: SortOrder
+  }
+
+  export type EventSumOrderByAggregateInput = {
+    recurrenceIntervalDays?: SortOrder
   }
 
   export type EventScalarRelationFilter = {
@@ -54215,6 +54288,7 @@ export namespace Prisma {
     date?: string | null
     description?: string | null
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: number | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -54237,6 +54311,7 @@ export namespace Prisma {
     date?: string | null
     description?: string | null
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: number | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -54833,6 +54908,7 @@ export namespace Prisma {
     date?: StringNullableFilter<"Event"> | string | null
     description?: StringNullableFilter<"Event"> | string | null
     allowTimeSuggestions?: BoolFilter<"Event"> | boolean
+    recurrenceIntervalDays?: IntNullableFilter<"Event"> | number | null
     createdByDiscordUserId?: StringFilter<"Event"> | string
     createdByDiscordTag?: StringFilter<"Event"> | string
     discordChannelId?: StringFilter<"Event"> | string
@@ -57958,6 +58034,7 @@ export namespace Prisma {
     date?: string | null
     description?: string | null
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: number | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -57981,6 +58058,7 @@ export namespace Prisma {
     date?: string | null
     description?: string | null
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: number | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -58041,6 +58119,7 @@ export namespace Prisma {
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
+    recurrenceIntervalDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -58064,6 +58143,7 @@ export namespace Prisma {
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
+    recurrenceIntervalDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -58101,6 +58181,7 @@ export namespace Prisma {
     date?: string | null
     description?: string | null
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: number | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -58124,6 +58205,7 @@ export namespace Prisma {
     date?: string | null
     description?: string | null
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: number | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -58178,6 +58260,7 @@ export namespace Prisma {
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
+    recurrenceIntervalDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -58201,6 +58284,7 @@ export namespace Prisma {
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
+    recurrenceIntervalDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -58245,6 +58329,7 @@ export namespace Prisma {
     date?: string | null
     description?: string | null
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: number | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -58268,6 +58353,7 @@ export namespace Prisma {
     date?: string | null
     description?: string | null
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: number | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -58336,6 +58422,7 @@ export namespace Prisma {
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
+    recurrenceIntervalDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -58359,6 +58446,7 @@ export namespace Prisma {
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
+    recurrenceIntervalDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -58396,6 +58484,7 @@ export namespace Prisma {
     date?: string | null
     description?: string | null
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: number | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -58419,6 +58508,7 @@ export namespace Prisma {
     date?: string | null
     description?: string | null
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: number | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -58477,6 +58567,7 @@ export namespace Prisma {
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
+    recurrenceIntervalDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -58500,6 +58591,7 @@ export namespace Prisma {
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
+    recurrenceIntervalDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -60348,6 +60440,7 @@ export namespace Prisma {
     date?: string | null
     description?: string | null
     allowTimeSuggestions?: boolean
+    recurrenceIntervalDays?: number | null
     createdByDiscordUserId: string
     createdByDiscordTag: string
     discordChannelId: string
@@ -60704,6 +60797,7 @@ export namespace Prisma {
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
+    recurrenceIntervalDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -60726,6 +60820,7 @@ export namespace Prisma {
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
+    recurrenceIntervalDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string
@@ -60748,6 +60843,7 @@ export namespace Prisma {
     date?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     allowTimeSuggestions?: BoolFieldUpdateOperationsInput | boolean
+    recurrenceIntervalDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdByDiscordUserId?: StringFieldUpdateOperationsInput | string
     createdByDiscordTag?: StringFieldUpdateOperationsInput | string
     discordChannelId?: StringFieldUpdateOperationsInput | string

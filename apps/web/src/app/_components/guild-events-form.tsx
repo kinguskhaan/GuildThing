@@ -65,6 +65,8 @@ export function GuildEventsForm({ guildId }: { guildId: string }) {
   const [date, setDate] = useState(todayISODate);
   const [description, setDescription] = useState("");
   const [allowTimeSuggestions, setAllowTimeSuggestions] = useState(true);
+  const [repeatEnabled, setRepeatEnabled] = useState(false);
+  const [repeatDays, setRepeatDays] = useState("7");
   const [channelId, setChannelId] = useState("");
   const [roleSlots, setRoleSlots] = useState<RoleSlotDraft[]>([
     emptyRoleSlot(),
@@ -85,6 +87,8 @@ export function GuildEventsForm({ guildId }: { guildId: string }) {
       setDate(todayISODate());
       setDescription("");
       setAllowTimeSuggestions(true);
+      setRepeatEnabled(false);
+      setRepeatDays("7");
       setRoleSlots([emptyRoleSlot()]);
       setTimeOptions([""]);
       setCollapsed(true);
@@ -118,6 +122,10 @@ export function GuildEventsForm({ guildId }: { guildId: string }) {
       date: date || undefined,
       description: description.trim() || undefined,
       allowTimeSuggestions,
+      recurrenceIntervalDays:
+        repeatEnabled && Number(repeatDays) > 0
+          ? Math.trunc(Number(repeatDays))
+          : undefined,
       discordChannelId: channelId.trim(),
       roleSlots: parsedRoleSlots,
       timeOptionLabels: timeOptions.map((t) => t.trim()).filter(Boolean),
@@ -155,6 +163,24 @@ export function GuildEventsForm({ guildId }: { guildId: string }) {
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
+          <label className="text-discord-text-muted flex items-center gap-1.5 text-sm">
+            <input
+              type="checkbox"
+              checked={repeatEnabled}
+              onChange={(e) => setRepeatEnabled(e.target.checked)}
+            />
+            Repeat every
+            <input
+              className="bg-discord-base text-discord-text w-16 rounded-full px-3 py-1 disabled:opacity-50"
+              type="number"
+              min={1}
+              max={365}
+              disabled={!repeatEnabled}
+              value={repeatDays}
+              onChange={(e) => setRepeatDays(e.target.value)}
+            />
+            days (spawns the next one automatically once this one expires)
+          </label>
           <textarea
             className="bg-discord-base text-discord-text rounded-2xl px-4 py-2"
             value={description}

@@ -47,6 +47,7 @@ interface EventWithRelations {
   date: string | null;
   description: string | null;
   allowTimeSuggestions: boolean;
+  recurrenceIntervalDays: number | null;
   createdByDiscordUserId: string;
   createdByDiscordTag: string;
   discordChannelId: string;
@@ -293,6 +294,14 @@ function buildEventEmbeds(event: EventWithRelations): EmbedBuilder[] {
         inline: true,
       },
     );
+
+  if (event.recurrenceIntervalDays) {
+    embed.addFields({
+      name: "🔁 Repeats",
+      value: `Every ${event.recurrenceIntervalDays} day${event.recurrenceIntervalDays === 1 ? "" : "s"}`,
+      inline: true,
+    });
+  }
 
   if (event.status === "locked") {
     embed.addFields({
@@ -1750,10 +1759,25 @@ export async function syncPendingWebEvents(
 export async function runEventExpiry(client: Client<true>): Promise<void> {
   const candidates = await db.event.findMany({
     where: { status: { not: "cancelled" }, date: { not: null } },
-    select: { id: true, date: true },
+    select: {
+      id: true,
+      date: true,
+      guildId: true,
+      title: true,
+      imageUrl: true,
+      description: true,
+      allowTimeSuggestions: true,
+      recurrenceIntervalDays: true,
+      createdByDiscordUserId: true,
+      createdByDiscordTag: true,
+      discordChannelId: true,
+      roleSlots: { select: { roleName: true, capacity: true, emoji: true } },
+      timeOptions: { select: { label: true } },
+    },
   });
 
-  for (const { id, date } of candidates) {
+  for (const event of candidates) {
+    const { id, date } = event;
     if (!date || !ISO_DATE_PATTERN.test(date)) continue;
     const expiresAt =
       new Date(`${date}T00:00:00Z`).getTime() + 24 * 60 * 60_000;
@@ -1761,6 +1785,34 @@ export async function runEventExpiry(client: Client<true>): Promise<void> {
 
     await db.event.update({ where: { id }, data: { status: "cancelled" } });
     await syncEventMessage(client, id);
+
+    // Natural expiry (not a manual cancel — see the cancel mutation/button,
+    // neither of which touch this) of a recurring event spawns the next
+    // occurrence, dated N days after this one, same setup minus signups.
+    if (event.recurrenceIntervalDays) {
+      const nextDate = new Date(`${date}T00:00:00Z`);
+      nextDate.setUTCDate(nextDate.getUTCDate() + event.recurrenceIntervalDays);
+      const next = await db.event.create({
+        data: {
+          guildId: event.guildId,
+          title: event.title,
+          imageUrl: event.imageUrl,
+          date: nextDate.toISOString().slice(0, 10),
+          description: event.description,
+          allowTimeSuggestions: event.allowTimeSuggestions,
+          recurrenceIntervalDays: event.recurrenceIntervalDays,
+          createdByDiscordUserId: event.createdByDiscordUserId,
+          createdByDiscordTag: event.createdByDiscordTag,
+          discordChannelId: event.discordChannelId,
+          pendingWebUpdate: true,
+          roleSlots: { create: event.roleSlots },
+          timeOptions: { create: event.timeOptions },
+        },
+      });
+      console.log(
+        `[bot] recurring event "${event.title}" (${id}) expired — spawned next occurrence ${next.id} for ${next.date ?? "?"}`,
+      );
+    }
   }
 }
 

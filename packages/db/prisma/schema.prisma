@@ -572,6 +572,15 @@ model Event {
   // already exist still works regardless of this.
   allowTimeSuggestions Boolean @default(true)
 
+  // Repeat this event every N days, indefinitely — set at creation only
+  // (see GuildEventsForm). When runEventExpiry auto-cancels this occurrence
+  // (24h after its date), it clones a fresh Event dated N days later with
+  // the same recurrenceIntervalDays, so the series continues on its own.
+  // Manually cancelling an occurrence stops the series (no next one is
+  // spawned) rather than continuing it — cancelling is treated as "stop
+  // this", not just "skip this one".
+  recurrenceIntervalDays Int?
+
   createdByDiscordUserId String
   createdByDiscordTag    String
 

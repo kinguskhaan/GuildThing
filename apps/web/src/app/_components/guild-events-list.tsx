@@ -56,6 +56,9 @@ export function GuildEventsList({
                 {event.timeOptionCount > 0
                   ? `, ${event.timeOptionCount} time option${event.timeOptionCount === 1 ? "" : "s"}`
                   : ""}
+                {event.recurrenceIntervalDays
+                  ? ` — 🔁 every ${event.recurrenceIntervalDays}d`
+                  : ""}
               </span>
               <span className="text-discord-text-muted text-xs">
                 Created by {event.createdByDiscordTag} in{" "}

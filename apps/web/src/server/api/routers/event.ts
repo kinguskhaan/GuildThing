@@ -70,6 +70,7 @@ export const eventRouter = createTRPCRouter({
         imageUrl: e.imageUrl,
         date: e.date,
         status: e.status,
+        recurrenceIntervalDays: e.recurrenceIntervalDays,
         createdByDiscordTag: e.createdByDiscordTag,
         discordChannelId: e.discordChannelId,
         createdAt: e.createdAt,
@@ -101,6 +102,9 @@ export const eventRouter = createTRPCRouter({
           .optional(),
         description: z.string().max(1000).optional(),
         allowTimeSuggestions: z.boolean().default(true),
+        // Repeat every N days, indefinitely — see recurrenceIntervalDays in
+        // schema.prisma. Manually cancelling an occurrence stops the series.
+        recurrenceIntervalDays: z.number().int().min(1).max(365).optional(),
         discordChannelId: z.string().min(1),
         roleSlots: z.array(roleSlotSchema).min(1),
         timeOptionLabels: z.array(z.string().min(1)).default([]),
@@ -131,6 +135,7 @@ export const eventRouter = createTRPCRouter({
           date: input.date ?? null,
           description: input.description ?? null,
           allowTimeSuggestions: input.allowTimeSuggestions,
+          recurrenceIntervalDays: input.recurrenceIntervalDays ?? null,
           createdByDiscordUserId: discordUserId,
           createdByDiscordTag: ctx.session.user.name,
           discordChannelId: input.discordChannelId,
