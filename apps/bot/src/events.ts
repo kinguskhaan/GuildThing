@@ -1914,11 +1914,19 @@ export async function ensureEventCreateButtons(
 // EVENT_BUTTON_DRIFT_CHECK_INTERVAL_MS in index.ts. Reactive to actual
 // activity rather than reposting (and re-notifying the channel) on a fixed
 // clock regardless of whether anything's happened.
+// Excludes buttonRepostMode "daily" — that mode is meant to sit still
+// between its once-a-day reposts (see repostDailyEventButtons), so this
+// fallback deleting+recreating it on every message would defeat the whole
+// point of "daily" mode.
 export async function repostDriftedEventButtons(
   client: Client<true>,
 ): Promise<void> {
   const presets = await db.eventChannelPreset.findMany({
-    where: { buttonEnabled: true, buttonMessageId: { not: null } },
+    where: {
+      buttonEnabled: true,
+      buttonMessageId: { not: null },
+      buttonRepostMode: { not: "daily" },
+    },
     include: { guild: { select: { discordGuildId: true } } },
   });
 
