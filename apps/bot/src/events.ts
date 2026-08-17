@@ -1083,8 +1083,15 @@ async function promptEditModal(
         components: buildEventComponents(updated),
       });
     }
-  } catch {
-    // Timed out or errored — leave the event as it was.
+  } catch (err) {
+    // Timing out (didn't submit the modal in time) is normal and expected,
+    // not worth logging — anything else silently swallowing here means an
+    // edit that looked like it worked (modal closed, no error shown) never
+    // actually landed, with zero trace of why. Log everything that isn't
+    // plainly a timeout so that's diagnosable instead of invisible.
+    if ((err as { name?: string }).name !== "InteractionCollectorError") {
+      console.error(`[bot] failed to apply event edit for ${event.id}:`, err);
+    }
   }
 }
 
