@@ -506,6 +506,7 @@ function InactivityManager({ guildId }: { guildId: string }) {
   const [collapsed, setCollapsed] = useState(true);
   const [search, setSearch] = useState("");
   const [onlyTargetRole, setOnlyTargetRole] = useState(true);
+  const [onlyNeverTracked, setOnlyNeverTracked] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const utils = api.useUtils();
@@ -535,6 +536,7 @@ function InactivityManager({ guildId }: { guildId: string }) {
 
   const rows = (overview.data?.members ?? []).filter((m) => {
     if (onlyTargetRole && !m.hasTargetRole) return false;
+    if (onlyNeverTracked && m.lastActiveAt !== null) return false;
     const query = search.trim().toLowerCase();
     if (!query) return true;
     return (
@@ -596,6 +598,14 @@ function InactivityManager({ guildId }: { guildId: string }) {
                 onChange={(e) => setOnlyTargetRole(e.target.checked)}
               />
               Only members with a tracked role
+            </label>
+            <label className="text-discord-text-muted flex items-center gap-1.5 text-sm">
+              <input
+                type="checkbox"
+                checked={onlyNeverTracked}
+                onChange={(e) => setOnlyNeverTracked(e.target.checked)}
+              />
+              Only never tracked (last active: never)
             </label>
           </div>
           {overview.isLoading && (
