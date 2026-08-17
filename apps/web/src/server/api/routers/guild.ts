@@ -1133,9 +1133,12 @@ export const guildRouter = createTRPCRouter({
           : forbiddenOrRateLimited(retryAfterSeconds);
       }
 
-      const existing = await ctx.db.guildRosterMember.findUnique({
-        where: { guildId_name: { guildId: input.guildId, name: input.name } },
-      });
+      const normalizedName = input.name.trim().toLowerCase();
+      const existing = (
+        await ctx.db.guildRosterMember.findMany({
+          where: { guildId: input.guildId },
+        })
+      ).find((m) => m.name.toLowerCase() === normalizedName);
 
       if (existing) {
         if (
