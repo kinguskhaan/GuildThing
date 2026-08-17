@@ -111,6 +111,16 @@ function todayISODate(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+// Used as the create-modal's date placeholder — a real, always-current
+// example (instead of a date that ages into the past) nudges people
+// towards the right format without them having to work out today's date
+// themselves first.
+function tomorrowISODate(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
 // Best-effort, not strict like parseEventDateTime below — these are extra
 // alternatives someone types straight into chat, not the anchor time, so a
 // stray typo shouldn't blow up the whole list.
@@ -523,7 +533,8 @@ async function renderToInteraction(
 async function createEventPost(
   channel: TextChannel | ForumChannel,
   event: EventWithRelations,
-): Promise<{ thread: AnyThreadChannel; message: Message }> {
+  existingMessageId: string | null,
+): Promise<{ thread: AnyThreadChannel | null; message: Message }> {
   const name = event.title.slice(0, 100);
   const payload = {
     embeds: buildEventEmbeds(event),
@@ -531,6 +542,9 @@ async function createEventPost(
   };
 
   if (channel.type === ChannelType.GuildForum) {
+    // A forum post's message and thread are the same Discord object,
+    // created together — no partial-failure state possible here the way
+    // there is below, so no existingMessageId reuse needed.
     const thread = await channel.threads.create({
       name,
       autoArchiveDuration: THREAD_AUTO_ARCHIVE_MINUTES,
@@ -543,13 +557,29 @@ async function createEventPost(
     return { thread, message };
   }
 
-  const message = await channel.send(payload);
-  const thread = await message.startThread({
-    name,
-    autoArchiveDuration: THREAD_AUTO_ARCHIVE_MINUTES,
-    reason: "Event discussion",
-  });
-  return { thread, message };
+  // A previous attempt may have already sent the message but failed to
+  // attach a thread (e.g. missing "Create Public Threads" in this specific
+  // channel) — reuse that message instead of posting a duplicate on every
+  // retry. Falls through to sending a fresh one if it's since been deleted.
+  const message =
+    (existingMessageId
+      ? await channel.messages.fetch(existingMessageId).catch(() => null)
+      : null) ?? (await channel.send(payload));
+
+  try {
+    const thread = await message.startThread({
+      name,
+      autoArchiveDuration: THREAD_AUTO_ARCHIVE_MINUTES,
+      reason: "Event discussion",
+    });
+    return { thread, message };
+  } catch (err) {
+    console.error(
+      `[bot] posted event message for ${event.id} but couldn't attach a thread (likely missing "Create Public Threads" in that channel):`,
+      err,
+    );
+    return { thread: null, message };
+  }
 }
 
 // Shared by the /guildthing event subcommand and the optional standing
@@ -608,7 +638,7 @@ export async function handleEventCreateCommand(
           .setStyle(TextInputStyle.Short)
           .setRequired(true)
           .setMaxLength(16)
-          .setPlaceholder("e.g. 2026-08-15 20:00"),
+          .setPlaceholder(`e.g. ${tomorrowISODate()} 20:00`),
       ),
       new ActionRowBuilder<TextInputBuilder>().addComponents(
         new TextInputBuilder()
@@ -664,7 +694,7 @@ export async function handleEventCreateCommand(
   if (!dateTime) {
     await submitted.reply({
       content:
-        "Couldn't parse that date/time — use YYYY-MM-DD HH:MM (24h), e.g. 2026-08-15 20:00. Try again.",
+        `Couldn't parse that date/time — use YYYY-MM-DD HH:MM (24h), e.g. ${tomorrowISODate()} 20:00. Try again.`,
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -1521,10 +1551,17 @@ async function syncEventMessage(
     }
 
     if (!event.discordThreadId) {
-      const { thread, message } = await createEventPost(channel, event);
+      const { thread, message } = await createEventPost(
+        channel,
+        event,
+        event.discordMessageId,
+      );
       await db.event.update({
         where: { id: event.id },
-        data: { discordThreadId: thread.id, discordMessageId: message.id },
+        data: {
+          discordMessageId: message.id,
+          ...(thread ? { discordThreadId: thread.id } : {}),
+        },
       });
       return;
     }
