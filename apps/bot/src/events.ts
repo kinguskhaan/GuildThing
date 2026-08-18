@@ -1638,25 +1638,30 @@ async function syncEventMessage(
             .fetch(event.discordThreadId)
             .catch(() => null)
         : null;
+      const parentChannel = await discordGuild.channels
+        .fetch(event.discordChannelId)
+        .catch(() => null);
 
       // For a forum event the message IS the thread's starter message; for
       // a text-channel event it's the separate parent-channel message the
-      // thread is attached to (see createEventPost).
-      if (thread?.isThread() && event.discordMessageId) {
-        const message = await thread.messages
-          .fetch(event.discordMessageId)
-          .catch(() => null);
-        await message?.edit(payload).catch(() => {});
-      } else if (event.discordMessageId) {
-        const parentChannel = await discordGuild.channels
-          .fetch(event.discordChannelId)
-          .catch(() => null);
-        if (parentChannel?.isTextBased()) {
-          const message = await parentChannel.messages
+      // thread is attached to (see createEventPost) — deciding which by
+      // "does a thread exist" instead of the parent's actual channel type
+      // meant a text-channel event's thread (which does exist) shadowed
+      // the real message, so it never got edited (components silently
+      // stuck around forever — the message.edit() below was looking in the
+      // thread, which never had this message in the first place).
+      if (parentChannel?.type === ChannelType.GuildForum) {
+        if (thread?.isThread() && event.discordMessageId) {
+          const message = await thread.messages
             .fetch(event.discordMessageId)
             .catch(() => null);
           await message?.edit(payload).catch(() => {});
         }
+      } else if (event.discordMessageId && parentChannel?.isTextBased()) {
+        const message = await parentChannel.messages
+          .fetch(event.discordMessageId)
+          .catch(() => null);
+        await message?.edit(payload).catch(() => {});
       }
 
       // Locked + archived rather than deleted — still browsable in the
@@ -1850,6 +1855,14 @@ function buildEventCreateButtonMessage(customText?: string | null) {
   };
 }
 
+// Missing Access (50001) / Missing Permissions (50013) mean the bot simply
+// isn't allowed in this channel — retrying every tick can't ever fix that
+// on its own, only an admin re-granting access can. Tracks which presets
+// are currently in that state so the error's logged once, not every 15s
+// (see EVENT_TICK_INTERVAL_MS in index.ts) — cleared the moment a preset
+// succeeds again, in case access comes back.
+const loggedAccessErrorPresets = new Set<string>();
+
 // Same idea as ensureOnboardingButtons — keeps a standing "Create new
 // event" button message current in every channel that's had it enabled
 // (see EventChannelPreset.buttonEnabled), posting one if missing and
@@ -1902,6 +1915,7 @@ export async function ensureEventCreateButtons(
           if (existing.content !== desired.content) {
             await existing.edit(desired);
           }
+          loggedAccessErrorPresets.delete(preset.id);
           continue;
         }
       }
@@ -1911,7 +1925,24 @@ export async function ensureEventCreateButtons(
         where: { id: preset.id },
         data: { buttonMessageId: message.id, lastButtonRepostAt: new Date() },
       });
+      loggedAccessErrorPresets.delete(preset.id);
     } catch (err) {
+      const isAccessError =
+        typeof err === "object" &&
+        err !== null &&
+        "code" in err &&
+        (err.code === 50_001 || err.code === 50_013);
+
+      if (isAccessError) {
+        if (!loggedAccessErrorPresets.has(preset.id)) {
+          loggedAccessErrorPresets.add(preset.id);
+          console.error(
+            `[bot] can't post the event-create button in channel ${preset.discordChannelId} — missing access/permissions there. Won't repeat this every 15s; fix the channel permissions and it'll resume automatically.`,
+          );
+        }
+        continue;
+      }
+
       console.error(
         `[bot] failed to ensure event-create button for channel ${preset.discordChannelId}:`,
         err,
