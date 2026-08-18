@@ -59,7 +59,7 @@ export async function syncPendingRosterMatches(
       await db.guildPendingRosterMatch.delete({ where: { id: row.id } });
       await member
         .send(
-          "Good news — I found you in the guild roster now and set your nickname/roles. Welcome!",
+          `**${member.guild.name}** — Good news — I found you in the guild roster now and set your nickname/roles. Welcome!`,
         )
         .catch(() => {
           // Best-effort.
@@ -73,9 +73,11 @@ export async function syncPendingRosterMatches(
       await db.guildPendingRosterMatch.delete({ where: { id: row.id } });
       await member
         .send(
-          matchedCount > 0
-            ? "I still couldn't find all of your names in the guild roster after checking for 42 hours — please ask an officer to help get the rest set up."
-            : "I still couldn't find you in the guild roster after checking for 42 hours — please ask an officer to help get you set up.",
+          `**${member.guild.name}** — ${
+            matchedCount > 0
+              ? "I still couldn't find all of your names in the guild roster after checking for 42 hours — please ask an officer to help get the rest set up."
+              : "I still couldn't find you in the guild roster after checking for 42 hours — please ask an officer to help get you set up."
+          }`,
         )
         .catch(() => {
           // Best-effort.

@@ -212,10 +212,12 @@ function channelGrantPermissions(
 // Default notify implementation — DMs the member directly, swallowing any
 // failure (DMs disabled, etc.). Used whenever a caller doesn't supply its
 // own notify (i.e. every background job — roleSync.ts, pendingMatches.ts —
-// which have no live interaction to reply through instead).
+// which have no live interaction to reply through instead). Prefixed with
+// the server name since a plain DM gives no other clue which of a person's
+// (possibly several) GuildThing servers it's about.
 function dmNotifier(member: GuildMember): (message: string) => Promise<void> {
   return async (message: string) => {
-    await member.send(message).catch(() => {
+    await member.send(`**${member.guild.name}** — ${message}`).catch(() => {
       // Best-effort — if DMs are closed, there's nothing more to do here.
     });
   };
@@ -276,6 +278,59 @@ export async function applyChannelGrants(
         );
       }
     }
+  }
+}
+
+// Adds/removes "managed" roles (any role that's a grantedRole on some rule,
+// or the guild's PUG role — see getManagedRoleIds) to match desiredRoleIds
+// exactly, leaving anything an admin assigned by hand for an unrelated
+// reason untouched. Extracted out of applyNicknameAndRoles below (which
+// still calls this) so a caller that wants to touch ONLY roles — e.g. a
+// full account reset with desiredRoleIds: [] — doesn't have to go through
+// nickname-setting to get there.
+export async function applyManagedRoles(
+  member: GuildMember,
+  guildId: string,
+  desiredRoleIds: string[],
+  options: { notify?: (message: string) => Promise<void> } = {},
+): Promise<void> {
+  const notify = options.notify ?? dmNotifier(member);
+  const managedRoleIds = await getManagedRoleIds(guildId);
+  const desired = new Set(desiredRoleIds);
+  const currentManaged = member.roles.cache.filter((r) =>
+    managedRoleIds.has(r.id),
+  );
+  const toAdd = desiredRoleIds.filter((id) => !currentManaged.has(id));
+  const toRemoveRoles = currentManaged.filter((r) => !desired.has(r.id));
+  const toRemove = toRemoveRoles.map((r) => r.id);
+
+  if (toAdd.length === 0 && toRemove.length === 0) return;
+
+  try {
+    if (toAdd.length > 0) await member.roles.add(toAdd);
+    if (toRemove.length > 0) await member.roles.remove(toRemove);
+    const roleName = (id: string) =>
+      member.guild.roles.cache.get(id)?.name ?? id;
+    const added = toAdd.map(roleName).join(", ") || "none";
+    const removed = toRemoveRoles.map((r) => r.name).join(", ") || "none";
+    console.log(
+      `[bot] role update for ${member.user.tag} in ${member.guild.name}: +[${added}] -[${removed}]`,
+    );
+  } catch (err) {
+    console.error(`[bot] failed to update roles for ${member.user.tag}:`, err);
+    // Most likely cause: the bot's own role sits below the role(s) it's
+    // trying to grant/remove in the server's role list — Discord blocks
+    // that regardless of permissions.
+    const notified = await notifyAdmins(
+      member,
+      guildId,
+      `⚠️ Couldn't update roles for ${member.user.tag} — most likely my role isn't positioned above the role(s) involved. Check Server Settings → Roles.`,
+    );
+    await notify(
+      notified
+        ? "Heads up — I couldn't update your role(s) due to a permissions issue on my end. An officer has been notified."
+        : "Heads up — I couldn't update your role(s), most likely because my own role isn't positioned above them in this server's role list. Ask an officer to check Server Settings → Roles.",
+    );
   }
 }
 
@@ -352,46 +407,7 @@ export async function applyNicknameAndRoles(
   // roles that apply now — not the old ones on top. So this adds what's
   // missing AND removes any previously-granted "managed" role that no
   // longer belongs, rather than only ever adding.
-  const managedRoleIds = await getManagedRoleIds(guildId);
-  const desired = new Set(desiredRoleIds);
-  const currentManaged = member.roles.cache.filter((r) =>
-    managedRoleIds.has(r.id),
-  );
-  const toAdd = desiredRoleIds.filter((id) => !currentManaged.has(id));
-  const toRemoveRoles = currentManaged.filter((r) => !desired.has(r.id));
-  const toRemove = toRemoveRoles.map((r) => r.id);
-
-  if (toAdd.length > 0 || toRemove.length > 0) {
-    try {
-      if (toAdd.length > 0) await member.roles.add(toAdd);
-      if (toRemove.length > 0) await member.roles.remove(toRemove);
-      const roleName = (id: string) =>
-        member.guild.roles.cache.get(id)?.name ?? id;
-      const added = toAdd.map(roleName).join(", ") || "none";
-      const removed = toRemoveRoles.map((r) => r.name).join(", ") || "none";
-      console.log(
-        `[bot] role update for ${member.user.tag} in ${member.guild.name}: +[${added}] -[${removed}]`,
-      );
-    } catch (err) {
-      console.error(
-        `[bot] failed to update roles for ${member.user.tag}:`,
-        err,
-      );
-      // Most likely cause: the bot's own role sits below the role(s) it's
-      // trying to grant/remove in the server's role list — Discord blocks
-      // that regardless of permissions.
-      const notified = await notifyAdmins(
-        member,
-        guildId,
-        `⚠️ Couldn't update roles for ${member.user.tag} — most likely my role isn't positioned above the role(s) involved. Check Server Settings → Roles.`,
-      );
-      await notify(
-        notified
-          ? "Heads up — I couldn't update your role(s) due to a permissions issue on my end. An officer has been notified."
-          : "Heads up — I couldn't update your role(s), most likely because my own role isn't positioned above them in this server's role list. Ask an officer to check Server Settings → Roles.",
-      );
-    }
-  }
+  await applyManagedRoles(member, guildId, desiredRoleIds, { notify });
 
   await applyChannelGrants(member, guildId, desiredChannelGrants, { notify });
 

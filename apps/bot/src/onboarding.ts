@@ -16,6 +16,8 @@ import {
 import { db } from "@guildthing/db";
 
 import {
+  applyChannelGrants,
+  applyManagedRoles,
   applyNicknameAndRoles,
   MAX_NICKNAME_LENGTH,
   matchRosterAndApply,
@@ -50,10 +52,7 @@ const activeOnboarding = new Set<string>();
 // whether the person has server-member DMs enabled. A "cursor" tracks the
 // most recent not-yet-acknowledged interaction; each step consumes it and
 // produces a new one.
-type ChoiceInteraction =
-  | ButtonInteraction
-  | ModalSubmitInteraction
-  | ChatInputCommandInteraction;
+type ChoiceInteraction = ButtonInteraction | ModalSubmitInteraction;
 type ModalTriggerInteraction = ButtonInteraction | ChatInputCommandInteraction;
 
 // Shows a single-field modal and waits for it to be submitted. Must be
@@ -95,7 +94,7 @@ async function askTextModal(
     };
   } catch (err) {
     console.log(
-      `[bot] ${interaction.user.tag} didn't submit the "${fieldLabel}" modal in time (or an error occurred):`,
+      `[bot] ${interaction.user.tag} didn't submit the "${modalTitle}" / "${fieldLabel}" modal in time (or an error occurred):`,
       err,
     );
     return null;
@@ -109,9 +108,16 @@ async function askTextModal(
 // unacknowledged, so the caller decides what happens next (another
 // update(), a showModal(), a final notify, etc).
 async function askChoice(
-  interaction: ChoiceInteraction,
+  interaction: ChoiceInteraction | ChatInputCommandInteraction,
   content: string,
   choices: { id: string; label: string; primary?: boolean }[],
+  // True when `interaction` might still be the untouched click on the
+  // standing, PUBLIC "Start Onboarding" button rather than an already-
+  // ephemeral reply from earlier in this flow. update()'ing that click
+  // would edit the public button message in place for the whole channel to
+  // see — forces a fresh ephemeral reply instead. Only ever needed for the
+  // very first prompt of a run (see runOnboarding's callers).
+  freshEntry = false,
 ): Promise<{ value: string; interaction: ButtonInteraction } | null> {
   // Chunked into rows of 5 (Discord's per-row button cap) — most questions
   // only ever have 2-3 choices and get one row same as before, but this
@@ -131,7 +137,7 @@ async function askChoice(
     );
   }
 
-  if (interaction.isButton()) {
+  if (interaction.isButton() && !freshEntry) {
     await interaction.update({ content, components: rows });
   } else {
     await interaction.reply({
@@ -151,7 +157,7 @@ async function askChoice(
     return { value: clicked.customId, interaction: clicked };
   } catch (err) {
     console.log(
-      `[bot] ${interaction.user.tag} didn't answer the button prompt in time (or an error occurred):`,
+      `[bot] ${interaction.user.tag} didn't answer in time (or an error occurred) on: "${content}"`,
       err,
     );
     return null;
@@ -359,6 +365,193 @@ export async function runOnboardingInteractive(
   }
 }
 
+// Shared tail end of onboarding — upserts a preferred-nickname override (if
+// one was decided), runs matchRosterAndApply, and queues/clears the pending-
+// roster-match retry. Used both by the normal happy-path completion (live
+// interaction notifier) and by applyPartial's timeout-recovery path (DM
+// notifier, no preferredNickname decided yet) below, so both apply the
+// exact same matching/messaging logic instead of drifting apart.
+async function finishOnboarding(
+  member: GuildMember,
+  guild: {
+    id: string;
+    rosterSource: string;
+    wowRegion?: string | null;
+    wowRealmSlug?: string | null;
+    wowGuildName?: string | null;
+    wowNamespaceFlavor?: string | null;
+  },
+  characters: NamedCharacter[],
+  includeAltsInNickname: boolean,
+  preferredNickname: string | null,
+  options: {
+    chooseNicknameNames?: (names: string[]) => Promise<string[]>;
+    notify?: (message: string) => Promise<void>;
+  } = {},
+): Promise<void> {
+  const mainName = characters[0]!.name;
+  const allNames = characters.map((c) => c.name);
+  const notify =
+    options.notify ??
+    (async (message: string) => {
+      // Prefixed with the server name — a plain DM (this fallback, used by
+      // applyPartial's timeout-recovery path) gives no other clue which of
+      // a person's possibly-several GuildThing servers it's about.
+      await member.send(`**${member.guild.name}** — ${message}`).catch(() => {
+        // Best-effort.
+      });
+    });
+
+  if (preferredNickname != null) {
+    await db.guildMemberNickname.upsert({
+      where: {
+        guildId_discordUserId: { guildId: guild.id, discordUserId: member.id },
+      },
+      create: {
+        guildId: guild.id,
+        discordUserId: member.id,
+        discordUserTag: member.user.tag,
+        // Placeholder — matchRosterAndApply below overwrites this with the
+        // real computed name right after, without touching preferredNickname
+        // (partial update).
+        computedName: mainName,
+        preferredNickname,
+      },
+      update: { preferredNickname },
+    });
+  }
+
+  const { matchedCount, unmatchedCount, confirmedCount } =
+    await matchRosterAndApply(member, guild, characters, includeAltsInNickname, {
+      chooseNicknameNames: options.chooseNicknameNames,
+      notify,
+    });
+
+  if (unmatchedCount > 0) {
+    // At least one name (could be the main, could just be an alt) wasn't
+    // found in the roster — not a claim dispute, just data that hasn't
+    // been (re-)imported since they joined (matchRosterAndApply already
+    // sent its own confident message for any Battle.net-confirmed names —
+    // see confirmedCount below). Queue this for the daily role-sync job to
+    // retry automatically (see pendingMatches.ts) instead of that name
+    // being stuck as plain text forever. Whatever DID match already got
+    // claimed/applied above regardless.
+    await db.guildPendingRosterMatch.upsert({
+      where: {
+        guildId_discordUserId: { guildId: guild.id, discordUserId: member.id },
+      },
+      create: {
+        guildId: guild.id,
+        discordUserId: member.id,
+        discordUserTag: member.user.tag,
+        names: JSON.stringify(allNames),
+        includeAltsInNickname,
+      },
+      update: {
+        discordUserTag: member.user.tag,
+        names: JSON.stringify(allNames),
+        includeAltsInNickname,
+        createdAt: new Date(),
+      },
+    });
+
+    const uncertainCount = unmatchedCount - confirmedCount;
+    if (uncertainCount > 0) {
+      await notify(
+        matchedCount > 0 || confirmedCount > 0
+          ? `Heads up — ${uncertainCount === 1 ? "one more name wasn't" : `${uncertainCount} more names weren't`} found on our guild's member list yet. I'll keep checking automatically for up to 42 hours.`
+          : `I couldn't find "${mainName}" on our guild's member list yet — that's most likely because the list just hasn't been updated recently, not a mistake on your end. I'll automatically re-check for the next 42 hours and set your roles the moment it shows up there. Still nothing after that? Ping an officer.`,
+      );
+    }
+  } else {
+    await db.guildPendingRosterMatch.deleteMany({
+      where: { guildId: guild.id, discordUserId: member.id },
+    });
+  }
+}
+
+// The nickname-display choice (multiple names / just one / custom, or the
+// simpler standard-vs-custom pick when there's only one name) — shared by
+// the normal onboarding flow and the "Change nickname" shortcut for someone
+// who's already onboarded (see runOnboarding's known-characters menu).
+// Mutates `cursor` as clicks/submits land, same convention as
+// askNicknameSelectionInteractive. Returns null on timeout — the caller
+// decides what "nothing decided" means for its situation (fall back to
+// partial-save, or just report no changes).
+async function chooseNicknameFlow(
+  cursor: { interaction: ChoiceInteraction },
+  mainName: string,
+  allNames: string[],
+): Promise<string | null> {
+  if (allNames.length > 1) {
+    const modeResult = await askChoice(
+      cursor.interaction,
+      "How should your nickname look in Discord?",
+      [
+        { id: "multi", label: "Multiple names", primary: true },
+        { id: "single", label: "Just one name" },
+        { id: "custom", label: "Custom nickname" },
+      ],
+    );
+    if (modeResult == null) return null;
+    cursor.interaction = modeResult.interaction;
+
+    if (modeResult.value === "multi") {
+      const chosen = await askNicknameSelectionInteractive(
+        cursor,
+        allNames,
+        "Choose which alts to include alongside your main",
+      );
+      return chosen.join("/");
+    }
+
+    if (modeResult.value === "single") {
+      const singleResult = await askChoice(
+        cursor.interaction,
+        "Which character should show as your nickname?",
+        allNames.map((n) => ({ id: n, label: n })),
+      );
+      if (singleResult == null) return null;
+      cursor.interaction = singleResult.interaction;
+      return singleResult.value;
+    }
+
+    const nickResult = await askTextModal(
+      modeResult.interaction,
+      "Custom nickname",
+      "Nickname (must relate to char name)",
+      "e.g. a shorter form or common spelling of your character name.",
+    );
+    if (nickResult == null) return null;
+    cursor.interaction = nickResult.interaction;
+    return nickResult.value;
+  }
+
+  // Only one name known — the only meaningful choice is standard vs. custom.
+  const customResult = await askChoice(
+    cursor.interaction,
+    `Do you want a custom nickname instead of "${mainName}"?`,
+    [
+      { id: "yes", label: "Yes" },
+      { id: "no", label: `No, use "${mainName}"`, primary: true },
+    ],
+  );
+  if (customResult == null) return null;
+  cursor.interaction = customResult.interaction;
+
+  if (customResult.value !== "yes") return mainName;
+
+  const nickResult = await askTextModal(
+    customResult.interaction,
+    "Custom nickname",
+    "Nickname (must relate to char name)",
+    "e.g. a shorter form or common spelling of your character name.",
+  );
+  if (nickResult == null) return null;
+  cursor.interaction = nickResult.interaction;
+  return nickResult.value;
+}
+
 async function runOnboarding(
   triggerInteraction: ModalTriggerInteraction,
 ): Promise<void> {
@@ -382,6 +575,238 @@ async function runOnboarding(
     return;
   }
 
+  // Someone who's already onboarded as a guild member gets a shortcut menu
+  // instead of being forced through the whole flow again just to add one
+  // alt or tweak their nickname. Pure-PUG history doesn't trigger this —
+  // that flow is already a single question, redoing it costs nothing.
+  const knownRosterRows = await db.guildRosterMember.findMany({
+    where: { guildId: guild.id, claimedByDiscordUserId: member.id },
+    select: { name: true, class: true },
+  });
+  const knownExternalRows = await db.guildExternalCharacter.findMany({
+    where: { guildId: guild.id, discordUserId: member.id },
+    select: { name: true, class: true },
+  });
+  const pendingMatch = await db.guildPendingRosterMatch.findUnique({
+    where: {
+      guildId_discordUserId: { guildId: guild.id, discordUserId: member.id },
+    },
+  });
+
+  const knownCharacters: NamedCharacter[] = [
+    ...knownRosterRows,
+    ...knownExternalRows,
+  ];
+  // Kept separate from knownCharacters (which flattens everything to a
+  // plain name/class list for the roster-matching flows below) purely so
+  // the "Show characters" button can tell the person which of their names
+  // are actually confirmed vs. still waiting on a roster (re-)import.
+  const pendingNames: string[] = [];
+  if (pendingMatch) {
+    for (const name of JSON.parse(pendingMatch.names) as string[]) {
+      if (
+        !knownCharacters.some(
+          (c) => c.name.toLowerCase() === name.toLowerCase(),
+        )
+      ) {
+        knownCharacters.push({ name, class: null });
+        pendingNames.push(name);
+      }
+    }
+  }
+
+  let entryInteraction: ModalTriggerInteraction = triggerInteraction;
+
+  if (knownCharacters.length > 0) {
+    const menuResult = await askChoice(
+      triggerInteraction,
+      "You've already onboarded here. What would you like to do?",
+      [
+        { id: "add", label: "Add an alt", primary: true },
+        { id: "nickname", label: "Change nickname" },
+        { id: "show", label: "Show characters" },
+        { id: "update", label: "Update characters" },
+        { id: "reset", label: "Reset everything" },
+        { id: "cancel", label: "Nevermind" },
+      ],
+      true,
+    );
+    if (menuResult == null) return;
+
+    if (menuResult.value === "cancel") {
+      await menuResult.interaction
+        .update({ content: "No changes made.", components: [] })
+        .catch(() => {});
+      return;
+    }
+
+    if (menuResult.value === "show") {
+      const lines = knownCharacters.map((c) => {
+        const isPending = pendingNames.includes(c.name);
+        const classSuffix = c.class ? ` (${c.class})` : "";
+        return isPending
+          ? `⏳ **${c.name}** — still looking for this in the roster`
+          : `✅ **${c.name}**${classSuffix}`;
+      });
+      await menuResult.interaction
+        .update({
+          content: `Your characters so far:\n${lines.join("\n")}`,
+          components: [],
+        })
+        .catch(() => {});
+      return;
+    }
+
+    if (menuResult.value === "add") {
+      const altResult = await askTextModal(
+        menuResult.interaction,
+        "Alt's exact character name ingame",
+        "Must be a real in-game character",
+        "Not a nickname people call you",
+      );
+      if (altResult == null) {
+        await member
+          .send(
+            `**${member.guild.name}** — Didn't hear back in time — no alt was added.`,
+          )
+          .catch(() => {});
+        return;
+      }
+
+      let altClass: string | null = null;
+      let trigger: ChoiceInteraction = altResult.interaction;
+      if (guild.rosterSource === "onboarding") {
+        const altClassResult = await askChoice(
+          altResult.interaction,
+          `What class is **${altResult.value}**?`,
+          WOW_CLASS_CHOICES,
+        );
+        if (altClassResult != null) {
+          altClass = altClassResult.value;
+          trigger = altClassResult.interaction;
+        }
+      }
+
+      const cursor = { interaction: trigger };
+      if (!cursor.interaction.deferred && !cursor.interaction.replied) {
+        await cursor.interaction.deferUpdate();
+      }
+      await cursor.interaction.editReply({
+        content: "Adding your alt…",
+        components: [],
+      });
+      await finishOnboarding(
+        member,
+        guild,
+        [...knownCharacters, { name: altResult.value, class: altClass }],
+        true,
+        null,
+        { notify: createNotifier(cursor) },
+      );
+      return;
+    }
+
+    if (menuResult.value === "nickname") {
+      const allKnownNames = knownCharacters.map((c) => c.name);
+      const cursor = { interaction: menuResult.interaction as ChoiceInteraction };
+      const preferredNickname = await chooseNicknameFlow(
+        cursor,
+        allKnownNames[0]!,
+        allKnownNames,
+      );
+      if (preferredNickname == null) {
+        await member
+          .send(
+            `**${member.guild.name}** — Didn't hear back in time — no changes made to your nickname.`,
+          )
+          .catch(() => {});
+        return;
+      }
+      if (!cursor.interaction.deferred && !cursor.interaction.replied) {
+        await cursor.interaction.deferUpdate();
+      }
+      await cursor.interaction.editReply({
+        content: "Updating your nickname…",
+        components: [],
+      });
+      await finishOnboarding(member, guild, knownCharacters, true, preferredNickname, {
+        notify: createNotifier(cursor),
+      });
+      return;
+    }
+
+    if (menuResult.value === "reset") {
+      const confirmResult = await askChoice(
+        menuResult.interaction,
+        "⚠️ This unclaims all your characters here, clears your nickname override, and removes any roles/channel access granted from them. This can't be undone — you'd need to run `/onboarding` again from scratch afterward. Are you sure?",
+        [
+          { id: "yes", label: "Yes, reset everything" },
+          { id: "no", label: "Cancel", primary: true },
+        ],
+      );
+      if (confirmResult == null) {
+        await member
+          .send(
+            `**${member.guild.name}** — Didn't hear back in time — nothing was reset.`,
+          )
+          .catch(() => {});
+        return;
+      }
+      if (confirmResult.value !== "yes") {
+        await confirmResult.interaction
+          .update({ content: "No changes made.", components: [] })
+          .catch(() => {});
+        return;
+      }
+
+      const cursor = { interaction: confirmResult.interaction };
+      await cursor.interaction.deferUpdate();
+      await cursor.interaction.editReply({
+        content: "Resetting…",
+        components: [],
+      });
+
+      await db.guildRosterMember.updateMany({
+        where: { guildId: guild.id, claimedByDiscordUserId: member.id },
+        data: { claimedByDiscordUserId: null, claimedByDiscordTag: null },
+      });
+      await db.guildExternalCharacter.deleteMany({
+        where: { guildId: guild.id, discordUserId: member.id },
+      });
+      await db.guildMemberNickname.deleteMany({
+        where: { guildId: guild.id, discordUserId: member.id },
+      });
+      await db.guildPendingRosterMatch.deleteMany({
+        where: { guildId: guild.id, discordUserId: member.id },
+      });
+      await db.guildPugMember.deleteMany({
+        where: { guildId: guild.id, discordUserId: member.id },
+      });
+
+      const notify = createNotifier(cursor);
+      // Strips every managed role/channel-grant immediately (desired: [])
+      // rather than waiting for tomorrow's daily sync to notice the roster
+      // rows are unclaimed now — same functions the normal flow uses, just
+      // called directly since there's no nickname to set here.
+      await applyManagedRoles(member, guild.id, [], { notify });
+      await applyChannelGrants(member, guild.id, [], { notify });
+      // Best-effort, same server-owner limitation as everywhere else — not
+      // worth a dedicated notice here, the reset itself already covers it.
+      await member.setNickname(null).catch(() => {});
+
+      await notify(
+        "Done — everything's been reset. Run `/onboarding` again anytime to start fresh.",
+      );
+      return;
+    }
+
+    // "update" — fall through to the full flow below, starting from this
+    // click instead of the original trigger. Additive: whatever's typed
+    // this run gets claimed/matched on top of what's already there — use
+    // "Reset everything" first if the goal is actually starting clean.
+    entryInteraction = menuResult.interaction;
+  }
+
   // Asked first, before any name — so the name modal right after can be
   // worded correctly for whichever path they're on (a PUG doesn't need to
   // be told "must be a member of this guild"). Only asked at all if the
@@ -389,16 +814,17 @@ async function runOnboarding(
   // make (nowhere to route a "PUG" answer to), so skip straight into the
   // guild-member flow instead of asking a question with only one real
   // answer.
-  let affiliationTrigger: ModalTriggerInteraction = triggerInteraction;
+  let affiliationTrigger: ModalTriggerInteraction = entryInteraction;
   let isPug = false;
   if (guild.pugEnabled) {
     const affiliationResult = await askChoice(
-      triggerInteraction,
+      entryInteraction,
       "Are you a guild member, or are you here to join a PUG?",
       [
         { id: "guild", label: "Guild member", primary: true },
         { id: "pug", label: "PUG" },
       ],
+      entryInteraction === triggerInteraction,
     );
     if (affiliationResult == null) return;
     isPug = affiliationResult.value === "pug";
@@ -461,13 +887,37 @@ async function runOnboarding(
   );
   if (mainNameResult == null) return;
   const mainName = mainNameResult.value;
+  const alts: NamedCharacter[] = [];
+  let mainClass: string | null = null;
 
   // A play group with no in-game guild has no addon to read class from —
   // ask for it directly instead. Addon-sourced guilds get class from the
   // roster row once matched, so this is skipped entirely for them.
   const onboardingBuildsRoster = guild.rosterSource === "onboarding";
 
-  let mainClass: string | null = null;
+  // From here on, a person has already told us their real character
+  // name(s) — a 5-minute timeout on some later question (an alt's class, a
+  // nickname preference, etc.) shouldn't throw all of that away. Applies
+  // whatever's been collected so far (DM-based notifier, since the
+  // interaction that would've been used is dead by the time this runs) and
+  // tells them what happened, instead of silently going nowhere.
+  const applyPartial = async (): Promise<void> => {
+    const partialCharacters: NamedCharacter[] = [
+      { name: mainName, class: mainClass },
+      ...alts,
+    ];
+    await member
+      .send(
+        `**${member.guild.name}** — Heads up — you didn't respond in time, so I stopped there. I saved what you had so far (${partialCharacters
+          .map((c) => `"${c.name}"`)
+          .join(", ")}) and set up your nickname/roles for it. Run \`/onboarding\` again anytime to add more alts or change your nickname.`,
+      )
+      .catch(() => {
+        // Best-effort.
+      });
+    await finishOnboarding(member, guild, partialCharacters, true, null);
+  };
+
   let classTrigger: ChoiceInteraction = mainNameResult.interaction;
   if (onboardingBuildsRoster) {
     const classResult = await askChoice(
@@ -475,7 +925,10 @@ async function runOnboarding(
       `What class is **${mainName}**?`,
       WOW_CLASS_CHOICES,
     );
-    if (classResult == null) return;
+    if (classResult == null) {
+      await applyPartial();
+      return;
+    }
     mainClass = classResult.value;
     classTrigger = classResult.interaction;
   }
@@ -484,9 +937,11 @@ async function runOnboarding(
     { id: "yes", label: "Yes", primary: true },
     { id: "no", label: "No" },
   ]);
-  if (hasAltsResult == null) return;
+  if (hasAltsResult == null) {
+    await applyPartial();
+    return;
+  }
 
-  const alts: NamedCharacter[] = [];
   let lastChoice = hasAltsResult.interaction;
   if (hasAltsResult.value === "yes") {
     let addingAlts = true;
@@ -497,7 +952,10 @@ async function runOnboarding(
         "Must be a real in-game character",
         "Not a nickname people call you",
       );
-      if (altResult == null) return;
+      if (altResult == null) {
+        await applyPartial();
+        return;
+      }
 
       let altClass: string | null = null;
       let addAnotherTrigger: ChoiceInteraction = altResult.interaction;
@@ -507,7 +965,13 @@ async function runOnboarding(
           `What class is **${altResult.value}**?`,
           WOW_CLASS_CHOICES,
         );
-        if (altClassResult == null) return;
+        if (altClassResult == null) {
+          // Got the name, not the class — still worth keeping (class stays
+          // unset) rather than losing this alt entirely.
+          alts.push({ name: altResult.value, class: null });
+          await applyPartial();
+          return;
+        }
         altClass = altClassResult.value;
         addAnotherTrigger = altClassResult.interaction;
       }
@@ -518,10 +982,13 @@ async function runOnboarding(
         `Added \`${altResult.value}\`. Add another alt?`,
         [
           { id: "yes", label: "Yes" },
-          { id: "no", label: "No", primary: true },
+          { id: "no", label: "No, I'm done", primary: true },
         ],
       );
-      if (addAnotherResult == null) return;
+      if (addAnotherResult == null) {
+        await applyPartial();
+        return;
+      }
       lastChoice = addAnotherResult.interaction;
       addingAlts = addAnotherResult.value === "yes";
     }
@@ -533,103 +1000,19 @@ async function runOnboarding(
   ];
   const allNames = characters.map((c) => c.name);
 
-  // Unified nickname-display choice — one 3-way (or, with no alts, 2-way)
-  // pick instead of separate "include alts?" and "preferred nickname?"
-  // questions. Every branch resolves to a definite preferredNickname
-  // override (see GuildMemberNickname in schema.prisma) — matchRosterAndApply
-  // keeps refreshing "computedName" (the full real main+alts name)
-  // underneath regardless, so an officer can always see/reset to it from
-  // the site (guild-member-nicknames.tsx), and includeAltsInNickname below
-  // is kept only as pendingMatches.ts's stored fallback if the override
-  // somehow doesn't apply.
+  // includeAltsInNickname is kept only as pendingMatches.ts's stored
+  // fallback if the preferredNickname override somehow doesn't apply —
+  // matchRosterAndApply keeps refreshing "computedName" (the full real
+  // main+alts name) underneath regardless, so an officer can always see/
+  // reset to it from the site (guild-member-nicknames.tsx).
   const includeAltsInNickname = true;
   const cursor = { interaction: lastChoice as ChoiceInteraction };
-  let preferredNickname: string;
-
-  if (alts.length > 0) {
-    const modeResult = await askChoice(
-      cursor.interaction,
-      "How should your nickname look in Discord?",
-      [
-        { id: "multi", label: "Multiple names", primary: true },
-        { id: "single", label: "Just one name" },
-        { id: "custom", label: "Custom nickname" },
-      ],
-    );
-    if (modeResult == null) return;
-    cursor.interaction = modeResult.interaction;
-
-    if (modeResult.value === "multi") {
-      const chosen = await askNicknameSelectionInteractive(
-        cursor,
-        allNames,
-        "Choose which alts to include alongside your main",
-      );
-      preferredNickname = chosen.join("/");
-    } else if (modeResult.value === "single") {
-      const singleResult = await askChoice(
-        cursor.interaction,
-        "Which character should show as your nickname?",
-        allNames.map((n) => ({ id: n, label: n })),
-      );
-      if (singleResult == null) return;
-      cursor.interaction = singleResult.interaction;
-      preferredNickname = singleResult.value;
-    } else {
-      const nickResult = await askTextModal(
-        modeResult.interaction,
-        "Custom nickname",
-        "Nickname (must relate to char name)",
-        "e.g. a shorter form or common spelling of your character name.",
-      );
-      if (nickResult == null) return;
-      cursor.interaction = nickResult.interaction;
-      preferredNickname = nickResult.value;
-    }
-  } else {
-    // No alts — the only meaningful choice is standard vs. custom.
-    const customResult = await askChoice(
-      cursor.interaction,
-      `Do you want a custom nickname instead of "${mainName}"?`,
-      [
-        { id: "yes", label: "Yes" },
-        { id: "no", label: `No, use "${mainName}"`, primary: true },
-      ],
-    );
-    if (customResult == null) return;
-    cursor.interaction = customResult.interaction;
-
-    if (customResult.value === "yes") {
-      const nickResult = await askTextModal(
-        customResult.interaction,
-        "Custom nickname",
-        "Nickname (must relate to char name)",
-        "e.g. a shorter form or common spelling of your character name.",
-      );
-      if (nickResult == null) return;
-      cursor.interaction = nickResult.interaction;
-      preferredNickname = nickResult.value;
-    } else {
-      preferredNickname = mainName;
-    }
+  const preferredNickname = await chooseNicknameFlow(cursor, mainName, allNames);
+  if (preferredNickname == null) {
+    await applyPartial();
+    return;
   }
 
-  await db.guildMemberNickname.upsert({
-    where: {
-      guildId_discordUserId: { guildId: guild.id, discordUserId: member.id },
-    },
-    create: {
-      guildId: guild.id,
-      discordUserId: member.id,
-      discordUserTag: member.user.tag,
-      // Placeholder — matchRosterAndApply below overwrites this with the
-      // real computed name right after, without touching preferredNickname
-      // (partial update).
-      computedName: mainName,
-      preferredNickname,
-    },
-    update: { preferredNickname },
-  });
   // Nickname/role/channel changes below are a handful of sequential
   // Discord API calls each (see applyChannelGrants looping every managed
   // channel) — easily enough to blow past Discord's 3-second first-response
@@ -647,57 +1030,13 @@ async function runOnboarding(
     content: "Setting up your roles and nickname…",
     components: [],
   });
-  const notify = createNotifier(cursor);
-  const { matchedCount, unmatchedCount, confirmedCount } =
-    await matchRosterAndApply(member, guild, characters, includeAltsInNickname, {
-      chooseNicknameNames: (names) =>
-        askNicknameSelectionInteractive(
-          cursor,
-          names,
-          "Your name list is too long to fit Discord's 32-character nickname limit. Choose which alts to include",
-        ),
-      notify,
-    });
-
-  if (unmatchedCount > 0) {
-    // At least one name (could be the main, could just be an alt) wasn't
-    // found in the roster — not a claim dispute, just data that hasn't
-    // been (re-)imported since they joined (matchRosterAndApply already
-    // sent its own confident message for any Battle.net-confirmed names —
-    // see confirmedCount below). Queue this for the daily role-sync job to
-    // retry automatically (see pendingMatches.ts) instead of that name
-    // being stuck as plain text forever. Whatever DID match already got
-    // claimed/applied above regardless.
-    await db.guildPendingRosterMatch.upsert({
-      where: {
-        guildId_discordUserId: { guildId: guild.id, discordUserId: member.id },
-      },
-      create: {
-        guildId: guild.id,
-        discordUserId: member.id,
-        discordUserTag: member.user.tag,
-        names: JSON.stringify(allNames),
-        includeAltsInNickname,
-      },
-      update: {
-        discordUserTag: member.user.tag,
-        names: JSON.stringify(allNames),
-        includeAltsInNickname,
-        createdAt: new Date(),
-      },
-    });
-
-    const uncertainCount = unmatchedCount - confirmedCount;
-    if (uncertainCount > 0) {
-      await notify(
-        matchedCount > 0 || confirmedCount > 0
-          ? `Heads up — ${uncertainCount === 1 ? "one more name wasn't" : `${uncertainCount} more names weren't`} found on our guild's member list yet. I'll keep checking automatically for up to 42 hours.`
-          : `I couldn't find "${mainName}" on our guild's member list yet — that's most likely because the list just hasn't been updated recently, not a mistake on your end. I'll automatically re-check for the next 42 hours and set your roles the moment it shows up there. Still nothing after that? Ping an officer.`,
-      );
-    }
-  } else {
-    await db.guildPendingRosterMatch.deleteMany({
-      where: { guildId: guild.id, discordUserId: member.id },
-    });
-  }
+  await finishOnboarding(member, guild, characters, includeAltsInNickname, preferredNickname, {
+    chooseNicknameNames: (names) =>
+      askNicknameSelectionInteractive(
+        cursor,
+        names,
+        "Your name list is too long to fit Discord's 32-character nickname limit. Choose which alts to include",
+      ),
+    notify: createNotifier(cursor),
+  });
 }
