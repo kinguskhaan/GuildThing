@@ -262,6 +262,66 @@ async function main() {
     }
   }
 
+  // --- itemId backfill ---
+  // A reagent that's itself a crafted item (kind:"spell") never had its own
+  // item-form itemID captured anywhere — parseReagents() extracts it from
+  // the referencing tooltip's item link, but the add/upgrade loop above
+  // only keeps {name, quantity} on the reagent list, discarding it. This
+  // pass fills WowheadEntry.itemId in after the fact, for every entry it
+  // can find as someone else's reagent. Idempotent and additive-only: once
+  // an entry's itemId is set it's never a "gap" again, so a future run only
+  // re-fetches recipes that are new or still genuinely missing data.
+  let itemIdFilled = 0;
+
+  // kind:"item" entries already know their own itemID as `id` — free, no
+  // fetch needed.
+  for (const entry of Object.values(entries)) {
+    if (entry.kind === "item" && entry.itemId == null) {
+      entry.itemId = entry.id;
+      itemIdFilled++;
+    }
+  }
+
+  // kind:"spell" entries whose item-form itemID is still missing: only
+  // discoverable by re-parsing the tooltip of a recipe that uses them as a
+  // reagent, since that's the only place the item link (and its itemID)
+  // appears.
+  let recipesRefetched = 0;
+  for (const [name, entry] of Object.entries(entries)) {
+    if (entry.kind !== "spell" || !entry.reagents) continue;
+    const hasGap = entry.reagents.some((r) => {
+      const target = entries[r.name];
+      return target?.kind === "spell" && target.itemId == null;
+    });
+    if (!hasGap) continue;
+
+    try {
+      const tooltip = await fetchTooltip("spell", entry.id);
+      const reagents = tooltip.tooltip ? parseReagents(tooltip.tooltip) : undefined;
+      for (const r of reagents ?? []) {
+        const target = entries[r.name];
+        if (target && target.itemId == null) {
+          target.itemId = r.itemId;
+          itemIdFilled++;
+        }
+      }
+      recipesRefetched++;
+      await sleep(REQUEST_DELAY_MS);
+    } catch (err) {
+      console.error(`[wowhead-sync] itemId backfill failed for "${name}":`, err);
+    }
+  }
+
+  const stillUnresolved = Object.values(entries).filter(
+    (e) =>
+      e.kind === "spell" &&
+      e.reagents?.some((r) => {
+        const t = entries[r.name];
+        return t?.kind === "spell" && t.itemId == null;
+      }),
+  ).length;
+  console.log(`[wowhead-sync] itemId backfill: ${itemIdFilled} entries filled, ${recipesRefetched} recipes re-fetched, ${stillUnresolved} recipes still with an unresolved reagent itemId`);
+
   writeRecipesFile(entries);
 
   console.log(`[wowhead-sync] added: ${added}, upgraded: ${upgraded}, already known: ${alreadyKnown}, unresolved: ${unresolved.length}`);
