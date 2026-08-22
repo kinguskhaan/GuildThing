@@ -9,6 +9,7 @@ import {
   MessageFlags,
   ModalBuilder,
   type ModalSubmitInteraction,
+  type StringSelectMenuInteraction,
   TextInputBuilder,
   TextInputStyle,
 } from "discord.js";
@@ -23,8 +24,11 @@ import {
   matchRosterAndApply,
   type NamedCharacter,
 } from "./roleLogic.js";
+import { runCustomQuestionFlow } from "./onboardingQuestions.js";
 
-const QUESTION_TIMEOUT_MS = 5 * 60_000;
+// Exported for onboardingQuestions.ts — the custom-question flow chains
+// through the same askChoice/timeout/cursor idioms as everything else here.
+export const QUESTION_TIMEOUT_MS = 5 * 60_000;
 
 // Only asked when Guild.rosterSource is "onboarding" (no addon to scan
 // class from) — matches the class tokens the addon itself exports, same
@@ -52,7 +56,7 @@ const activeOnboarding = new Set<string>();
 // whether the person has server-member DMs enabled. A "cursor" tracks the
 // most recent not-yet-acknowledged interaction; each step consumes it and
 // produces a new one.
-type ChoiceInteraction = ButtonInteraction | ModalSubmitInteraction;
+export type ChoiceInteraction = ButtonInteraction | ModalSubmitInteraction;
 type ModalTriggerInteraction = ButtonInteraction | ChatInputCommandInteraction;
 
 // Shows a single-field modal and waits for it to be submitted. Must be
@@ -107,8 +111,14 @@ async function askTextModal(
 // click being chained — either way returns the RAW clicked interaction,
 // unacknowledged, so the caller decides what happens next (another
 // update(), a showModal(), a final notify, etc).
-async function askChoice(
-  interaction: ChoiceInteraction | ChatInputCommandInteraction,
+export async function askChoice(
+  interaction:
+    | ChoiceInteraction
+    | ChatInputCommandInteraction
+    // A custom onboarding question's multi-select answer (see
+    // onboardingQuestions.ts) can also be the interaction this chains off
+    // of — same "editable ephemeral message" shape as a button click.
+    | StringSelectMenuInteraction,
   content: string,
   choices: { id: string; label: string; primary?: boolean }[],
   // True when `interaction` might still be the untouched click on the
@@ -137,7 +147,7 @@ async function askChoice(
     );
   }
 
-  if (interaction.isButton() && !freshEntry) {
+  if ((interaction.isButton() || interaction.isStringSelectMenu()) && !freshEntry) {
     await interaction.update({ content, components: rows });
   } else {
     await interaction.reply({
@@ -615,6 +625,11 @@ async function runOnboarding(
     }
   }
 
+  // Only offered as a shortcut-menu choice for guilds that actually built a
+  // custom question flow — a guild with none configured never shows it.
+  const hasCustomQuestions =
+    (await db.guildOnboardingQuestion.count({ where: { guildId: guild.id } })) > 0;
+
   let entryInteraction: ModalTriggerInteraction = triggerInteraction;
 
   if (knownCharacters.length > 0) {
@@ -626,6 +641,9 @@ async function runOnboarding(
         { id: "nickname", label: "Change nickname" },
         { id: "show", label: "Show characters" },
         { id: "update", label: "Update characters" },
+        ...(hasCustomQuestions
+          ? [{ id: "answers", label: "Update answers" }]
+          : []),
         { id: "reset", label: "Reset everything" },
         { id: "cancel", label: "Nevermind" },
       ],
@@ -654,6 +672,40 @@ async function runOnboarding(
           components: [],
         })
         .catch(() => {});
+      return;
+    }
+
+    if (menuResult.value === "answers") {
+      // Re-walking from Start naturally re-asks whatever's reachable under
+      // this person's current class/answers — each persisted answer just
+      // overwrites the prior row, no diff-only-changed-questions logic
+      // needed. knownCharacters[0] is their main (roster/external rows are
+      // added main-first, see above).
+      const main = knownCharacters[0]!;
+      const postQuestionsCursor = await runCustomQuestionFlow({
+        guildId: guild.id,
+        discordUserId: member.id,
+        discordUserTag: member.user.tag,
+        mainName: main.name,
+        mainClass: main.class,
+        entryInteraction: menuResult.interaction,
+      });
+      if (postQuestionsCursor == null) {
+        await member
+          .send(
+            `**${member.guild.name}** — Heads up — you didn't respond in time, so I stopped there. Whatever you'd already answered was saved. Run \`/onboarding\` again anytime to pick back up.`,
+          )
+          .catch(() => {});
+        return;
+      }
+      const cursor = { interaction: postQuestionsCursor };
+      if (!cursor.interaction.deferred && !cursor.interaction.replied) {
+        await cursor.interaction.deferUpdate();
+      }
+      await cursor.interaction.editReply({
+        content: "Done — your answers are updated.",
+        components: [],
+      });
       return;
     }
 
@@ -780,6 +832,10 @@ async function runOnboarding(
         where: { guildId: guild.id, discordUserId: member.id },
       });
       await db.guildPugMember.deleteMany({
+        where: { guildId: guild.id, discordUserId: member.id },
+      });
+      // Cascades to GuildOnboardingAnswerOption automatically.
+      await db.guildOnboardingAnswer.deleteMany({
         where: { guildId: guild.id, discordUserId: member.id },
       });
 
@@ -933,7 +989,24 @@ async function runOnboarding(
     classTrigger = classResult.interaction;
   }
 
-  const hasAltsResult = await askChoice(classTrigger, "Do you have any alts?", [
+  // Admin-built custom questions (see onboardingQuestions.ts) — a no-op for
+  // guilds that haven't configured any. Each answer is persisted as it's
+  // given, so a timeout on a later question (here or in the rest of this
+  // flow) still keeps whatever was already answered.
+  const postQuestionsCursor = await runCustomQuestionFlow({
+    guildId: guild.id,
+    discordUserId: member.id,
+    discordUserTag: member.user.tag,
+    mainName,
+    mainClass,
+    entryInteraction: classTrigger,
+  });
+  if (postQuestionsCursor == null) {
+    await applyPartial();
+    return;
+  }
+
+  const hasAltsResult = await askChoice(postQuestionsCursor, "Do you have any alts?", [
     { id: "yes", label: "Yes", primary: true },
     { id: "no", label: "No" },
   ]);

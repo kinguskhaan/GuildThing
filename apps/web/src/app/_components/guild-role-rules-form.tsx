@@ -3,12 +3,20 @@
 import { useEffect, useState } from "react";
 
 import { api } from "~/trpc/react";
+import { GuildOnboardingQuestionsForm } from "./guild-onboarding-questions-form";
 
-type Tab = "general" | "onboarding" | "rules" | "inactivity" | "members";
+type Tab =
+  | "general"
+  | "onboarding"
+  | "questions"
+  | "rules"
+  | "inactivity"
+  | "members";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "general", label: "General" },
   { id: "onboarding", label: "Onboarding" },
+  { id: "questions", label: "Custom questions" },
   { id: "rules", label: "Role rules" },
   { id: "inactivity", label: "Inactive" },
   { id: "members", label: "Members by role" },
@@ -807,6 +815,7 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
   const [inactivityRoleId, setInactivityRoleId] = useState("");
   const [rules, setRules] = useState<RuleDraft[]>([]);
   const [rolePriorityIds, setRolePriorityIds] = useState<string[]>([]);
+  const [protectedRoleIds, setProtectedRoleIds] = useState<string[]>([""]);
   // Index of the rule shown in the right-hand editor pane; null = none
   // selected (empty rule list, or not loaded yet).
   const [selectedRuleIndex, setSelectedRuleIndex] = useState<number | null>(
@@ -857,6 +866,11 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
       })),
     );
     setRolePriorityIds(config.data.rolePriorityIds);
+    setProtectedRoleIds(
+      config.data.protectedRoleIds.length > 0
+        ? config.data.protectedRoleIds
+        : [""],
+    );
     if (!hasAutoSelected) {
       setHasAutoSelected(true);
       if (config.data.rules.length > 0) setSelectedRuleIndex(0);
@@ -891,6 +905,10 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
   const repostOnboardingButton = api.guild.repostOnboardingButton.useMutation();
   const requestSync = api.guild.requestSync.useMutation();
   const saveInactivitySettings = api.guild.setInactivitySettings.useMutation({
+    onSuccess: async () =>
+      utils.guild.discordRoleConfig.invalidate({ guildId }),
+  });
+  const saveProtectedRoles = api.guild.setProtectedRoles.useMutation({
     onSuccess: async () =>
       utils.guild.discordRoleConfig.invalidate({ guildId }),
   });
@@ -1021,7 +1039,8 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
       className={`flex w-full flex-col gap-6 ${
         activeTab === "rules" ||
         activeTab === "members" ||
-        activeTab === "inactivity"
+        activeTab === "inactivity" ||
+        activeTab === "questions"
           ? ""
           : "max-w-2xl"
       }`}
@@ -1918,6 +1937,72 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
             )}
           </div>
 
+          <div className="flex flex-col gap-2">
+            <div>
+              <h3 className="font-bold">Protected roles</h3>
+              <p className="text-discord-text-muted text-sm">
+                Roles listed here are never added or removed by the bot,
+                even if a rule above also grants one — for roles meant to
+                stay entirely human-assigned (e.g. an officer hand-picks
+                who gets &quot;TBC Raiders&quot;), so a resync never fights
+                a manual assignment.
+              </p>
+            </div>
+            {protectedRoleIds.map((roleId, i) => (
+              <div key={i} className="flex gap-2">
+                <RoleSelect
+                  value={roleId}
+                  onChange={(v) =>
+                    setProtectedRoleIds((ids) =>
+                      ids.map((id, k) => (k === i ? v : id)),
+                    )
+                  }
+                  roles={discordRoles.data}
+                  placeholder="Select a role to protect"
+                />
+                {protectedRoleIds.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setProtectedRoleIds((ids) => ids.filter((_, k) => k !== i))
+                    }
+                    className="bg-discord-base hover:bg-discord-elevated-hover rounded-full px-3 text-sm"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setProtectedRoleIds((ids) => [...ids, ""])}
+              className="bg-discord-base hover:bg-discord-elevated-hover self-start rounded-full px-3 py-1 text-xs"
+            >
+              + Add role
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                saveProtectedRoles.mutate({
+                  guildId,
+                  roleIds: protectedRoleIds.filter((id) => id.trim() !== ""),
+                })
+              }
+              disabled={saveProtectedRoles.isPending}
+              className="bg-discord-elevated-hover self-start rounded-full px-4 py-1.5 text-sm font-semibold"
+            >
+              {saveProtectedRoles.isPending ? "Saving..." : "Save"}
+            </button>
+            {saveProtectedRoles.error && (
+              <p className="text-discord-red text-sm">
+                {saveProtectedRoles.error.message}
+              </p>
+            )}
+            {saveProtectedRoles.isSuccess && (
+              <p className="text-discord-green text-sm">Saved!</p>
+            )}
+          </div>
+
           <datalist id="rank-options">
             {rankOptions.data?.map((r) => (
               <option key={r} value={r} />
@@ -1929,6 +2014,16 @@ export function GuildRoleRulesForm({ guildId }: { guildId: string }) {
             ))}
           </datalist>
         </>
+      )}
+
+      {activeTab === "questions" && (
+        <GuildOnboardingQuestionsForm
+          guildId={guildId}
+          pugEnabled={config.data?.pugEnabled ?? true}
+          rosterSource={config.data?.rosterSource === "onboarding" ? "onboarding" : "addon"}
+          rules={config.data?.rules ?? []}
+          discordRoles={discordRoles.data}
+        />
       )}
     </div>
   );
