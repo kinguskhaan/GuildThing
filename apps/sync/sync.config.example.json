@@ -1,0 +1,23 @@
+[
+  {
+    "name": "classic-era",
+    "apiUrl": "http://localhost:3000",
+    "apiKey": "gt_replace_with_classic_era_guild_key",
+    "wowDir": "C:\Program Files (x86)\World of Warcraft",
+    "version": "classic_era"
+  },
+  {
+    "name": "tbc-anni-guild-a",
+    "apiUrl": "http://localhost:3000",
+    "apiKey": "gt_replace_with_guild_a_key",
+    "wowDir": "C:\Program Files (x86)\World of Warcraft",
+    "version": "anniversary"
+  },
+  {
+    "name": "tbc-anni-guild-b",
+    "apiUrl": "http://localhost:3000",
+    "apiKey": "gt_replace_with_guild_b_key",
+    "wowDir": "C:\Program Files (x86)\World of Warcraft",
+    "version": "anniversary"
+  }
+]

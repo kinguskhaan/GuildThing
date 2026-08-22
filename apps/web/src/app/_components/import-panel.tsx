@@ -23,7 +23,7 @@ export function ImportPanel({
         className="flex w-full items-center gap-2 px-6 py-3 text-left text-sm font-semibold"
       >
         <span>{open ? "▾" : "▸"}</span>
-        Import / My characters
+        Import OurRecipes data
       </button>
 
       {open && (

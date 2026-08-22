@@ -33,3 +33,15 @@ export function parseRosterFile(filePath: string): RosterMember[] {
     };
   });
 }
+
+// GuildThingRosterDB.syncRequestedAt — set by the addon's "Request sync"
+// button (DiscordRolesUI.lua) to an epoch-seconds time() value. Read
+// alongside the roster on every pass so index.ts can tell whether a new
+// request has come in since it last acted on one (see syncState.ts) — a
+// Discord-role sync trigger, not a roster re-scan, which happens on every
+// pass regardless.
+export function parseSyncRequestedAt(filePath: string): number | null {
+  const globals = parseLuaGlobals(readFileSync(filePath, "utf8"));
+  const db = asObject(globals.GuildThingRosterDB);
+  return typeof db.syncRequestedAt === "number" ? db.syncRequestedAt : null;
+}

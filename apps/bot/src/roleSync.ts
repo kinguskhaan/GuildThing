@@ -1,7 +1,13 @@
-import type { Client, Guild as DiscordGuild } from "discord.js";
+import type { Client, Guild as DiscordGuild, GuildMember } from "discord.js";
 
 import { db } from "@guildthing/db";
 
+import {
+  fetchRecentHumanRoleChanges,
+  persistBotRoleChange,
+  persistManualRoleChange,
+  type HumanRoleChange,
+} from "./auditLog.js";
 import {
   applyChannelGrants,
   evaluateRules,
@@ -23,6 +29,7 @@ async function loadGuildsWithRules() {
         include: { conditions: true, grantedRoles: true, grantedChannels: true },
       },
       rolePriorities: true,
+      protectedRoles: true,
     },
   });
 }
@@ -57,6 +64,9 @@ async function syncGuildRoles(
   const managedRoleIds = new Set(
     guildRow.roleRules.flatMap((r) => r.grantedRoles.map((g) => g.discordRoleId)),
   );
+  // Never touch a role an admin has marked hands-off, even if a rule also
+  // grants it — see GuildProtectedRole in schema.prisma.
+  for (const p of guildRow.protectedRoles) managedRoleIds.delete(p.discordRoleId);
   if (managedRoleIds.size === 0) return;
 
   const rosterRows = await db.guildRosterMember.findMany({
@@ -72,6 +82,11 @@ async function syncGuildRoles(
       row,
     ]);
   }
+
+  // One batched audit-log fetch for the whole guild, not one per member —
+  // fetchRecentHumanRoleChanges is a REST call and this loop can run over
+  // hundreds of members.
+  const humanChanges = await fetchRecentHumanRoleChanges(discordGuild);
 
   for (const [discordUserId, rows] of rowsByDiscordUser) {
     const matched: MatchedCharacter[] = rows.map((r) => ({
@@ -93,6 +108,32 @@ async function syncGuildRoles(
       continue; // no longer in the server — nothing to sync
     }
 
+    // "Senaste ändringen vinner" — a human's manual role edit only blocks
+    // this cycle's resync if it happened AFTER this person's last rank
+    // change (across any of their claimed characters). An old manual tweak
+    // that predates a subsequent promotion/demotion should still be
+    // overridden by the rule that now fires off the new rank; a member
+    // with no recorded rank change yet (rankChangedAt always null) has no
+    // baseline to compare against, so any detected human change wins.
+    // humanChangeList is newest-first (see fetchRecentHumanRoleChanges) —
+    // only its first entry's timestamp matters for this comparison, but
+    // every entry in it gets logged below so the audit log shows the full
+    // history, not just whichever edit happened to be newest.
+    const humanChangeList = humanChanges.get(discordUserId);
+    const newestHumanChange = humanChangeList?.[0];
+    if (humanChangeList && newestHumanChange) {
+      const latestRankChangeAt = rows.reduce<Date | null>((latest, r) => {
+        if (!r.rankChangedAt) return latest;
+        return !latest || r.rankChangedAt > latest ? r.rankChangedAt : latest;
+      }, null);
+      const humanIsNewer =
+        !latestRankChangeAt || newestHumanChange.changedAt > latestRankChangeAt;
+      if (humanIsNewer) {
+        await logManualRoleChangeAndSkip(discordGuild, guildRow, member, humanChangeList);
+        continue;
+      }
+    }
+
     const currentManaged = member.roles.cache.filter((r) => managedRoleIds.has(r.id));
     const toAdd = [...desiredRoleIds].filter((id) => !currentManaged.has(id));
     const toRemoveRoles = currentManaged.filter((r) => !desiredRoleIds.has(r.id));
@@ -109,6 +150,10 @@ async function syncGuildRoles(
         console.log(
           `[bot] role sync for ${member.user.tag} in ${discordGuild.name}: +[${added}] -[${removed}]`,
         );
+        await persistBotRoleChange(guildRow.id, discordGuild, member, {
+          addedRoleIds: toAdd,
+          removedRoleIds: toRemove,
+        });
       } catch (err) {
         console.error(
           `[bot] role resync failed for ${member.user.tag} in ${discordGuild.name}:`,
@@ -132,4 +177,33 @@ async function syncGuildRoles(
       notifyOnFailure: false,
     });
   }
+}
+
+// Persists a GuildRoleChangeEvent row for EVERY entry in `changes` (role
+// names resolved from the guild's live role cache) and posts one admin
+// notice, instead of applying this cycle's role diff for the member — see
+// the "senaste ändringen vinner" comment at its call site above. Logging
+// every entry (not just the newest) is what makes the audit log a real
+// history instead of a "current state" summary — persistManualRoleChange's
+// own dedup (by exact detectedAt) keeps re-running this on a later cycle
+// from creating repeats.
+async function logManualRoleChangeAndSkip(
+  discordGuild: DiscordGuild,
+  guildRow: GuildWithRules,
+  member: GuildMember,
+  changes: HumanRoleChange[],
+): Promise<void> {
+  const [newest] = changes;
+  if (!newest) return;
+  for (const change of changes) {
+    await persistManualRoleChange(guildRow.id, discordGuild, member, change);
+  }
+  console.log(
+    `[bot] skipping role resync for ${member.user.tag} in ${discordGuild.name} — manual change by ${newest.executorTag ?? newest.executorId} at ${newest.changedAt.toISOString()} is newer than their last rank change`,
+  );
+  await notifyAdmins(
+    member,
+    guildRow.id,
+    `ℹ️ Skipped automatic role resync for ${member.user.tag} — ${newest.executorTag ?? "someone"} manually changed their Discord roles more recently than their last rank change. Logged on the site under Admin → Discord roles.`,
+  );
 }

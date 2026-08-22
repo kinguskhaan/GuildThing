@@ -23,6 +23,12 @@ export function classColor(classToken: string | null | undefined): string {
   return (classToken && CLASS_COLORS[classToken.toUpperCase()]) ?? "#B9BBBE";
 }
 
+// The 9 WoW class tokens, for anything that needs to offer/validate a class
+// choice (e.g. onboarding question conditions) — reuses the same keys as
+// CLASS_COLORS instead of hardcoding a second copy of the list, matching
+// WOW_CLASS_CHOICES on the bot side.
+export const WOW_CLASS_TOKENS = Object.keys(CLASS_COLORS);
+
 // Coarse relative time for "last active" columns — doesn't need
 // second-level precision, so this deliberately steps down through minutes
 // / hours / days rather than pulling in a date library for it. Falls back
@@ -38,4 +44,16 @@ export function relativeTime(date: Date): string {
   const days = Math.floor(hours / 24);
   if (days < 30) return `${days}d ago`;
   return date.toLocaleDateString();
+}
+
+// Exact local timestamp, YYYY-MM-DD HH:MM:SS — for logs (e.g. the audit
+// log) where "7m ago" isn't precise enough to actually pin down when
+// something happened, unlike relativeTime's "roughly how long ago" framing
+// for glanceable UI like "last active".
+export function absoluteTime(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+    `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+  );
 }

@@ -60,7 +60,17 @@ export default async function SyncPage({
             a schedule (cron/Task Scheduler) — full setup and both options
             are in the script&apos;s README.
           </>,
-          "Done — log into WoW, and your roster and professions update here on their own.",
+          <>
+            Done — log into WoW, and your roster and professions update here
+            on their own. It also flows back the other way: your current
+            Discord roles (and the audit log) show up in the addon&apos;s
+            own tabs — not live, only as of your last sync run, and picked
+            up in-game after a plain{" "}
+            <code className="rounded bg-discord-elevated-hover px-1 py-0.5 text-sm">
+              /reload
+            </code>
+            .
+          </>,
         ].map((step, i) => (
           <li key={i} className="flex gap-3 rounded-xl bg-discord-elevated p-4">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-discord-brand text-sm font-semibold">

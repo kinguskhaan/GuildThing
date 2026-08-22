@@ -94,9 +94,21 @@ function GT.RequestRosterUpdate(callback)
     GuildRoster()
 end
 
+-- GUILD_ROSTER_UPDATE already fires on its own for join/leave/rank/note
+-- changes that happen while online — Blizzard pushes those from the
+-- server without anything here asking for them. PLAYER_ENTERING_WORLD
+-- (login/reload) is different: the client may still be holding a stale
+-- cached roster at that point, so this explicitly asks the server for a
+-- fresh one via GuildRoster() — GUILD_ROSTER_UPDATE fires again once it
+-- arrives and triggers the actual scan below.
 local scanFrame = CreateFrame("Frame")
 scanFrame:RegisterEvent("GUILD_ROSTER_UPDATE")
-scanFrame:SetScript("OnEvent", function()
+scanFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+scanFrame:SetScript("OnEvent", function(_, event)
+    if event == "PLAYER_ENTERING_WORLD" then
+        GuildRoster()
+        return
+    end
     GT.ScanRoster()
     if pendingCallback then
         local callback = pendingCallback

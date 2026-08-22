@@ -42,6 +42,21 @@ yarn-error.log*
 # vercel
 .vercel
 
+# do not commit sync targets/API keys, except sync.config.example.json
+apps/sync/sync.config.json
+apps/sync/sync.log
+# local "already relayed this request-sync flag" bookkeeping — see syncState.ts
+apps/sync/sync.state.json
+
+# apps/sync overwrites this on every run (Discord roles + audit log data
+# for whichever guild you're testing against) — real end users get it the
+# same way, written into their own local WoW install, never through git.
+# On this dev machine specifically, apps/addon/GuildThing/ happens to be
+# symlinked into a live WTF-adjacent install for testing, so without this
+# ignore, every test run would dirty the tracked file. package-addon.ts
+# creates a stub here if missing, so a fresh checkout still ships one.
+apps/addon/GuildThing/SyncData.lua
+
 # typescript
 *.tsbuildinfo
 

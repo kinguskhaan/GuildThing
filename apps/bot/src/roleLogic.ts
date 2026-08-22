@@ -6,6 +6,11 @@ import {
 
 import { db } from "@guildthing/db";
 
+import {
+  fetchRecentHumanRoleChanges,
+  persistBotRoleChange,
+  persistManualRoleChange,
+} from "./auditLog.js";
 import { lookupCharacter } from "./battlenetApi.js";
 
 export const MAX_NICKNAME_LENGTH = 32;
@@ -149,11 +154,14 @@ export function conditionMatches(
 }
 
 // The full set of roles the bot itself might ever hand out for this guild —
-// the PUG role plus every rule's granted roles. Used to scope which of a
-// member's current roles are "ours" to add/remove; anything an admin gave
-// them manually for an unrelated reason is never touched.
+// the PUG role plus every rule's granted roles, minus any GuildProtectedRole
+// (a role an admin has marked hands-off, e.g. one meant to stay entirely
+// human-assigned even though it's also wired to a rule). Used to scope
+// which of a member's current roles are "ours" to add/remove; anything an
+// admin gave them manually for an unrelated reason is never touched, and a
+// protected role is never touched even when a rule does grant it.
 async function getManagedRoleIds(guildId: string): Promise<Set<string>> {
-  const [guild, rules] = await Promise.all([
+  const [guild, rules, protectedRoles] = await Promise.all([
     db.guild.findUnique({
       where: { id: guildId },
       select: { pugRoleId: true },
@@ -162,6 +170,10 @@ async function getManagedRoleIds(guildId: string): Promise<Set<string>> {
       where: { guildId },
       select: { grantedRoles: { select: { discordRoleId: true } } },
     }),
+    db.guildProtectedRole.findMany({
+      where: { guildId },
+      select: { discordRoleId: true },
+    }),
   ]);
 
   const ids = new Set<string>();
@@ -169,6 +181,7 @@ async function getManagedRoleIds(guildId: string): Promise<Set<string>> {
   for (const rule of rules) {
     for (const granted of rule.grantedRoles) ids.add(granted.discordRoleId);
   }
+  for (const p of protectedRoles) ids.delete(p.discordRoleId);
   return ids;
 }
 
@@ -288,11 +301,28 @@ export async function applyChannelGrants(
 // still calls this) so a caller that wants to touch ONLY roles — e.g. a
 // full account reset with desiredRoleIds: [] — doesn't have to go through
 // nickname-setting to get there.
+// Guards against exactly the scenario that motivated this: an officer
+// manually demotes someone in Discord (removing a rule-granted role) while
+// their in-game rank stays put, and the person then runs "Reset everything"
+// + re-claims their character hoping the bot hands the role straight back.
+// Only gates ADDING roles back, never removing — a "Reset everything" call
+// (desiredRoleIds always []) still fully resets regardless, since there's
+// nothing to add there in the first place; this only ever blocks handing a
+// role BACK to someone a human more recently took it from.
 export async function applyManagedRoles(
   member: GuildMember,
   guildId: string,
   desiredRoleIds: string[],
-  options: { notify?: (message: string) => Promise<void> } = {},
+  options: {
+    notify?: (message: string) => Promise<void>;
+    // Latest rank-change timestamp across this person's matched characters
+    // (null if none on record), only supplied by matchRosterAndApply.
+    // Omitted (undefined) by the direct "Reset everything" caller in
+    // onboarding.ts, which has no per-character rank data to hand — fine,
+    // since its desiredRoleIds is always [] and the gate below only ever
+    // matters when there's something to add.
+    rankChangedAt?: Date | null;
+  } = {},
 ): Promise<void> {
   const notify = options.notify ?? dmNotifier(member);
   const managedRoleIds = await getManagedRoleIds(guildId);
@@ -300,9 +330,36 @@ export async function applyManagedRoles(
   const currentManaged = member.roles.cache.filter((r) =>
     managedRoleIds.has(r.id),
   );
-  const toAdd = desiredRoleIds.filter((id) => !currentManaged.has(id));
+  let toAdd = desiredRoleIds.filter((id) => !currentManaged.has(id));
   const toRemoveRoles = currentManaged.filter((r) => !desired.has(r.id));
   const toRemove = toRemoveRoles.map((r) => r.id);
+
+  if (toAdd.length > 0 && options.rankChangedAt !== undefined) {
+    const humanChanges = await fetchRecentHumanRoleChanges(member.guild);
+    const humanChangeList = humanChanges.get(member.id);
+    const rankChangedAt = options.rankChangedAt;
+    const newestHumanChange = humanChangeList?.[0];
+    if (
+      newestHumanChange &&
+      (!rankChangedAt || newestHumanChange.changedAt > rankChangedAt)
+    ) {
+      // Log every entry, not just the newest — see logManualRoleChangeAndSkip
+      // in roleSync.ts for why (an audit log should show what happened, not
+      // just the latest edit).
+      for (const change of humanChangeList) {
+        await persistManualRoleChange(guildId, member.guild, member, change);
+      }
+      console.log(
+        `[bot] skipping role grant for ${member.user.tag} in ${member.guild.name} — manual change by ${newestHumanChange.executorTag ?? newestHumanChange.executorId} at ${newestHumanChange.changedAt.toISOString()} is newer than their last rank change`,
+      );
+      await notifyAdmins(
+        member,
+        guildId,
+        `ℹ️ Held back re-granting a role to ${member.user.tag} — ${newestHumanChange.executorTag ?? "someone"} manually changed their Discord roles more recently than their last rank change. Logged on the site under Admin → Discord roles.`,
+      );
+      toAdd = [];
+    }
+  }
 
   if (toAdd.length === 0 && toRemove.length === 0) return;
 
@@ -316,6 +373,10 @@ export async function applyManagedRoles(
     console.log(
       `[bot] role update for ${member.user.tag} in ${member.guild.name}: +[${added}] -[${removed}]`,
     );
+    await persistBotRoleChange(guildId, member.guild, member, {
+      addedRoleIds: toAdd,
+      removedRoleIds: toRemove,
+    });
   } catch (err) {
     console.error(`[bot] failed to update roles for ${member.user.tag}:`, err);
     // Most likely cause: the bot's own role sits below the role(s) it's
@@ -348,6 +409,10 @@ interface ApplyNicknameAndRolesOptions {
   // interaction, since DMs are exactly the unreliable thing this is meant
   // to avoid depending on.
   notify?: (message: string) => Promise<void>;
+  // Passed straight through to applyManagedRoles — see its own doc
+  // comment. Only matchRosterAndApply supplies this (it's the one place
+  // that actually has matched roster rows to read rankChangedAt off of).
+  rankChangedAt?: Date | null;
 }
 
 export async function applyNicknameAndRoles(
@@ -407,7 +472,10 @@ export async function applyNicknameAndRoles(
   // roles that apply now — not the old ones on top. So this adds what's
   // missing AND removes any previously-granted "managed" role that no
   // longer belongs, rather than only ever adding.
-  await applyManagedRoles(member, guildId, desiredRoleIds, { notify });
+  await applyManagedRoles(member, guildId, desiredRoleIds, {
+    notify,
+    rankChangedAt: options.rankChangedAt,
+  });
 
   await applyChannelGrants(member, guildId, desiredChannelGrants, { notify });
 
@@ -502,6 +570,11 @@ export async function matchRosterAndApply(
   // fire off an impersonated character. Each conflict is logged and, if
   // configured, posted to the guild's admin notify channel.
   const matched: MatchedCharacter[] = [];
+  // Latest rankChangedAt across every matched roster row — the "when did
+  // their rank last change" side of applyManagedRoles' newest-wins check.
+  // Null means no rank change is on record for any of them (a human's
+  // manual edit always wins the comparison in that case).
+  let latestRankChangedAt: Date | null = null;
   // Names of the matched entries above, same order — kept separately since
   // MatchedCharacter itself has no name (roleLogic only needs rank/level/
   // class to evaluate rules). Used to give admin notices about a person's
@@ -547,6 +620,7 @@ export async function matchRosterAndApply(
               class: character.class,
               claimedByDiscordUserId: member.id,
               claimedByDiscordTag: member.user.tag,
+              claimedAt: new Date(),
             },
           });
           displayNames.push(created.name);
@@ -629,12 +703,19 @@ export async function matchRosterAndApply(
         data: {
           claimedByDiscordUserId: member.id,
           claimedByDiscordTag: member.user.tag,
+          claimedAt: new Date(),
         },
       });
       matched.push({ rank: row.rank, level: row.level, class: row.class });
+      if (row.rankChangedAt && (!latestRankChangedAt || row.rankChangedAt > latestRankChangedAt)) {
+        latestRankChangedAt = row.rankChangedAt;
+      }
       matchedNames.push(row.name);
     } else if (row.claimedByDiscordUserId === member.id) {
       matched.push({ rank: row.rank, level: row.level, class: row.class });
+      if (row.rankChangedAt && (!latestRankChangedAt || row.rankChangedAt > latestRankChangedAt)) {
+        latestRankChangedAt = row.rankChangedAt;
+      }
       matchedNames.push(row.name);
     } else {
       conflictNames.push(row.name);
@@ -841,6 +922,7 @@ export async function matchRosterAndApply(
       {
         chooseNicknameNames: options.chooseNicknameNames,
         notify: options.notify,
+        rankChangedAt: latestRankChangedAt,
       },
     );
   }

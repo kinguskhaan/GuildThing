@@ -21,10 +21,12 @@ export function GuildRosterTable({
   guildId,
   members,
   isAdmin,
+  lastRosterImportedAt,
 }: {
   guildId: string;
   members: Member[];
   isAdmin: boolean;
+  lastRosterImportedAt: Date | null;
 }) {
   const router = useRouter();
   const [search, setSearch] = useState("");
@@ -46,6 +48,25 @@ export function GuildRosterTable({
     () => [...new Set(members.map((m) => m.rank))].sort(),
     [members],
   );
+
+  // One column per distinct custom onboarding question that at least one
+  // displayed member has answered — ordered by first appearance across
+  // members (stable regardless of the current sort/filter), not by
+  // creation date, since a question with zero answers yet just doesn't
+  // show a column at all.
+  const questionPrompts = useMemo(() => {
+    const seen = new Set<string>();
+    const ordered: string[] = [];
+    for (const m of members) {
+      for (const a of m.customAnswers) {
+        if (!seen.has(a.prompt)) {
+          seen.add(a.prompt);
+          ordered.push(a.prompt);
+        }
+      }
+    }
+    return ordered;
+  }, [members]);
 
   // Searching a name also pulls in every other character claimed by the
   // same Discord account (their alts) — not just an exact/substring name
@@ -207,6 +228,15 @@ export function GuildRosterTable({
                 <th className="sticky top-0 bg-discord-elevated px-4 py-2 font-semibold">
                   Note
                 </th>
+                {questionPrompts.map((prompt) => (
+                  <th
+                    key={prompt}
+                    title={prompt}
+                    className="sticky top-0 max-w-[160px] truncate bg-discord-elevated px-4 py-2 font-semibold normal-case"
+                  >
+                    {prompt}
+                  </th>
+                ))}
                 {isAdmin && (
                   <>
                     <th className="sticky top-0 bg-discord-elevated px-4 py-2 font-semibold">
@@ -252,6 +282,14 @@ export function GuildRosterTable({
                         ⚠ claim conflict
                       </span>
                     )}
+                    {member.hasSkippedRoleSync && (
+                      <span
+                        title="Someone manually changed this person's Discord roles more recently than their last rank change — the automatic resync is skipping them so it doesn't overwrite that. See Admin → Discord roles for details."
+                        className="ml-2 rounded-full bg-discord-elevated-hover px-2 py-0.5 text-xs font-normal text-discord-text-muted"
+                      >
+                        ✋ role sync skipped
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap text-discord-text-muted">
                     {member.rank}
@@ -273,6 +311,20 @@ export function GuildRosterTable({
                   >
                     {member.note}
                   </td>
+                  {questionPrompts.map((prompt) => {
+                    const answer = member.customAnswers.find(
+                      (a) => a.prompt === prompt,
+                    );
+                    return (
+                      <td
+                        key={prompt}
+                        className="max-w-[200px] truncate px-4 py-2 text-discord-text-muted"
+                        title={answer?.value}
+                      >
+                        {answer?.value ?? "—"}
+                      </td>
+                    );
+                  })}
                   {isAdmin && (
                     <>
                       <td
@@ -318,7 +370,12 @@ export function GuildRosterTable({
         </div>
       )}
       {sorted.length > 0 && (
-        <p className="text-xs text-discord-text-muted">{sorted.length} total</p>
+        <p className="text-xs text-discord-text-muted">
+          {sorted.length} total
+          {lastRosterImportedAt && (
+            <> · Last synced {relativeTime(new Date(lastRosterImportedAt))}</>
+          )}
+        </p>
       )}
     </div>
   );

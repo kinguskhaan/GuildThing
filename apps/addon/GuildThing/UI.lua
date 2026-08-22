@@ -3,7 +3,7 @@ local GT = GuildThingRoster
 local frame
 
 local TEXTBOX_WIDTH = 440
-local TEXTBOX_HEIGHT = 260
+local TEXTBOX_HEIGHT = 220
 local RIGHT_PADDING_FOR_SCROLLBAR = 34
 
 -- Bordered, scrollable, read-only (still focusable/selectable so Ctrl+A/C
@@ -54,9 +54,67 @@ local function CreateExportBox(parent, width, height)
     return border, editBox
 end
 
+-- The original roster/export view, now built as its own page frame so it
+-- can be shown/hidden as a unit alongside the Discord Roles page (see
+-- DiscordRolesUI.lua) — same content and layout as before tabs existed,
+-- just anchored inside `parent` (the shared page area under the tab
+-- buttons) instead of directly under the dialog's title.
+local function CreateRosterPage(parent)
+    local page = CreateFrame("Frame", nil, parent)
+    page:SetAllPoints(parent)
+
+    local status = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    status:SetPoint("TOPLEFT", 0, 0)
+    status:SetPoint("RIGHT", 0, 0)
+    status:SetJustifyH("LEFT")
+
+    local scanBtn = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
+    scanBtn:SetSize(140, 22)
+    scanBtn:SetPoint("TOPLEFT", status, "BOTTOMLEFT", 0, -8)
+    scanBtn:SetText("Scan guild roster")
+
+    local exportLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    exportLabel:SetPoint("TOPLEFT", scanBtn, "BOTTOMLEFT", 0, -16)
+    exportLabel:SetText("Paste this into the guild's import box on the website:")
+
+    local exportBox, exportEditBox = CreateExportBox(page, TEXTBOX_WIDTH, TEXTBOX_HEIGHT)
+    exportBox:SetPoint("TOPLEFT", exportLabel, "BOTTOMLEFT", 0, -8)
+
+    local function Refresh()
+        local roster = GT.GetRoster()
+        local lastScan = GT.GetLastScanText()
+        if #roster == 0 then
+            status:SetText("No roster scanned yet.")
+        else
+            status:SetText(string.format("%d member(s) — last scan: %s", #roster, lastScan or "?"))
+        end
+
+        local json = GT.ExportRoster()
+        exportEditBox.lastSetText = json
+        exportEditBox:SetText(json)
+    end
+
+    scanBtn:SetScript("OnClick", function()
+        scanBtn:SetText("Scanning...")
+        scanBtn:Disable()
+        GT.RequestRosterUpdate(function()
+            Refresh()
+            exportEditBox:HighlightText()
+            exportEditBox:SetFocus()
+            scanBtn:SetText("Scan guild roster")
+            scanBtn:Enable()
+        end)
+    end)
+
+    return { frame = page, Refresh = Refresh }
+end
+
 local function CreateGTFrame()
+    -- Wide enough for the Discord Roles tab's five columns (name, rank,
+    -- nick, account, roles) to actually be readable — the original 480
+    -- only fit three.
     local f = CreateFrame("Frame", "GuildThingRosterFrame", UIParent, "BackdropTemplate")
-    f:SetSize(480, 420)
+    f:SetSize(640, 420)
     f:SetPoint("CENTER")
     f:SetMovable(true)
     f:EnableMouse(true)
@@ -78,56 +136,65 @@ local function CreateGTFrame()
     local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", -4, -4)
 
-    local status = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    status:SetPoint("TOPLEFT", 20, -44)
-    status:SetPoint("RIGHT", -20, 0)
-    status:SetJustifyH("LEFT")
+    -- Three small toggle buttons stand in for a tab widget — this addon has
+    -- never had one before (nothing to extend), and three views still
+    -- doesn't justify building a general one.
+    local rosterTabBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+    rosterTabBtn:SetSize(90, 20)
+    rosterTabBtn:SetPoint("TOPLEFT", 20, -40)
+    rosterTabBtn:SetText("Roster")
 
-    local scanBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-    scanBtn:SetSize(140, 22)
-    scanBtn:SetPoint("TOPLEFT", status, "BOTTOMLEFT", 0, -8)
-    scanBtn:SetText("Scan guild roster")
+    local rolesTabBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+    rolesTabBtn:SetSize(110, 20)
+    rolesTabBtn:SetPoint("LEFT", rosterTabBtn, "RIGHT", 4, 0)
+    rolesTabBtn:SetText("Discord Roles")
 
-    local exportLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    exportLabel:SetPoint("TOPLEFT", scanBtn, "BOTTOMLEFT", 0, -16)
-    exportLabel:SetText("Paste this into the guild's import box on the website:")
+    local auditTabBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+    auditTabBtn:SetSize(90, 20)
+    auditTabBtn:SetPoint("LEFT", rolesTabBtn, "RIGHT", 4, 0)
+    auditTabBtn:SetText("Audit Log")
 
-    local exportBox, exportEditBox = CreateExportBox(f, TEXTBOX_WIDTH, TEXTBOX_HEIGHT)
-    exportBox:SetPoint("TOPLEFT", exportLabel, "BOTTOMLEFT", 0, -8)
+    -- Shared area all pages fill, below the tab row.
+    local pageArea = CreateFrame("Frame", nil, f)
+    pageArea:SetPoint("TOPLEFT", 20, -68)
+    pageArea:SetPoint("BOTTOMRIGHT", -20, 16)
 
-    local function RefreshStatus()
-        local roster = GT.GetRoster()
-        local lastScan = GT.GetLastScanText()
-        if #roster == 0 then
-            status:SetText("No roster scanned yet.")
-        else
-            status:SetText(string.format("%d member(s) — last scan: %s", #roster, lastScan or "?"))
-        end
+    local rosterPage = CreateRosterPage(pageArea)
+    local discordRolesPage = GT.CreateDiscordRolesPage(pageArea)
+    local auditLogPage = GT.CreateAuditLogPage(pageArea)
+
+    local function ShowRosterTab()
+        rosterTabBtn:Disable()
+        rolesTabBtn:Enable()
+        auditTabBtn:Enable()
+        discordRolesPage.frame:Hide()
+        auditLogPage.frame:Hide()
+        rosterPage.frame:Show()
+        rosterPage.Refresh()
     end
-
-    local function RefreshExportBox()
-        local json = GT.ExportRoster()
-        exportEditBox.lastSetText = json
-        exportEditBox:SetText(json)
+    local function ShowDiscordRolesTab()
+        rolesTabBtn:Disable()
+        rosterTabBtn:Enable()
+        auditTabBtn:Enable()
+        rosterPage.frame:Hide()
+        auditLogPage.frame:Hide()
+        discordRolesPage.frame:Show()
+        discordRolesPage.Refresh()
     end
+    local function ShowAuditLogTab()
+        auditTabBtn:Disable()
+        rosterTabBtn:Enable()
+        rolesTabBtn:Enable()
+        rosterPage.frame:Hide()
+        discordRolesPage.frame:Hide()
+        auditLogPage.frame:Show()
+        auditLogPage.Refresh()
+    end
+    rosterTabBtn:SetScript("OnClick", ShowRosterTab)
+    rolesTabBtn:SetScript("OnClick", ShowDiscordRolesTab)
+    auditTabBtn:SetScript("OnClick", ShowAuditLogTab)
 
-    scanBtn:SetScript("OnClick", function()
-        scanBtn:SetText("Scanning...")
-        scanBtn:Disable()
-        GT.RequestRosterUpdate(function()
-            RefreshStatus()
-            RefreshExportBox()
-            exportEditBox:HighlightText()
-            exportEditBox:SetFocus()
-            scanBtn:SetText("Scan guild roster")
-            scanBtn:Enable()
-        end)
-    end)
-
-    f:SetScript("OnShow", function()
-        RefreshStatus()
-        RefreshExportBox()
-    end)
+    f:SetScript("OnShow", ShowRosterTab)
 
     f:Hide()
 

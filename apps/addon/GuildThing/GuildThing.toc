@@ -5,4 +5,7 @@
 ## SavedVariables: GuildThingRosterDB
 
 Core.lua
+SyncData.lua
+DiscordRolesUI.lua
+AuditLogUI.lua
 UI.lua

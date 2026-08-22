@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { deflateSync } from "node:zlib";
 
 import { TRPCError } from "@trpc/server";
@@ -6,6 +7,7 @@ import { z } from "zod";
 import { generateApiKey, uniqueGuildSlug } from "@guildthing/db";
 import { env } from "~/env";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { WOW_CLASS_TOKENS } from "~/lib/format";
 import type { db as Db } from "~/server/db";
 import {
   applyCharacterImport,
@@ -25,6 +27,7 @@ import {
   getGuildIconUrl,
   getGuildMembers,
   getGuildRoles,
+  getGuildRolesSnapshot,
   getMyRoleIds,
   hasGuildRole,
   isGuildMember,
@@ -482,6 +485,7 @@ export const guildRouter = createTRPCRouter({
         needsReauth,
         retryAfterSeconds,
         rosterSource: guild.rosterSource,
+        lastRosterImportedAt: guild.lastRosterImportedAt,
       };
     }),
 
@@ -1014,13 +1018,69 @@ export const guildRouter = createTRPCRouter({
         professionsByName.set(key, set);
       }
 
+      // Custom onboarding-question answers — public, same as class/level/
+      // professions, so shown to every viewer regardless of isAdmin (not
+      // added to the non-admin strip below). Matched by claimedByDiscordUserId
+      // same as lastActiveAt above, since answers are per-person, not tied
+      // to a specific roster row.
+      const answerRows =
+        claimedIds.length > 0
+          ? await ctx.db.guildOnboardingAnswer.findMany({
+              where: { guildId: input.guildId, discordUserId: { in: claimedIds } },
+              include: {
+                question: { select: { prompt: true, type: true } },
+                selectedOptions: { include: { option: { select: { label: true } } } },
+              },
+            })
+          : [];
+      const answersByDiscordId = new Map<
+        string,
+        { prompt: string; value: string }[]
+      >();
+      for (const a of answerRows) {
+        const value =
+          a.question.type === "free_text"
+            ? (a.textValue ?? "")
+            : a.selectedOptions.map((so) => so.option.label).join(", ");
+        if (!value) continue;
+        const list = answersByDiscordId.get(a.discordUserId) ?? [];
+        list.push({ prompt: a.question.prompt, value });
+        answersByDiscordId.set(a.discordUserId, list);
+      }
+
+      // Roster-table badge only — same "was a resync recently skipped for
+      // this person" signal as the admin-page list (guild.auditLog),
+      // just a boolean here rather than the full detail.
+      const recentManualChangeIds =
+        claimedIds.length > 0
+          ? new Set(
+              (
+                await ctx.db.guildRoleChangeEvent.findMany({
+                  where: {
+                    guildId: input.guildId,
+                    discordUserId: { in: claimedIds },
+                    source: "manual",
+                  },
+                  select: { discordUserId: true },
+                  distinct: ["discordUserId"],
+                })
+              ).map((r) => r.discordUserId),
+            )
+          : new Set<string>();
+
       const withConflictFlag = members.map(({ claimConflicts, ...m }) => ({
         ...m,
         hasClaimConflict: claimConflicts.length > 0,
+        hasSkippedRoleSync: m.claimedByDiscordUserId
+          ? recentManualChangeIds.has(m.claimedByDiscordUserId)
+          : false,
         lastActiveAt: m.claimedByDiscordUserId
           ? (lastActiveByDiscordId.get(m.claimedByDiscordUserId) ?? null)
           : null,
         professions: [...(professionsByName.get(m.name.toLowerCase()) ?? [])],
+        customAnswers: m.claimedByDiscordUserId
+          ? (answersByDiscordId.get(m.claimedByDiscordUserId) ?? [])
+          : [],
       }));
 
       if (isAdmin) return withConflictFlag;
@@ -1155,6 +1215,7 @@ export const guildRouter = createTRPCRouter({
           data: {
             claimedByDiscordUserId: input.discordUserId,
             claimedByDiscordTag: input.discordUserTag,
+            claimedAt: new Date(),
           },
         });
         return { ok: true, created: false };
@@ -1171,6 +1232,7 @@ export const guildRouter = createTRPCRouter({
           class: trimmedClass === "" || trimmedClass == null ? null : trimmedClass,
           claimedByDiscordUserId: input.discordUserId,
           claimedByDiscordTag: input.discordUserTag,
+          claimedAt: new Date(),
           manuallyAdded: true,
         },
       });
@@ -1252,6 +1314,110 @@ export const guildRouter = createTRPCRouter({
         where: { guildId: input.guildId },
         orderBy: { claimedAt: "desc" },
       });
+    }),
+
+  // Unified chronological history — GuildRankChangeEvent (in-game rank
+  // transitions) merged with GuildRoleChangeEvent (every Discord role
+  // add/remove GuildThing has made, bot-driven or a human's manual edit
+  // the resync deliberately left alone) into one feed, same idea as the
+  // Guild_Roster_Manager addon's own audit log but spanning both sides.
+  // Relayed into the addon via apps/sync as part of GuildThing.lua.
+  auditLog: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const [rankEvents, roleChanges, claims, rosterMembers, snapshot] = await Promise.all([
+        ctx.db.guildRankChangeEvent.findMany({
+          where: { guildId: input.guildId },
+          orderBy: { detectedAt: "desc" },
+          take: 100,
+        }),
+        ctx.db.guildRoleChangeEvent.findMany({
+          where: { guildId: input.guildId },
+          orderBy: { detectedAt: "desc" },
+          take: 100,
+        }),
+        ctx.db.guildRosterMember.findMany({
+          where: { guildId: input.guildId, claimedAt: { not: null } },
+          select: {
+            id: true,
+            name: true,
+            claimedByDiscordUserId: true,
+            claimedByDiscordTag: true,
+            claimedAt: true,
+          },
+          orderBy: { claimedAt: "desc" },
+          take: 100,
+        }),
+        // For resolving a Discord identity's in-game character name (and
+        // vice versa) — role_change/claim entries key by discordUserId,
+        // rank_change entries key by characterName, but every entry
+        // should end up with BOTH so the UI can search/filter/display
+        // consistently regardless of which side originated it.
+        ctx.db.guildRosterMember.findMany({
+          where: { guildId: input.guildId, claimedByDiscordUserId: { not: null } },
+          select: { name: true, claimedByDiscordUserId: true },
+        }),
+        getGuildRolesSnapshot(guild.discordGuildId),
+      ]);
+
+      const nameByDiscordUserId = new Map<string, string>();
+      const discordUserIdByName = new Map<string, string>();
+      for (const m of rosterMembers) {
+        if (!m.claimedByDiscordUserId) continue;
+        nameByDiscordUserId.set(m.claimedByDiscordUserId, m.name);
+        discordUserIdByName.set(m.name, m.claimedByDiscordUserId);
+      }
+      const discordIdentity = (discordUserId: string | null | undefined) => {
+        const entry = discordUserId ? snapshot[discordUserId] : undefined;
+        return { discordNick: entry?.nick ?? null, discordTag: entry?.tag ?? null };
+      };
+
+      const entries = [
+        ...rankEvents.map((r) => ({
+          kind: "rank_change" as const,
+          id: r.id,
+          detectedAt: r.detectedAt,
+          characterName: r.characterName,
+          oldRank: r.oldRank,
+          newRank: r.newRank,
+          ...discordIdentity(discordUserIdByName.get(r.characterName)),
+        })),
+        ...roleChanges.map((r) => ({
+          kind: "role_change" as const,
+          id: r.id,
+          detectedAt: r.detectedAt,
+          characterName: nameByDiscordUserId.get(r.discordUserId) ?? r.discordUserTag,
+          source: r.source as "bot" | "manual",
+          discordUserId: r.discordUserId,
+          discordUserTag: r.discordUserTag,
+          executorTag: r.executorTag,
+          addedRoleNames: JSON.parse(r.addedRoleNames) as string[],
+          removedRoleNames: JSON.parse(r.removedRoleNames) as string[],
+          ...discordIdentity(r.discordUserId),
+        })),
+        ...claims.map((c) => ({
+          kind: "claim" as const,
+          id: c.id,
+          // claimedAt is guaranteed non-null by the where clause above.
+          detectedAt: c.claimedAt!,
+          characterName: c.name,
+          discordUserTag: c.claimedByDiscordTag,
+          ...discordIdentity(c.claimedByDiscordUserId),
+        })),
+      ];
+      entries.sort((a, b) => b.detectedAt.getTime() - a.detectedAt.getTime());
+      return entries.slice(0, 100);
     }),
 
   // Drops the tracking row — e.g. the admin knows that character will never
@@ -1925,6 +2091,44 @@ export const guildRouter = createTRPCRouter({
       return getGuildRoles(guild.discordGuildId);
     }),
 
+  // One row per claimed roster character, joined against their live
+  // Discord nickname/account name/roles — for the searchable/sortable/
+  // filterable admin table (guild-discord-roles-table.tsx), distinct from
+  // the plain role-list `discordRoles` above. Unclaimed roster members are
+  // left out entirely — there's no Discord account to show columns for.
+  discordRolesTable: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const [members, snapshot] = await Promise.all([
+        ctx.db.guildRosterMember.findMany({
+          where: { guildId: input.guildId, claimedByDiscordUserId: { not: null } },
+          select: { id: true, name: true, rank: true, claimedByDiscordUserId: true },
+          orderBy: { name: "asc" },
+        }),
+        getGuildRolesSnapshot(guild.discordGuildId),
+      ]);
+
+      return members.map((m) => {
+        const entry = m.claimedByDiscordUserId ? snapshot[m.claimedByDiscordUserId] : undefined;
+        return {
+          id: m.id,
+          characterName: m.name,
+          rank: m.rank,
+          discordTag: entry?.tag ?? null,
+          discordNick: entry?.nick ?? null,
+          roleNames: entry?.roleNames ?? [],
+        };
+      });
+    }),
+
   // Text-channel list for the guild's Discord server, via the bot's token —
   // same pattern as discordRoles above, used to pick where the bot posts
   // admin notices (e.g. roster-claim conflicts).
@@ -2156,6 +2360,42 @@ export const guildRouter = createTRPCRouter({
       return { ok: true };
     }),
 
+  // Roles the bot must never add or remove for anyone, full stop — see
+  // GuildProtectedRole in schema.prisma. Full replace, same convention as
+  // setInactivitySettings' targetRoleIds.
+  setProtectedRoles: protectedProcedure
+    .input(
+      z.object({
+        guildId: z.string(),
+        roleIds: z.array(z.string().min(1)),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      await ctx.db.$transaction([
+        ctx.db.guildProtectedRole.deleteMany({
+          where: { guildId: input.guildId },
+        }),
+        ctx.db.guildProtectedRole.createMany({
+          data: input.roleIds.map((discordRoleId) => ({
+            guildId: input.guildId,
+            discordRoleId,
+          })),
+        }),
+      ]);
+      return { ok: true };
+    }),
+
   // pugRoleId + adminNotifyChannelId + onboardingChannelId/MessageText +
   // inactivity-filter settings + every role rule (with conditions) for the
   // guild, one call for the Discord-roles admin page — same "small
@@ -2188,6 +2428,7 @@ export const guildRouter = createTRPCRouter({
             inactivityDays: true,
             inactivityRoleId: true,
             inactivityTargetRoles: { select: { discordRoleId: true } },
+            protectedRoles: { select: { discordRoleId: true } },
             wowRegion: true,
             wowRealmSlug: true,
             wowGuildName: true,
@@ -2222,6 +2463,7 @@ export const guildRouter = createTRPCRouter({
         inactivityTargetRoleIds: guild.inactivityTargetRoles.map(
           (r) => r.discordRoleId,
         ),
+        protectedRoleIds: guild.protectedRoles.map((r) => r.discordRoleId),
         inactivityRoleId: guild.inactivityRoleId,
         wowRegion: guild.wowRegion,
         wowRealmSlug: guild.wowRealmSlug,
@@ -2515,6 +2757,321 @@ export const guildRouter = createTRPCRouter({
         where: { id: input.id, guildId: input.guildId },
         data: { revokedAt: new Date() },
       });
+      return { ok: true };
+    }),
+
+  // Admin-only: the full question graph for the flowchart canvas builder —
+  // see GuildOnboardingQuestion/Edge in schema.prisma.
+  onboardingFlow: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const [questions, edges] = await Promise.all([
+        ctx.db.guildOnboardingQuestion.findMany({
+          where: { guildId: input.guildId },
+          include: { options: { orderBy: { sortOrder: "asc" } } },
+          orderBy: { createdAt: "asc" },
+        }),
+        ctx.db.guildOnboardingEdge.findMany({
+          where: { guildId: input.guildId },
+          include: { conditionOptions: true, conditionClasses: true },
+        }),
+      ]);
+      return { questions, edges };
+    }),
+
+  // Full replace of the guild's onboarding question flow — BUT unlike
+  // upsertRoleRule this can't be a blind delete-and-recreate of questions/
+  // options, since GuildOnboardingAnswer rows FK onto them: wiping and
+  // recreating on every canvas edit would orphan (and cascade-delete)
+  // every answer already collected. Instead the client sends a stable id
+  // per question/option (a fresh crypto.randomUUID() for new ones, the
+  // real id for existing ones) and this does an id-diff upsert+prune for
+  // questions/options, keeping already-collected answers intact — edges
+  // carry no historical data, so those alone are still blind-replaced.
+  saveOnboardingFlow: protectedProcedure
+    .input(
+      z.object({
+        guildId: z.string(),
+        questions: z.array(
+          z.object({
+            id: z.string().min(1),
+            prompt: z.string().min(1).max(300),
+            type: z.enum(["single_select", "multi_select", "free_text"]),
+            required: z.boolean().default(true),
+            canvasX: z.number(),
+            canvasY: z.number(),
+            options: z
+              .array(
+                z.object({
+                  id: z.string().min(1),
+                  label: z.string().min(1).max(100),
+                  sortOrder: z.number().int(),
+                }),
+              )
+              // 24, not Discord's actual 25-option StringSelectMenu cap —
+              // an optional single_select question appends one more "Skip"
+              // button (see onboardingQuestions.ts), and Discord also caps
+              // messages at 5 button rows of 5, so this leaves room for it
+              // without needing a separate cap per question type.
+              .max(24)
+              .default([]),
+          }),
+        ),
+        edges: z.array(
+          z.object({
+            fromQuestionId: z.string().min(1).nullable(),
+            toQuestionId: z.string().min(1),
+            conditionType: z.enum([
+              "always",
+              "answer_equals",
+              "class_equals",
+              "level_between",
+            ]),
+            conditionOptionIds: z.array(z.string().min(1)).default([]),
+            conditionClasses: z.array(z.string().min(1)).default([]),
+            conditionMinLevel: z.number().int().optional(),
+            conditionMaxLevel: z.number().int().optional(),
+          }),
+        ),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const questionIds = new Set(input.questions.map((q) => q.id));
+      const optionIds = new Set<string>();
+      for (const q of input.questions) {
+        if (q.type === "free_text") {
+          if (q.options.length > 0) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `"${q.prompt}" is free text and can't have options.`,
+            });
+          }
+        } else if (q.options.length < 2) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `"${q.prompt}" needs at least 2 options.`,
+          });
+        }
+        for (const o of q.options) optionIds.add(o.id);
+      }
+
+      for (const e of input.edges) {
+        if (!questionIds.has(e.toQuestionId)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "An edge points at an unknown question.",
+          });
+        }
+        if (e.fromQuestionId != null && !questionIds.has(e.fromQuestionId)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "An edge starts at an unknown question.",
+          });
+        }
+        if (e.conditionType === "always") {
+          if (
+            e.conditionOptionIds.length > 0 ||
+            e.conditionClasses.length > 0 ||
+            e.conditionMinLevel != null ||
+            e.conditionMaxLevel != null
+          ) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "An unconditional edge can't also carry a condition value.",
+            });
+          }
+        } else if (e.conditionType === "answer_equals") {
+          const fromQuestion = input.questions.find((q) => q.id === e.fromQuestionId);
+          if (
+            e.fromQuestionId == null ||
+            e.conditionOptionIds.length === 0 ||
+            !e.conditionOptionIds.every((id) =>
+              fromQuestion?.options.some((o) => o.id === id),
+            )
+          ) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message:
+                '"Previous answer includes" needs a source question and at least one of its own options.',
+            });
+          }
+        } else if (e.conditionType === "class_equals") {
+          if (
+            e.conditionClasses.length === 0 ||
+            !e.conditionClasses.every((c) => WOW_CLASS_TOKENS.includes(c))
+          ) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: '"Class is" needs at least one valid WoW class.',
+            });
+          }
+        } else {
+          // level_between
+          if (
+            e.conditionMinLevel == null ||
+            e.conditionMaxLevel == null ||
+            e.conditionMinLevel > e.conditionMaxLevel
+          ) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: '"Level is between" needs a valid min/max range.',
+            });
+          }
+        }
+      }
+
+      // Cycle check over the graph as it will exist after this save (Start
+      // = null) — rejects a save that would leave the bot's DAG walk
+      // spinning forever, rather than relying on the walk itself to notice.
+      const outgoing = new Map<string | null, string[]>();
+      for (const e of input.edges) {
+        const list = outgoing.get(e.fromQuestionId) ?? [];
+        list.push(e.toQuestionId);
+        outgoing.set(e.fromQuestionId, list);
+      }
+      const visiting = new Set<string>();
+      const finished = new Set<string>();
+      function hasCycle(id: string): boolean {
+        if (finished.has(id)) return false;
+        if (visiting.has(id)) return true;
+        visiting.add(id);
+        for (const next of outgoing.get(id) ?? []) {
+          if (hasCycle(next)) return true;
+        }
+        visiting.delete(id);
+        finished.add(id);
+        return false;
+      }
+      for (const id of questionIds) {
+        if (hasCycle(id)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "This flow contains a loop — a question can't (indirectly) lead back to itself.",
+          });
+        }
+      }
+
+      // Client-supplied ids mean a crafted payload could otherwise upsert
+      // straight over a DIFFERENT guild's question/option row — reject any
+      // id that already exists under another guild before writing anything.
+      const submittedQuestionIds = [...questionIds];
+      if (submittedQuestionIds.length > 0) {
+        const foreignQuestions = await ctx.db.guildOnboardingQuestion.findMany({
+          where: { id: { in: submittedQuestionIds }, guildId: { not: input.guildId } },
+          select: { id: true },
+        });
+        if (foreignQuestions.length > 0) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid question id." });
+        }
+      }
+      const submittedOptionIds = [...optionIds];
+      if (submittedOptionIds.length > 0) {
+        const foreignOptions = await ctx.db.guildOnboardingQuestionOption.findMany({
+          where: { id: { in: submittedOptionIds }, question: { guildId: { not: input.guildId } } },
+          select: { id: true },
+        });
+        if (foreignOptions.length > 0) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid option id." });
+        }
+      }
+
+      await ctx.db.$transaction(async (tx) => {
+        await tx.guildOnboardingEdge.deleteMany({ where: { guildId: input.guildId } });
+        await tx.guildOnboardingQuestion.deleteMany({
+          where: { guildId: input.guildId, id: { notIn: submittedQuestionIds } },
+        });
+
+        for (const q of input.questions) {
+          await tx.guildOnboardingQuestion.upsert({
+            where: { id: q.id },
+            create: {
+              id: q.id,
+              guildId: input.guildId,
+              prompt: q.prompt,
+              type: q.type,
+              required: q.required,
+              canvasX: q.canvasX,
+              canvasY: q.canvasY,
+            },
+            update: {
+              prompt: q.prompt,
+              type: q.type,
+              required: q.required,
+              canvasX: q.canvasX,
+              canvasY: q.canvasY,
+            },
+          });
+
+          const keepOptionIds = q.options.map((o) => o.id);
+          await tx.guildOnboardingQuestionOption.deleteMany({
+            where: { questionId: q.id, id: { notIn: keepOptionIds } },
+          });
+          for (const o of q.options) {
+            await tx.guildOnboardingQuestionOption.upsert({
+              where: { id: o.id },
+              create: { id: o.id, questionId: q.id, label: o.label, sortOrder: o.sortOrder },
+              update: { label: o.label, sortOrder: o.sortOrder },
+            });
+          }
+        }
+
+        if (input.edges.length > 0) {
+          // Generated up front (rather than relying on createMany's
+          // auto-generated ids, which it doesn't return) so the OR-set
+          // child rows below can reference the right edge.
+          const edgesWithIds = input.edges.map((e) => ({ ...e, id: randomUUID() }));
+          await tx.guildOnboardingEdge.createMany({
+            data: edgesWithIds.map((e) => ({
+              id: e.id,
+              guildId: input.guildId,
+              fromQuestionId: e.fromQuestionId,
+              toQuestionId: e.toQuestionId,
+              conditionType: e.conditionType,
+              conditionMinLevel: e.conditionMinLevel ?? null,
+              conditionMaxLevel: e.conditionMaxLevel ?? null,
+            })),
+          });
+          const conditionOptionRows = edgesWithIds.flatMap((e) =>
+            e.conditionOptionIds.map((optionId) => ({ edgeId: e.id, optionId })),
+          );
+          if (conditionOptionRows.length > 0) {
+            await tx.guildOnboardingEdgeConditionOption.createMany({
+              data: conditionOptionRows,
+            });
+          }
+          const conditionClassRows = edgesWithIds.flatMap((e) =>
+            e.conditionClasses.map((cls) => ({ edgeId: e.id, class: cls })),
+          );
+          if (conditionClassRows.length > 0) {
+            await tx.guildOnboardingEdgeConditionClass.createMany({
+              data: conditionClassRows,
+            });
+          }
+        }
+      });
+
       return { ok: true };
     }),
 });

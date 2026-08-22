@@ -79,6 +79,7 @@ export default async function RosterPage({
           guildId={guildId}
           members={members}
           isAdmin={guild.isAdmin}
+          lastRosterImportedAt={guild.lastRosterImportedAt}
         />
       )}
     </div>

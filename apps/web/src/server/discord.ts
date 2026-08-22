@@ -588,6 +588,64 @@ export async function getGuildMembers(
   return members;
 }
 
+export interface DiscordRolesSnapshotEntry {
+  tag: string;
+  nick: string | null;
+  roleNames: string[];
+}
+
+const ROLES_SNAPSHOT_CACHE_TTL_MS = 5 * 60_000;
+
+/**
+ * Whole-guild "member -> current role names" snapshot, for the addon-
+ * facing /api/v1/discord-roles endpoint — resolved live via getGuildRoles
+ * + getGuildMembers (bot token) and cached for a few minutes (see
+ * DiscordRolesSnapshotCache in schema.prisma) so apps/sync polling
+ * repeatedly doesn't turn into a Discord REST hit every time. Excludes
+ * bot accounts. Non-bot members with zero roles are still included (empty
+ * roleNames array), so the addon can tell "no sync data" apart from
+ * "genuinely has no roles".
+ */
+export async function getGuildRolesSnapshot(
+  discordGuildId: string,
+): Promise<Record<string, DiscordRolesSnapshotEntry>> {
+  const cached = await db.discordRolesSnapshotCache.findUnique({
+    where: { discordGuildId },
+  });
+  if (
+    cached &&
+    Date.now() - cached.fetchedAt.getTime() < ROLES_SNAPSHOT_CACHE_TTL_MS
+  ) {
+    return JSON.parse(cached.data) as Record<string, DiscordRolesSnapshotEntry>;
+  }
+
+  const [roles, members] = await Promise.all([
+    getGuildRoles(discordGuildId),
+    getGuildMembers(discordGuildId),
+  ]);
+  const roleNameById = new Map(roles.map((r) => [r.id, r.name]));
+
+  const snapshot: Record<string, DiscordRolesSnapshotEntry> = {};
+  for (const m of members) {
+    if (m.bot) continue;
+    snapshot[m.id] = {
+      tag: m.tag,
+      nick: m.nick,
+      roleNames: m.roleIds
+        .map((id) => roleNameById.get(id))
+        .filter((name): name is string => name != null),
+    };
+  }
+
+  await db.discordRolesSnapshotCache.upsert({
+    where: { discordGuildId },
+    create: { discordGuildId, data: JSON.stringify(snapshot) },
+    update: { data: JSON.stringify(snapshot), fetchedAt: new Date() },
+  });
+
+  return snapshot;
+}
+
 /**
  * DMs a Discord user directly via the bot's own token (open-DM-channel +
  * send, the same two REST calls discord.js does internally for

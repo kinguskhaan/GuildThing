@@ -80,6 +80,28 @@ export async function applyRosterImport(
   const { members } = parsed;
   const importedNames = members.map((m) => m.name);
 
+  // Read current ranks up front so each upsert below can tell whether its
+  // incoming rank actually differs from what's stored — needed to stamp
+  // rankChangedAt only on a real transition, not on every import (most
+  // imports re-send the same rank for most members). A brand-new name
+  // (not in this map) gets no rankChangedAt yet — there's no prior rank
+  // for it to have "changed" from.
+  const existingRanks = new Map(
+    (
+      await db.guildRosterMember.findMany({
+        where: { guildId, name: { in: importedNames } },
+        select: { name: true, rank: true },
+      })
+    ).map((r) => [r.name, r.rank]),
+  );
+  const now = new Date();
+  // The in-game half of the unified audit log — one row per actual rank
+  // transition detected below, merged chronologically with
+  // GuildRoleChangeEvent (the Discord half) for display. See
+  // GuildRankChangeEvent in schema.prisma for why it's keyed by name
+  // instead of FK'd to the roster row.
+  const rankChangeEvents: { characterName: string; oldRank: string; newRank: string }[] = [];
+
   await db.$transaction([
     db.guildRosterMember.deleteMany({
       where: {
@@ -88,8 +110,13 @@ export async function applyRosterImport(
         manuallyAdded: false,
       },
     }),
-    ...members.map((m) =>
-      db.guildRosterMember.upsert({
+    ...members.map((m) => {
+      const priorRank = existingRanks.get(m.name);
+      const rankChanged = priorRank !== undefined && priorRank !== m.rank;
+      if (rankChanged) {
+        rankChangeEvents.push({ characterName: m.name, oldRank: priorRank, newRank: m.rank });
+      }
+      return db.guildRosterMember.upsert({
         where: { guildId_name: { guildId, name: m.name } },
         create: {
           guildId,
@@ -106,6 +133,18 @@ export async function applyRosterImport(
           class: m.class ?? null,
           note: m.note ?? null,
           officerNote: m.officernote ?? null,
+          ...(rankChanged ? { rankChangedAt: now } : {}),
+        },
+      });
+    }),
+    ...rankChangeEvents.map((e) =>
+      db.guildRankChangeEvent.create({
+        data: {
+          guildId,
+          characterName: e.characterName,
+          oldRank: e.oldRank,
+          newRank: e.newRank,
+          detectedAt: now,
         },
       }),
     ),
