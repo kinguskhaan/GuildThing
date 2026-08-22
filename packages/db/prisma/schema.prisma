@@ -143,15 +143,21 @@ model Guild {
   roleRules      GuildRoleRule[]
   rolePriorities GuildRolePriority[]
   claimConflicts GuildRosterClaimConflict[]
+  roleChangeEvents GuildRoleChangeEvent[]
+  rankChangeEvents GuildRankChangeEvent[]
   pendingRosterMatches GuildPendingRosterMatch[]
   memberActivity GuildMemberActivity[]
   inactivityTargetRoles GuildInactivityTargetRole[]
+  protectedRoles GuildProtectedRole[]
   pugMembers     GuildPugMember[]
   externalCharacters GuildExternalCharacter[]
   memberNicknames GuildMemberNickname[]
   events         Event[]
   eventChannelPresets EventChannelPreset[]
   apiKeys        GuildApiKey[]
+  onboardingQuestions GuildOnboardingQuestion[]
+  onboardingEdges     GuildOnboardingEdge[]
+  onboardingAnswers   GuildOnboardingAnswer[]
   createdAt      DateTime @default(now())
 
   // "addon" (default) — the roster comes from pasting the GuildThing
@@ -285,6 +291,22 @@ model GuildInactivityTargetRole {
   @@unique([guildId, discordRoleId])
 }
 
+// A Discord role the bot must never add OR remove for anyone, even if it's
+// also a grantedRole on a GuildRoleRule — for roles meant to stay entirely
+// human-managed (e.g. an officer hand-picks who gets "TBC Raiders"), so a
+// resync doesn't fight a manual assignment just because the member doesn't
+// currently match whatever rule also happens to grant that role. See
+// getManagedRoleIds in apps/bot/src/roleLogic.ts (and its duplicate in
+// apps/bot/src/roleSync.ts), which subtracts this set before diffing.
+model GuildProtectedRole {
+  id            String @id @default(cuid())
+  guildId       String
+  guild         Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  discordRoleId String
+
+  @@unique([guildId, discordRoleId])
+}
+
 // A snapshot of the guild's in-game roster (name/rank/level/class/notes),
 // pasted in from the GuildThing Roster addon's /gtr export by an admin.
 // Deliberately NOT tied to userId like GuildCharacter is — a roster scan
@@ -298,6 +320,15 @@ model GuildRosterMember {
   guild       Guild   @relation(fields: [guildId], references: [id], onDelete: Cascade)
   name        String
   rank        String
+  // Bumped only when an import's incoming rank actually differs from what
+  // was already stored (see applyRosterImport in wow-import.ts) — NOT a
+  // plain @updatedAt, which would fire on every import regardless of
+  // whether rank changed. Null until the first real rank transition after
+  // this field existed, and stays null for a brand-new row (nothing to
+  // have "changed" from yet). Used by the bot's role resync (roleSync.ts)
+  // to tell whether a rank change is newer than a human's manual Discord
+  // role edit — "the newest change wins" — see GuildRoleChangeEvent.
+  rankChangedAt DateTime?
   level       Int
   class       String?
   note        String?
@@ -309,6 +340,13 @@ model GuildRosterMember {
   // and logs a GuildRosterClaimConflict instead of overwriting the claim.
   claimedByDiscordUserId String?
   claimedByDiscordTag    String?
+  // When the claim above was made — set alongside claimedByDiscordUserId
+  // at every claim site (onboarding match, onboarding-created character,
+  // admin "Claim a character"), never touched afterwards. Feeds the
+  // unified audit log (guild.auditLog) as a "claim" entry, so admins can
+  // see when someone first linked their Discord account to a character —
+  // not just that they eventually did.
+  claimedAt DateTime?
 
   // Created by an admin via "Claim a character" (guild.adminClaimCharacter)
   // instead of an addon roster scan — typically an out-of-guild alt that'll
@@ -334,6 +372,65 @@ model GuildRosterClaimConflict {
   attemptedByDiscordId  String
   attemptedByDiscordTag String
   createdAt             DateTime          @default(now())
+}
+
+// Every role add/remove GuildThing has made on a member, from either
+// source: the bot's own routine rule-based resync (source = "bot",
+// executorId/executorTag null), or a human's manual Discord edit the
+// resync detected and deliberately left alone rather than overwrite
+// (source = "manual", executorId/executorTag set) — see roleSync.ts's and
+// roleLogic.ts's "newest change wins" comparison against
+// GuildRosterMember.rankChangedAt. A "manual" row is only ever created
+// once per distinct detected edit — see hasLoggedManualChange in
+// auditLog.ts — since the same still-unresolved human edit would otherwise
+// get re-logged on every resync cycle for as long as it keeps winning.
+// MAX(detectedAt) per discordUserId (manual rows only) is the "when did a
+// human last touch this person's roles" side of that comparison on every
+// later run; the merged feed (both sources) is also surfaced on the admin
+// page. addedRoleIds/removedRoleIds are JSON-array-in-a-string, same
+// convention as GuildPendingRosterMatch.names — a write-once, rarely-
+// queried log row doesn't earn a normalized child table.
+model GuildRoleChangeEvent {
+  id               String   @id @default(cuid())
+  guildId          String
+  guild            Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  discordUserId    String
+  discordUserTag   String
+  source           String // "bot" | "manual"
+  executorId       String?
+  executorTag      String?
+  addedRoleIds     String
+  addedRoleNames   String
+  removedRoleIds   String
+  removedRoleNames String
+  // For source = "manual": the audit-log entry's own timestamp (when the
+  // human made the edit), what the newest-wins comparison actually uses.
+  // For source = "bot": just the moment the resync applied the change.
+  // Neither is row-creation time.
+  detectedAt DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([guildId, discordUserId])
+}
+
+// Logged whenever applyRosterImport (wow-import.ts) detects an actual rank
+// transition for a roster row (same trigger that bumps
+// GuildRosterMember.rankChangedAt) — the in-game half of the unified audit
+// log shown on the roster page / admin panel / addon Audit Log tab, merged
+// chronologically with GuildRoleChangeEvent (the Discord half). Keyed by
+// characterName rather than FK'd to GuildRosterMember on purpose: a roster
+// row can be deleted (member left, re-import drops them) without losing the
+// history of what happened to that character while they were around.
+model GuildRankChangeEvent {
+  id            String   @id @default(cuid())
+  guildId       String
+  guild         Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  characterName String
+  oldRank       String?
+  newRank       String
+  detectedAt    DateTime @default(now())
+
+  @@index([guildId, characterName])
 }
 
 // Someone completed onboarding claiming guild membership, but none of the
@@ -494,6 +591,134 @@ model GuildRoleRuleCondition {
   textValue String? // used when operator == "equals"
   minNumber Int?    // used when operator == "between"
   maxNumber Int?    // used when operator == "between"
+}
+
+// One node in a guild's admin-built onboarding question graph (built via a
+// flowchart canvas on the site — see GuildOnboardingEdge for the branching
+// between nodes). canvasX/canvasY persist the builder's layout across
+// sessions; they're display-only, not used by the bot when walking the
+// graph. type drives which Discord component the bot uses to ask it.
+model GuildOnboardingQuestion {
+  id        String   @id @default(cuid())
+  guildId   String
+  guild     Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  prompt    String
+  type      String   // "single_select" | "multi_select" | "free_text"
+  // Optional questions offer a "Skip" choice in Discord and, if skipped,
+  // just aren't answered — no GuildOnboardingAnswer row is written for
+  // that person/question, and the flow moves on rather than blocking.
+  required  Boolean  @default(true)
+  canvasX   Float    @default(0)
+  canvasY   Float    @default(0)
+  createdAt DateTime @default(now())
+
+  options  GuildOnboardingQuestionOption[]
+  outEdges GuildOnboardingEdge[]           @relation("EdgeFrom")
+  inEdges  GuildOnboardingEdge[]           @relation("EdgeTo")
+  answers  GuildOnboardingAnswer[]
+}
+
+// One selectable option for a single_select/multi_select question — unused
+// for free_text. sortOrder is explicit since child rows (same reasoning as
+// GuildRoleRuleGrantedRole) have no inherent order of their own.
+model GuildOnboardingQuestionOption {
+  id         String                  @id @default(cuid())
+  questionId String
+  question   GuildOnboardingQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  label      String
+  sortOrder  Int
+
+  answerSelections     GuildOnboardingAnswerOption[]
+  conditionOptionLinks GuildOnboardingEdgeConditionOption[]
+}
+
+// One connection drawn on the canvas. fromQuestionId null means it
+// originates from the synthetic "Start" node (not a DB row, always the
+// graph's entry point). Each edge still has only one condition TYPE, but
+// answer_equals/class_equals can each match a whole OR-set of values (see
+// GuildOnboardingEdgeConditionOption/Class below) — "if class is Warrior OR
+// Rogue" is one edge with two conditionClasses rows, not two separate
+// edges. Composing across DIFFERENT fields (e.g. class AND level) still
+// isn't supported — draw two edges in series for that, or two edges into
+// the same target for an OR across types, which the graph shape already
+// gives for free.
+model GuildOnboardingEdge {
+  id                String                   @id @default(cuid())
+  guildId           String
+  guild             Guild                    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  fromQuestionId    String?
+  fromQuestion      GuildOnboardingQuestion? @relation("EdgeFrom", fields: [fromQuestionId], references: [id], onDelete: Cascade)
+  toQuestionId      String
+  toQuestion        GuildOnboardingQuestion  @relation("EdgeTo", fields: [toQuestionId], references: [id], onDelete: Cascade)
+  conditionType     String                   // "always" | "answer_equals" | "class_equals" | "level_between"
+  // Used when conditionType == "level_between" — same min/max-range idea
+  // as GuildRoleRuleCondition's "between" operator. Level comes from the
+  // person's matched GuildRosterMember row (see onboardingQuestions.ts in
+  // the bot), same as class — meaningless for rosterSource "onboarding"
+  // guilds, where level is always fixed to 1, so this condition just never
+  // fires there.
+  conditionMinLevel Int?
+  conditionMaxLevel Int?
+
+  conditionOptions GuildOnboardingEdgeConditionOption[]
+  conditionClasses GuildOnboardingEdgeConditionClass[]
+}
+
+// One option (of possibly several, OR'd) that satisfies an
+// conditionType == "answer_equals" edge — fires if fromQuestion's given
+// answer includes ANY of these. Only valid when fromQuestionId is set
+// (Start has no prior answer to compare).
+model GuildOnboardingEdgeConditionOption {
+  id       String                        @id @default(cuid())
+  edgeId   String
+  edge     GuildOnboardingEdge           @relation(fields: [edgeId], references: [id], onDelete: Cascade)
+  optionId String
+  option   GuildOnboardingQuestionOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+}
+
+// One WoW class token (of possibly several, OR'd) that satisfies a
+// conditionType == "class_equals" edge — see WOW_CLASS_CHOICES in the bot /
+// CLASS_COLORS on the site for the 9 valid tokens. Valid from Start (picks
+// the first question by class) or from a question (gates a follow-up by
+// class regardless of prior answers).
+model GuildOnboardingEdgeConditionClass {
+  id     String              @id @default(cuid())
+  edgeId String
+  edge   GuildOnboardingEdge @relation(fields: [edgeId], references: [id], onDelete: Cascade)
+  class  String
+}
+
+// One person's answer to one custom onboarding question, in one guild.
+// Keyed by discordUserId rather than a roster row — a PUG or not-yet-
+// claimed member can answer before any GuildRosterMember row exists for
+// them, same reasoning as GuildMemberNickname/GuildPugMember below.
+// free_text answers use textValue; single/multi_select answers use
+// selectedOptions instead (one row for single_select, one or more for
+// multi_select) and leave textValue null.
+model GuildOnboardingAnswer {
+  id              String                        @id @default(cuid())
+  guildId         String
+  guild           Guild                         @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  discordUserId   String
+  discordUserTag  String
+  questionId      String
+  question        GuildOnboardingQuestion       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  textValue       String?
+  selectedOptions GuildOnboardingAnswerOption[]
+  updatedAt       DateTime                      @updatedAt
+
+  @@unique([guildId, discordUserId, questionId])
+}
+
+// One selected option within a select-type GuildOnboardingAnswer.
+model GuildOnboardingAnswerOption {
+  id       String                        @id @default(cuid())
+  answerId String
+  answer   GuildOnboardingAnswer         @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  optionId String
+  option   GuildOnboardingQuestionOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@unique([answerId, optionId])
 }
 
 // A custom event signup — e.g. a 5-man dungeon group — created either via
@@ -800,5 +1025,21 @@ model DiscordGuildInfoCache {
   discordGuildId String   @id
   name           String
   icon           String?
+  fetchedAt      DateTime @default(now())
+}
+
+// Short-TTL whole-guild snapshot of "member -> role names", fed by the
+// bot-token getGuildMembers/getGuildRoles (apps/web/src/server/discord.ts)
+// — NOT the same thing as DiscordMemberRoleCache above, which only ever
+// covers users who've personally logged into the website (for site access
+// control) and is keyed per-viewer's own OAuth token. This one exists for
+// the addon-facing /api/v1/discord-roles endpoint, which needs role data
+// for every roster member regardless of whether they've ever visited the
+// site. data is JSON: { [discordUserId]: { tag, roleNames: string[] } }.
+// 5 minutes is plenty fresh for data that only ever reaches the WoW client
+// at its next login/reload anyway.
+model DiscordRolesSnapshotCache {
+  discordGuildId String   @id
+  data           String
   fetchedAt      DateTime @default(now())
 }
