@@ -194,6 +194,14 @@ local function CreateGTFrame()
     rolesTabBtn:SetScript("OnClick", ShowDiscordRolesTab)
     auditTabBtn:SetScript("OnClick", ShowAuditLogTab)
 
+    -- Lets DiscordRolesUI.lua jump straight to a specific person's history
+    -- when their name is clicked there, instead of making them switch tabs
+    -- and type the search themselves.
+    GT.ShowAuditLogFor = function(characterName)
+        auditLogPage.SetFilter(characterName)
+        ShowAuditLogTab()
+    end
+
     f:SetScript("OnShow", ShowRosterTab)
 
     f:Hide()

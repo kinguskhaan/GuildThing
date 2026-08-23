@@ -175,9 +175,18 @@ function GT.CreateAuditLogPage(parent)
     scrollChild:SetSize(LIST_WIDTH, 1)
     scrollFrame:SetScrollChild(scrollChild)
 
+    -- Called from DiscordRolesUI.lua when a name is clicked there — reuses
+    -- the same search filter as the search box (matching on characterName/
+    -- discordNick/discordTag), just set programmatically instead of typed.
+    -- SetText fires OnTextChanged same as typing would, which updates
+    -- searchText and re-runs Refresh on its own.
+    local function SetFilter(text)
+        searchBox:SetText(text)
+    end
+
     Refresh = function()
         BuildRows(scrollChild, status)
     end
 
-    return { frame = page, Refresh = Refresh }
+    return { frame = page, Refresh = Refresh, SetFilter = SetFilter }
 end

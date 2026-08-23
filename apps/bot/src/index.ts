@@ -36,6 +36,11 @@ import {
   scheduleEventButtonRepostOnMessage,
   syncPendingWebEvents,
 } from "./events.js";
+import {
+  handleCraftAutocomplete,
+  handleCraftCommand,
+  handleCraftShareButton,
+} from "./craftLookup.js";
 import { syncExternalCharacters } from "./externalCharacters.js";
 import { syncPendingRosterMatches } from "./pendingMatches.js";
 import { ROLE_SYNC_INTERVAL_MS, runFullRoleSync } from "./roleSync.js";
@@ -111,6 +116,18 @@ const guildthingCommand = new SlashCommandBuilder()
     sub
       .setName("event")
       .setDescription("Create an event signup (e.g. a dungeon group) here"),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName("craft")
+      .setDescription("Look up a recipe's reagents, Wowhead link, and who in the guild can make it")
+      .addStringOption((opt) =>
+        opt
+          .setName("item")
+          .setDescription("Recipe or enchant name (TBC only for now)")
+          .setRequired(true)
+          .setAutocomplete(true),
+      ),
   )
   .toJSON();
 
@@ -299,6 +316,41 @@ client.on(Events.InteractionCreate, (interaction) => {
     void handleReactivate(interaction).catch((err: unknown) => {
       console.error(
         `[bot] /reactivate failed for ${interaction.user.tag}:`,
+        err,
+      );
+    });
+    return;
+  }
+
+  if (
+    interaction.isAutocomplete() &&
+    interaction.commandName === "guildthing" &&
+    interaction.options.getSubcommand() === "craft"
+  ) {
+    void handleCraftAutocomplete(interaction).catch((err: unknown) => {
+      console.error(`[bot] /guildthing craft autocomplete failed:`, err);
+    });
+    return;
+  }
+
+  if (
+    interaction.isChatInputCommand() &&
+    interaction.commandName === "guildthing" &&
+    interaction.options.getSubcommand() === "craft"
+  ) {
+    void handleCraftCommand(interaction).catch((err: unknown) => {
+      console.error(
+        `[bot] /guildthing craft failed for ${interaction.user.tag}:`,
+        err,
+      );
+    });
+    return;
+  }
+
+  if (interaction.isButton() && interaction.customId.startsWith("craft-share:")) {
+    void handleCraftShareButton(interaction).catch((err: unknown) => {
+      console.error(
+        `[bot] craft share button failed for ${interaction.user.tag}:`,
         err,
       );
     });

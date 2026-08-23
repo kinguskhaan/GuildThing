@@ -43,6 +43,20 @@ local function AcquireRow(parent, index)
     row = CreateFrame("Frame", nil, parent)
     row:SetSize(LIST_WIDTH, ROW_HEIGHT)
 
+    -- Clicking anywhere on the row jumps to that person's own history on
+    -- the Audit Log tab (see GT.ShowAuditLogFor in UI.lua) — row.characterName
+    -- is (re)assigned fresh on every BuildRows call below, so the handler
+    -- always sees whoever's currently shown in this pooled row, not
+    -- whoever it was created for.
+    row:EnableMouse(true)
+    row:SetScript("OnEnter", function(self) self.name:SetTextColor(1, 0.82, 0) end)
+    row:SetScript("OnLeave", function(self) self.name:SetTextColor(1, 1, 1) end)
+    row:SetScript("OnMouseUp", function(self)
+        if self.characterName and GT.ShowAuditLogFor then
+            GT.ShowAuditLogFor(self.characterName)
+        end
+    end)
+
     row.name = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     row.name:SetPoint("LEFT", 0, 0)
     row.name:SetWidth(90)
@@ -164,6 +178,7 @@ local function BuildRows(scrollChild)
         frame:ClearAllPoints()
         frame:SetPoint("TOPLEFT", 0, -(shown - 1) * ROW_HEIGHT)
         frame:SetPoint("RIGHT", 0, 0)
+        frame.characterName = row.name
         frame.name:SetText(row.name)
         frame.rank:SetText(row.rank)
         if row.hasSyncData then

@@ -327,7 +327,7 @@ model GuildRosterMember {
   // this field existed, and stays null for a brand-new row (nothing to
   // have "changed" from yet). Used by the bot's role resync (roleSync.ts)
   // to tell whether a rank change is newer than a human's manual Discord
-  // role edit — "the newest change wins" — see GuildManualRoleChange.
+  // role edit — "the newest change wins" — see GuildRoleChangeEvent.
   rankChangedAt DateTime?
   level         Int
   class         String?
@@ -417,7 +417,7 @@ model GuildRoleChangeEvent {
 // transition for a roster row (same trigger that bumps
 // GuildRosterMember.rankChangedAt) — the in-game half of the unified audit
 // log shown on the roster page / admin panel / addon Audit Log tab, merged
-// chronologically with GuildManualRoleChange (the Discord half). Keyed by
+// chronologically with GuildRoleChangeEvent (the Discord half). Keyed by
 // characterName rather than FK'd to GuildRosterMember on purpose: a roster
 // row can be deleted (member left, re-import drops them) without losing the
 // history of what happened to that character while they were around.
