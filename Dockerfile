@@ -99,6 +99,13 @@ COPY --from=builder /app/packages/db/prisma ./packages/db/prisma
 COPY --from=builder /app/packages/db/generated ./packages/db/generated
 COPY --from=builder /app/packages/db/src ./packages/db/src
 COPY --from=builder /app/packages/db/package.json ./packages/db/package.json
+# @guildthing/wowhead-data — a real (not dev-only) dependency of the bot
+# since /guildthing craft imports it directly, same reasoning as
+# packages/db above: its "exports" field points at ./src/index.ts, so the
+# bot needs the actual source + package.json present at runtime, not just
+# a symlink to nothing.
+COPY --from=builder /app/packages/wowhead-data/src ./packages/wowhead-data/src
+COPY --from=builder /app/packages/wowhead-data/package.json ./packages/wowhead-data/package.json
 COPY --from=builder /app/apps/bot/src ./apps/bot/src
 COPY --from=builder /app/apps/bot/package.json ./apps/bot/package.json
 # See the matching comment on the runner stage above — same sqlite-data
@@ -113,6 +120,7 @@ RUN mkdir -p /app/data && chown bot:nodejs /app/data
 # exposes at the package's own node_modules, not the root.
 COPY --from=deps --chown=bot:nodejs /app/node_modules ./node_modules
 COPY --from=deps --chown=bot:nodejs /app/packages/db/node_modules ./packages/db/node_modules
+COPY --from=deps --chown=bot:nodejs /app/packages/wowhead-data/node_modules ./packages/wowhead-data/node_modules
 COPY --from=deps --chown=bot:nodejs /app/apps/bot/node_modules ./apps/bot/node_modules
 
 COPY docker-entrypoint.sh ./
