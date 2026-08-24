@@ -80,6 +80,48 @@ export const eventRouter = createTRPCRouter({
       }));
     }),
 
+  // Full detail for one event, including its role slots and time option
+  // labels — deliberately not part of `list` above (which only returns
+  // aggregate counts for a lean list view), fetched lazily when an admin
+  // opens the edit form for a specific event.
+  get: protectedProcedure
+    .input(z.object({ guildId: z.string(), id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? forbiddenOrRateLimited(null)
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const event = await ctx.db.event.findFirst({
+        where: { id: input.id, guildId: input.guildId },
+        include: { roleSlots: true, timeOptions: true },
+      });
+      if (!event) throw new TRPCError({ code: "NOT_FOUND" });
+
+      return {
+        id: event.id,
+        title: event.title,
+        imageUrl: event.imageUrl,
+        date: event.date,
+        description: event.description,
+        allowTimeSuggestions: event.allowTimeSuggestions,
+        recurrenceIntervalDays: event.recurrenceIntervalDays,
+        discordChannelId: event.discordChannelId,
+        roleSlots: event.roleSlots.map((r) => ({
+          roleName: r.roleName,
+          capacity: r.capacity,
+          emoji: r.emoji,
+        })),
+        timeOptionLabels: event.timeOptions.map((t) => t.label),
+      };
+    }),
+
   create: protectedProcedure
     .input(
       z.object({
@@ -148,6 +190,91 @@ export const eventRouter = createTRPCRouter({
       });
 
       return { id: event.id };
+    }),
+
+  // Replaces every editable field, including role slots and time options —
+  // an admin fixing a typo'd title and an admin reworking the whole role
+  // composition go through the same call. roleSlots/timeOptions are always
+  // fully replaced rather than diffed against the existing rows: simpler,
+  // and matches how the create form already collects them (a flat list with
+  // no stable per-row identity to diff against). That does mean any
+  // signups/votes tied to the slots or options being replaced are cascade-
+  // deleted (see EventSignup/EventTimeVote's onDelete: Cascade) — acceptable
+  // here since changing "what roles are needed" or "what times are on
+  // offer" is exactly the kind of edit that should invalidate signups made
+  // against the old set. Only allowed while still "open" (same as cancel)
+  // so this never fights runEventAutoLock or edits out from under an
+  // already-locked lockedTimeOptionId.
+  update: protectedProcedure
+    .input(
+      z.object({
+        guildId: z.string(),
+        id: z.string(),
+        title: z.string().min(1).max(100),
+        imageUrl: z
+          .string()
+          .url()
+          .refine((url) => /^https?:\/\//.test(url), {
+            message:
+              "Image URL must be a normal http(s) link, not a pasted image.",
+          })
+          .optional(),
+        date: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        description: z.string().max(1000).optional(),
+        allowTimeSuggestions: z.boolean().default(true),
+        recurrenceIntervalDays: z.number().int().min(1).max(365).optional(),
+        discordChannelId: z.string().min(1),
+        roleSlots: z.array(roleSlotSchema).min(1),
+        timeOptionLabels: z.array(z.string().min(1)).default([]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? forbiddenOrRateLimited(null)
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      const existing = await ctx.db.event.findFirst({
+        where: { id: input.id, guildId: input.guildId },
+        select: { status: true },
+      });
+      if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
+      if (existing.status !== "open") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Only an open event can be edited.",
+        });
+      }
+
+      await ctx.db.event.update({
+        where: { id: input.id },
+        data: {
+          title: input.title,
+          imageUrl: input.imageUrl ?? null,
+          date: input.date ?? null,
+          description: input.description ?? null,
+          allowTimeSuggestions: input.allowTimeSuggestions,
+          recurrenceIntervalDays: input.recurrenceIntervalDays ?? null,
+          discordChannelId: input.discordChannelId,
+          pendingWebUpdate: true,
+          roleSlots: { deleteMany: {}, create: input.roleSlots },
+          timeOptions: {
+            deleteMany: {},
+            create: input.timeOptionLabels.map((label) => ({ label })),
+          },
+        },
+      });
+
+      return { ok: true };
     }),
 
   cancel: protectedProcedure

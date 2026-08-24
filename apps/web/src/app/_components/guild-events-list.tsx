@@ -1,7 +1,11 @@
 "use client";
 
+import { useState } from "react";
+
 import { api } from "~/trpc/react";
 import type { RouterOutputs } from "~/trpc/react";
+
+import { GuildEventEditForm } from "~/app/_components/guild-event-edit-form";
 
 type EventRow = RouterOutputs["event"]["list"][number];
 
@@ -31,10 +35,23 @@ export function GuildEventsList({
   const cancel = api.event.cancel.useMutation({
     onSuccess: async () => utils.event.list.invalidate({ guildId }),
   });
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   return (
     <ul className="flex w-full flex-col gap-2">
       {events.map((event) => {
+        if (editingId === event.id) {
+          return (
+            <li key={event.id}>
+              <GuildEventEditForm
+                guildId={guildId}
+                eventId={event.id}
+                onClose={() => setEditingId(null)}
+              />
+            </li>
+          );
+        }
+
         const badge = statusBadge(event.status);
         return (
           <li
@@ -66,14 +83,23 @@ export function GuildEventsList({
               </span>
             </div>
             {isAdmin && event.status === "open" && (
-              <button
-                type="button"
-                onClick={() => cancel.mutate({ guildId, id: event.id })}
-                disabled={cancel.isPending}
-                className="text-discord-text-muted hover:text-discord-red shrink-0 text-sm underline disabled:opacity-50"
-              >
-                Cancel
-              </button>
+              <div className="flex shrink-0 items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingId(event.id)}
+                  className="text-discord-text-muted hover:text-discord-text text-sm underline"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => cancel.mutate({ guildId, id: event.id })}
+                  disabled={cancel.isPending}
+                  className="text-discord-text-muted hover:text-discord-red text-sm underline disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
             )}
           </li>
         );
