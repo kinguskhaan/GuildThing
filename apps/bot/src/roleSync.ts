@@ -22,19 +22,137 @@ import {
 // now. Bump this down if that stops being true.
 export const ROLE_SYNC_INTERVAL_MS = 24 * 60 * 60_000;
 
+const GUILD_RULES_INCLUDE = {
+  roleRules: {
+    include: { conditions: true, grantedRoles: true, grantedChannels: true },
+  },
+  rolePriorities: true,
+  protectedRoles: true,
+} as const;
+
 async function loadGuildsWithRules() {
-  return db.guild.findMany({
-    include: {
-      roleRules: {
-        include: { conditions: true, grantedRoles: true, grantedChannels: true },
-      },
-      rolePriorities: true,
-      protectedRoles: true,
-    },
+  return db.guild.findMany({ include: GUILD_RULES_INCLUDE });
+}
+
+export type GuildWithRules = Awaited<
+  ReturnType<typeof loadGuildsWithRules>
+>[number];
+
+// Single-guild counterpart of loadGuildsWithRules — for the /bossman
+// commands, which only ever need to act on the one guild the interaction
+// came from, not every guild the bot is in.
+export async function loadGuildWithRules(
+  discordGuildId: string,
+): Promise<GuildWithRules | null> {
+  return db.guild.findFirst({
+    where: { discordGuildId },
+    include: GUILD_RULES_INCLUDE,
   });
 }
 
-type GuildWithRules = Awaited<ReturnType<typeof loadGuildsWithRules>>[number];
+// grantedRoles minus anything an admin's marked hands-off (GuildProtectedRole)
+// — the exact set of roles this guild's rules are allowed to add/remove.
+// Shared by syncGuildRoles (applies it) and diffGuildRoles (reports it)
+// below so "which roles are ours to manage" can never drift between the two.
+export function managedRoleIdsFor(guildRow: GuildWithRules): Set<string> {
+  const managedRoleIds = new Set(
+    guildRow.roleRules.flatMap((r) =>
+      r.grantedRoles.map((g) => g.discordRoleId),
+    ),
+  );
+  for (const p of guildRow.protectedRoles)
+    managedRoleIds.delete(p.discordRoleId);
+  return managedRoleIds;
+}
+
+// Groups the guild's claimed roster by the Discord account it's claimed
+// under and evaluates the rules for each — "what roles should this person
+// have right now, per the roster alone" — with no knowledge yet of what
+// roles they actually hold in Discord. Shared by syncGuildRoles (which
+// applies the difference) and diffGuildRoles (which only reports it).
+async function desiredRolesByMember(
+  guildRow: GuildWithRules,
+): Promise<Map<string, Set<string>>> {
+  const rosterRows = await db.guildRosterMember.findMany({
+    where: { guildId: guildRow.id, claimedByDiscordUserId: { not: null } },
+  });
+
+  const rowsByDiscordUser = new Map<string, typeof rosterRows>();
+  for (const row of rosterRows) {
+    const discordUserId = row.claimedByDiscordUserId;
+    if (!discordUserId) continue;
+    rowsByDiscordUser.set(discordUserId, [
+      ...(rowsByDiscordUser.get(discordUserId) ?? []),
+      row,
+    ]);
+  }
+
+  const desired = new Map<string, Set<string>>();
+  for (const [discordUserId, rows] of rowsByDiscordUser) {
+    const matched: MatchedCharacter[] = rows.map((r) => ({
+      rank: r.rank,
+      level: r.level,
+      class: r.class,
+    }));
+    const { roleIds } = evaluateRules(
+      guildRow.roleRules,
+      matched,
+      guildRow.rolePriorities,
+    );
+    desired.set(discordUserId, roleIds);
+  }
+  return desired;
+}
+
+// A single member's rule-managed roles not matching what the rules say
+// they should have right now — toAdd/toRemove describe the roles that
+// would close the gap, whether or not anything's actually been done about
+// it (syncGuildRoles applies them; diffGuildRoles below just reports them).
+export interface RoleMismatch {
+  discordUserTag: string;
+  toAdd: string[];
+  toRemove: string[];
+}
+
+// Read-only counterpart to syncGuildRoles — same "what should they have"
+// computation, but only ever reads Discord's current roles, never writes.
+// For /bossman's role-diff command: an officer wants to see what's
+// currently wrong without triggering an actual resync (and its DMs/audit
+// log entries) just to look.
+export async function diffGuildRoles(
+  discordGuild: DiscordGuild,
+  guildRow: GuildWithRules,
+): Promise<RoleMismatch[]> {
+  const managedRoleIds = managedRoleIdsFor(guildRow);
+  if (managedRoleIds.size === 0) return [];
+
+  const desired = await desiredRolesByMember(guildRow);
+  const roleName = (id: string) => discordGuild.roles.cache.get(id)?.name ?? id;
+
+  const mismatches: RoleMismatch[] = [];
+  for (const [discordUserId, desiredRoleIds] of desired) {
+    let member;
+    try {
+      member = await discordGuild.members.fetch(discordUserId);
+    } catch {
+      continue; // no longer in the server
+    }
+
+    const currentManaged = member.roles.cache.filter((r) =>
+      managedRoleIds.has(r.id),
+    );
+    const toAdd = [...desiredRoleIds].filter((id) => !currentManaged.has(id));
+    const toRemove = currentManaged.filter((r) => !desiredRoleIds.has(r.id));
+    if (toAdd.length === 0 && toRemove.size === 0) continue;
+
+    mismatches.push({
+      discordUserTag: member.user.tag,
+      toAdd: toAdd.map(roleName),
+      toRemove: toRemove.map((r) => r.name),
+    });
+  }
+  return mismatches;
+}
 
 // Walks every registered guild's claimed roster and brings each claimed
 // Discord member's rule-granted roles in line with their current
@@ -57,17 +175,16 @@ export async function runFullRoleSync(client: Client<true>): Promise<void> {
   }
 }
 
-async function syncGuildRoles(
+// Returns every member actually changed this pass (added/removed roles) —
+// /bossman's sync-roster command reports this back to the officer who ran
+// it instead of leaving them to go check the audit log for what happened.
+export async function syncGuildRoles(
   discordGuild: DiscordGuild,
   guildRow: GuildWithRules,
-): Promise<void> {
-  const managedRoleIds = new Set(
-    guildRow.roleRules.flatMap((r) => r.grantedRoles.map((g) => g.discordRoleId)),
-  );
-  // Never touch a role an admin has marked hands-off, even if a rule also
-  // grants it — see GuildProtectedRole in schema.prisma.
-  for (const p of guildRow.protectedRoles) managedRoleIds.delete(p.discordRoleId);
-  if (managedRoleIds.size === 0) return;
+): Promise<RoleMismatch[]> {
+  const changes: RoleMismatch[] = [];
+  const managedRoleIds = managedRoleIdsFor(guildRow);
+  if (managedRoleIds.size === 0) return changes;
 
   const rosterRows = await db.guildRosterMember.findMany({
     where: { guildId: guildRow.id, claimedByDiscordUserId: { not: null } },
@@ -129,14 +246,23 @@ async function syncGuildRoles(
       const humanIsNewer =
         !latestRankChangeAt || newestHumanChange.changedAt > latestRankChangeAt;
       if (humanIsNewer) {
-        await logManualRoleChangeAndSkip(discordGuild, guildRow, member, humanChangeList);
+        await logManualRoleChangeAndSkip(
+          discordGuild,
+          guildRow,
+          member,
+          humanChangeList,
+        );
         continue;
       }
     }
 
-    const currentManaged = member.roles.cache.filter((r) => managedRoleIds.has(r.id));
+    const currentManaged = member.roles.cache.filter((r) =>
+      managedRoleIds.has(r.id),
+    );
     const toAdd = [...desiredRoleIds].filter((id) => !currentManaged.has(id));
-    const toRemoveRoles = currentManaged.filter((r) => !desiredRoleIds.has(r.id));
+    const toRemoveRoles = currentManaged.filter(
+      (r) => !desiredRoleIds.has(r.id),
+    );
     const toRemove = toRemoveRoles.map((r) => r.id);
 
     if (toAdd.length > 0 || toRemove.length > 0) {
@@ -145,14 +271,19 @@ async function syncGuildRoles(
         if (toRemove.length > 0) await member.roles.remove(toRemove);
         const roleName = (id: string) =>
           discordGuild.roles.cache.get(id)?.name ?? id;
-        const added = toAdd.map(roleName).join(", ") || "none";
-        const removed = toRemoveRoles.map((r) => r.name).join(", ") || "none";
+        const addedNames = toAdd.map(roleName);
+        const removedNames = toRemoveRoles.map((r) => r.name);
         console.log(
-          `[bot] role sync for ${member.user.tag} in ${discordGuild.name}: +[${added}] -[${removed}]`,
+          `[bot] role sync for ${member.user.tag} in ${discordGuild.name}: +[${addedNames.join(", ") || "none"}] -[${removedNames.join(", ") || "none"}]`,
         );
         await persistBotRoleChange(guildRow.id, discordGuild, member, {
           addedRoleIds: toAdd,
           removedRoleIds: toRemove,
+        });
+        changes.push({
+          discordUserTag: member.user.tag,
+          toAdd: addedNames,
+          toRemove: removedNames,
         });
       } catch (err) {
         console.error(
@@ -177,6 +308,7 @@ async function syncGuildRoles(
       notifyOnFailure: false,
     });
   }
+  return changes;
 }
 
 // Persists a GuildRoleChangeEvent row for EVERY entry in `changes` (role

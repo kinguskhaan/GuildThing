@@ -3,6 +3,7 @@ import {
   Events,
   GatewayIntentBits,
   type Guild,
+  PermissionFlagsBits,
   Routes,
   SlashCommandBuilder,
 } from "discord.js";
@@ -41,6 +42,7 @@ import {
   handleCraftCommand,
   handleCraftShareButton,
 } from "./craftLookup.js";
+import { handleRoleDiffCommand, handleSyncRosterCommand } from "./bossman.js";
 import { syncExternalCharacters } from "./externalCharacters.js";
 import { syncPendingRosterMatches } from "./pendingMatches.js";
 import { ROLE_SYNC_INTERVAL_MS, runFullRoleSync } from "./roleSync.js";
@@ -117,16 +119,48 @@ const guildthingCommand = new SlashCommandBuilder()
       .setName("event")
       .setDescription("Create an event signup (e.g. a dungeon group) here"),
   )
+  .toJSON();
+
+// Top-level rather than a /guildthing subcommand — named after the
+// OurRecipes addon whose P2P export feeds this lookup (see
+// craftLookup.ts's OUR_RECIPES_URL), so the command name matches what
+// members already associate the data with.
+const ourRecipesCommand = new SlashCommandBuilder()
+  .setName("ourrecipes")
+  .setDescription(
+    "Look up a recipe's reagents, Wowhead link, and who in the guild can make it",
+  )
+  .addStringOption((opt) =>
+    opt
+      .setName("item")
+      .setDescription("Recipe or enchant name (TBC only for now)")
+      .setRequired(true)
+      .setAutocomplete(true),
+  )
+  .toJSON();
+
+// Officer/admin tooling, namespaced under one command so future additions
+// land here instead of cluttering the top-level command list. Gated via
+// Discord's own default member permissions (ManageGuild) rather than
+// GuildAdminRole/createdById, unlike the web app's checkGuildAdmin —
+// simplest thing that works here; revisit if a subcommand ever needs the
+// exact same admin definition the web app uses.
+const bossmanCommand = new SlashCommandBuilder()
+  .setName("bossman")
+  .setDescription("Admin/officer tools")
+  .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
   .addSubcommand((sub) =>
     sub
-      .setName("craft")
-      .setDescription("Look up a recipe's reagents, Wowhead link, and who in the guild can make it")
-      .addStringOption((opt) =>
-        opt
-          .setName("item")
-          .setDescription("Recipe or enchant name (TBC only for now)")
-          .setRequired(true)
-          .setAutocomplete(true),
+      .setName("role-diff")
+      .setDescription(
+        "Show roster members whose Discord roles don't match the role rules",
+      ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName("sync-roster")
+      .setDescription(
+        "Resync this server's roles/ranks against the roster right now",
       ),
   )
   .toJSON();
@@ -140,6 +174,8 @@ async function registerCommands(guild: Guild) {
       onboardingCommand,
       reactivateCommand,
       guildthingCommand,
+      ourRecipesCommand,
+      bossmanCommand,
     ]);
   } catch (err) {
     console.error(`[bot] failed to register commands for ${guild.name}:`, err);
@@ -324,30 +360,59 @@ client.on(Events.InteractionCreate, (interaction) => {
 
   if (
     interaction.isAutocomplete() &&
-    interaction.commandName === "guildthing" &&
-    interaction.options.getSubcommand() === "craft"
+    interaction.commandName === "ourrecipes"
   ) {
     void handleCraftAutocomplete(interaction).catch((err: unknown) => {
-      console.error(`[bot] /guildthing craft autocomplete failed:`, err);
+      console.error(`[bot] /ourrecipes autocomplete failed:`, err);
     });
     return;
   }
 
   if (
     interaction.isChatInputCommand() &&
-    interaction.commandName === "guildthing" &&
-    interaction.options.getSubcommand() === "craft"
+    interaction.commandName === "ourrecipes"
   ) {
     void handleCraftCommand(interaction).catch((err: unknown) => {
       console.error(
-        `[bot] /guildthing craft failed for ${interaction.user.tag}:`,
+        `[bot] /ourrecipes failed for ${interaction.user.tag}:`,
         err,
       );
     });
     return;
   }
 
-  if (interaction.isButton() && interaction.customId.startsWith("craft-share:")) {
+  if (
+    interaction.isChatInputCommand() &&
+    interaction.commandName === "bossman" &&
+    interaction.options.getSubcommand() === "role-diff"
+  ) {
+    void handleRoleDiffCommand(interaction).catch((err: unknown) => {
+      console.error(
+        `[bot] /bossman role-diff failed for ${interaction.user.tag}:`,
+        err,
+      );
+    });
+    return;
+  }
+
+  if (
+    interaction.isChatInputCommand() &&
+    interaction.commandName === "bossman" &&
+    interaction.options.getSubcommand() === "sync-roster"
+  ) {
+    void handleSyncRosterCommand(interaction).catch((err: unknown) => {
+      console.error(
+        `[bot] /bossman sync-roster failed for ${interaction.user.tag}:`,
+        err,
+      );
+    });
+    return;
+  }
+
+  if (
+    interaction.isButton() &&
+    interaction.customId.startsWith("craft-share:")
+  ) {
     void handleCraftShareButton(interaction).catch((err: unknown) => {
       console.error(
         `[bot] craft share button failed for ${interaction.user.tag}:`,

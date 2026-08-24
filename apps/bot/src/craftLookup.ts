@@ -18,7 +18,7 @@ const CRAFT_SHARE_PREFIX = "craft-share:";
 // nothing and might grow the list for next time.
 const OUR_RECIPES_URL = "https://www.curseforge.com/wow/addons/ourrecipes";
 
-// /guildthing craft <item> — TBC only for now (wowheadUrl/getWowheadEntry
+// /ourrecipes <item> — TBC only for now (wowheadUrl/getWowheadEntry
 // are themselves hardcoded to the "tbc" Wowhead namespace, and there's no
 // Classic-era recipe catalog scraped yet). A guild on Classic Era will
 // just get "couldn't find that" for everything, same as any unrecognized
