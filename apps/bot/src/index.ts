@@ -27,6 +27,7 @@ import {
   START_ONBOARDING_BUTTON_ID,
 } from "./onboardingButton.js";
 import {
+  cleanupOldCancelledEvents,
   ensureEventCreateButtons,
   repostDailyEventButtons,
   EVENT_CREATE_BUTTON_ID,
@@ -258,6 +259,9 @@ client.once(Events.ClientReady, (readyClient) => {
     });
     ensureEventCreateButtons(readyClient).catch((err: unknown) => {
       console.error("[bot] event-create button check failed:", err);
+    });
+    cleanupOldCancelledEvents().catch((err: unknown) => {
+      console.error("[bot] cancelled-event cleanup failed:", err);
     });
   };
   checkEvents();

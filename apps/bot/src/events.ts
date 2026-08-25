@@ -1871,6 +1871,28 @@ async function runEventExpiryUnguarded(client: Client<true>): Promise<void> {
   }
 }
 
+// Daily-recurring events spawn a fresh cancelled row every single day they
+// run (see runEventExpiryUnguarded above) — left unchecked, that's ~20+
+// rows/day across a guild's recurring channels, forever. Cascades to the
+// cancelled event's roleSlots/timeOptions/signups (see schema.prisma's
+// onDelete: Cascade on those relations), so nothing orphaned is left
+// behind. Old enough that nobody's looking at it in the events list either
+// way (see CANCELLED_EVENT_RETENTION_DAYS in the web app's event router for
+// the shorter cutoff that hides it from the list before this deletes it).
+const CANCELLED_EVENT_MAX_AGE_DAYS = 30;
+
+export async function cleanupOldCancelledEvents(): Promise<void> {
+  const cutoff = new Date(
+    Date.now() - CANCELLED_EVENT_MAX_AGE_DAYS * 24 * 60 * 60_000,
+  );
+  const { count } = await db.event.deleteMany({
+    where: { status: "cancelled", createdAt: { lt: cutoff } },
+  });
+  if (count > 0) {
+    console.log(`[bot] cleaned up ${count} cancelled event(s) older than ${CANCELLED_EVENT_MAX_AGE_DAYS}d`);
+  }
+}
+
 export const EVENT_CREATE_BUTTON_ID = "event-create-button";
 
 const EVENT_BUTTON_MESSAGE_TEXT =

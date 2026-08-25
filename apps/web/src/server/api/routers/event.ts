@@ -38,6 +38,15 @@ async function requireDiscordUserId(
   return account.accountId;
 }
 
+// A daily-recurring event spawns a fresh cancelled row every day it runs
+// (see runEventExpiryUnguarded in apps/bot/src/events.ts) — without a
+// cutoff here, this list grows forever and old cancelled runs bury the
+// still-open events admins actually care about. The bot permanently
+// deletes cancelled rows past CANCELLED_EVENT_MAX_AGE_DAYS (30d, see
+// events.ts) — this cutoff is just the shorter "stop showing it" window
+// within that.
+const CANCELLED_EVENT_RETENTION_DAYS = 7;
+
 // Signing up, voting, leaving, and cancelling all happen through the
 // Discord message's own components (see apps/bot/src/events.ts) — this
 // router only creates, lists, and cancels, same "site is a management
@@ -55,8 +64,17 @@ export const eventRouter = createTRPCRouter({
         throw forbiddenOrRateLimited(retryAfterSeconds);
       }
 
+      const cancelledCutoff = new Date(
+        Date.now() - CANCELLED_EVENT_RETENTION_DAYS * 24 * 60 * 60_000,
+      );
       const events = await ctx.db.event.findMany({
-        where: { guildId: input.guildId },
+        where: {
+          guildId: input.guildId,
+          OR: [
+            { status: { not: "cancelled" } },
+            { status: "cancelled", createdAt: { gte: cancelledCutoff } },
+          ],
+        },
         include: {
           roleSlots: { include: { signups: true } },
           timeOptions: { include: { votes: true } },
