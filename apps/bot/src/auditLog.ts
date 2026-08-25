@@ -122,7 +122,7 @@ export async function persistManualRoleChange(
   discordGuild: DiscordGuild,
   member: { id: string; user: { tag: string } },
   change: HumanRoleChange,
-): Promise<void> {
+): Promise<boolean> {
   const already = await db.guildRoleChangeEvent.findFirst({
     where: {
       guildId,
@@ -132,7 +132,7 @@ export async function persistManualRoleChange(
     },
     select: { id: true },
   });
-  if (already) return;
+  if (already) return false;
 
   const roleName = (id: string) => discordGuild.roles.cache.get(id)?.name ?? id;
   await db.guildRoleChangeEvent.create({
@@ -150,6 +150,7 @@ export async function persistManualRoleChange(
       detectedAt: change.changedAt,
     },
   });
+  return true;
 }
 
 // Persists a GuildRoleChangeEvent row for the bot's own successful

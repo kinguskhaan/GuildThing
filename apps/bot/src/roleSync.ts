@@ -328,9 +328,12 @@ async function logManualRoleChangeAndSkip(
 ): Promise<void> {
   const [newest] = changes;
   if (!newest) return;
+  let anyNew = false;
   for (const change of changes) {
-    await persistManualRoleChange(guildRow.id, discordGuild, member, change);
+    const created = await persistManualRoleChange(guildRow.id, discordGuild, member, change);
+    if (created) anyNew = true;
   }
+  if (!anyNew) return; // already logged and notified on an earlier cycle
   console.log(
     `[bot] skipping role resync for ${member.user.tag} in ${discordGuild.name} — manual change by ${newest.executorTag ?? newest.executorId} at ${newest.changedAt.toISOString()} is newer than their last rank change`,
   );
