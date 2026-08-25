@@ -134,6 +134,13 @@ model Guild {
   // links keep working.
   slug                  String                      @unique
   discordGuildId        String                      @unique
+  // Admin kill switch — false pauses every automated background job for
+  // this guild (role sync, channel grants, pending-match retries, external
+  // character sync, inactivity filter) without touching any data. Live
+  // slash commands (/onboarding, /ourrecipes, /bossman, etc.) still work —
+  // this is for "the automation is misbehaving, stop touching my server",
+  // not a full outage switch. See botEnabled checks in apps/bot/src.
+  botEnabled            Boolean                     @default(true)
   createdById           String
   createdBy             User                        @relation(fields: [createdById], references: [id])
   characters            GuildCharacter[]

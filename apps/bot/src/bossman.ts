@@ -111,6 +111,12 @@ export async function handleSyncRosterCommand(
     );
     return;
   }
+  if (!guildRow.botEnabled) {
+    await interaction.editReply(
+      "GuildThing's automation is currently disabled for this server (see the site's guild settings) — re-enable it there before syncing.",
+    );
+    return;
+  }
 
   const changes = await syncGuildRoles(interaction.guild, guildRow);
   if (changes.length === 0) {

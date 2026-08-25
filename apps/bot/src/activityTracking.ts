@@ -30,13 +30,17 @@ export async function trackMessageActivity(message: Message): Promise<void> {
 
   const existing = await db.guildMemberActivity.findUnique({
     where: {
-      guildId_discordUserId: { guildId: guild.id, discordUserId: message.author.id },
+      guildId_discordUserId: {
+        guildId: guild.id,
+        discordUserId: message.author.id,
+      },
     },
   });
 
   if (!existing) {
     const member =
-      message.member ?? (await message.guild.members.fetch(message.author.id).catch(() => null));
+      message.member ??
+      (await message.guild.members.fetch(message.author.id).catch(() => null));
     await db.guildMemberActivity.create({
       data: {
         guildId: guild.id,
@@ -49,11 +53,18 @@ export async function trackMessageActivity(message: Message): Promise<void> {
     return;
   }
 
-  if (Date.now() - existing.lastActiveAt.getTime() < ACTIVITY_UPDATE_THROTTLE_MS) return;
+  if (
+    Date.now() - existing.lastActiveAt.getTime() <
+    ACTIVITY_UPDATE_THROTTLE_MS
+  )
+    return;
 
   await db.guildMemberActivity.update({
     where: { id: existing.id },
-    data: { lastActiveAt: message.createdAt, discordUserTag: message.author.tag },
+    data: {
+      lastActiveAt: message.createdAt,
+      discordUserTag: message.author.tag,
+    },
   });
 }
 
@@ -61,7 +72,9 @@ export async function trackMessageActivity(message: Message): Promise<void> {
 // their own joinedAt (see runInactivityFilter's skip condition) even
 // before they've sent a single message. Tracked unconditionally — see
 // trackMessageActivity above for why this isn't gated on the filter toggle.
-export async function initializeMemberActivity(member: GuildMember): Promise<void> {
+export async function initializeMemberActivity(
+  member: GuildMember,
+): Promise<void> {
   const guild = await db.guild.findUnique({
     where: { discordGuildId: member.guild.id },
     select: { id: true },
@@ -100,7 +113,9 @@ export async function removeMemberActivity(
   if (!guild) return;
 
   await db.guildMemberActivity
-    .delete({ where: { guildId_discordUserId: { guildId: guild.id, discordUserId } } })
+    .delete({
+      where: { guildId_discordUserId: { guildId: guild.id, discordUserId } },
+    })
     .catch(() => {
       // No row to delete — fine, they were never tracked.
     });
@@ -117,6 +132,7 @@ export async function runInactivityFilter(client: Client<true>): Promise<void> {
     select: {
       id: true,
       discordGuildId: true,
+      botEnabled: true,
       inactivityDays: true,
       inactivityRoleId: true,
       adminNotifyChannelId: true,
@@ -125,15 +141,25 @@ export async function runInactivityFilter(client: Client<true>): Promise<void> {
   });
 
   for (const guildRow of guilds) {
-    const targetRoleIds = new Set(guildRow.inactivityTargetRoles.map((r) => r.discordRoleId));
-    if (!guildRow.inactivityDays || targetRoleIds.size === 0 || !guildRow.inactivityRoleId) {
+    if (!guildRow.botEnabled) continue;
+
+    const targetRoleIds = new Set(
+      guildRow.inactivityTargetRoles.map((r) => r.discordRoleId),
+    );
+    if (
+      !guildRow.inactivityDays ||
+      targetRoleIds.size === 0 ||
+      !guildRow.inactivityRoleId
+    ) {
       continue; // filter's on but not fully configured yet
     }
 
     const discordGuild = client.guilds.cache.get(guildRow.discordGuildId);
     if (!discordGuild) continue;
 
-    const cutoff = new Date(Date.now() - guildRow.inactivityDays * 24 * 60 * 60_000);
+    const cutoff = new Date(
+      Date.now() - guildRow.inactivityDays * 24 * 60 * 60_000,
+    );
     const staleRows = await db.guildMemberActivity.findMany({
       where: {
         guildId: guildRow.id,
@@ -151,7 +177,9 @@ export async function runInactivityFilter(client: Client<true>): Promise<void> {
       try {
         member = await discordGuild.members.fetch(row.discordUserId);
       } catch {
-        await db.guildMemberActivity.delete({ where: { id: row.id } }).catch(() => {});
+        await db.guildMemberActivity
+          .delete({ where: { id: row.id } })
+          .catch(() => {});
         continue;
       }
 
@@ -173,11 +201,17 @@ export async function runInactivityFilter(client: Client<true>): Promise<void> {
 
     if ((count > 0 || failed.length > 0) && guildRow.adminNotifyChannelId) {
       try {
-        const channel = await discordGuild.channels.fetch(guildRow.adminNotifyChannelId);
+        const channel = await discordGuild.channels.fetch(
+          guildRow.adminNotifyChannelId,
+        );
         if (channel?.isTextBased()) {
-          const parts = [`💤 Inactivity filter: moved ${count} member(s) to the inactive role.`];
+          const parts = [
+            `💤 Inactivity filter: moved ${count} member(s) to the inactive role.`,
+          ];
           if (failed.length > 0) {
-            parts.push(`Failed for ${failed.length}: ${failed.join(", ")} — check my role position.`);
+            parts.push(
+              `Failed for ${failed.length}: ${failed.join(", ")} — check my role position.`,
+            );
           }
           await channel.send(parts.join(" "));
         }
@@ -225,7 +259,10 @@ export async function handleReactivate(
   try {
     await member.roles.remove(guildRow.inactivityRoleId);
   } catch (err) {
-    console.error(`[bot] failed to remove inactive role for ${member.user.tag}:`, err);
+    console.error(
+      `[bot] failed to remove inactive role for ${member.user.tag}:`,
+      err,
+    );
     await interaction.reply({
       content:
         "Heads up — I couldn't remove your inactive role, most likely a permissions issue on my end. Ask an officer to check.",

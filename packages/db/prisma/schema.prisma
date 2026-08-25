@@ -42,12 +42,12 @@ model User {
   accounts      Account[]
   posts         Post[]
 
-  createdGuilds           Guild[]
-  lastExportedGuilds      Guild[]         @relation("GuildLastExportedBy")
-  lastRosterImportedGuilds Guild[]        @relation("GuildLastRosterImportedBy")
-  guildCharacters         GuildCharacter[]
-  addedGuildCreators      AllowedGuildCreator[]
-  createdApiKeys          GuildApiKey[]
+  createdGuilds            Guild[]
+  lastExportedGuilds       Guild[]               @relation("GuildLastExportedBy")
+  lastRosterImportedGuilds Guild[]               @relation("GuildLastRosterImportedBy")
+  guildCharacters          GuildCharacter[]
+  addedGuildCreators       AllowedGuildCreator[]
+  createdApiKeys           GuildApiKey[]
 
   @@unique([email])
   @@map("user")
@@ -126,39 +126,46 @@ model AllowedGuildCreator {
 }
 
 model Guild {
-  id             String   @id @default(cuid())
-  name           String
+  id                    String                      @id @default(cuid())
+  name                  String
   // URL-safe identifier derived from `name` at creation time (e.g. "My
   // Guild" -> "my-guild") — used in routes instead of `id` so links are
   // readable. Doesn't change if the guild is later renamed, so existing
   // links keep working.
-  slug           String   @unique
-  discordGuildId String   @unique
-  createdById    String
-  createdBy      User     @relation(fields: [createdById], references: [id])
-  characters     GuildCharacter[]
-  requiredRoles  GuildRequiredRole[]
-  adminRoles     GuildAdminRole[]
-  rosterMembers  GuildRosterMember[]
-  roleRules      GuildRoleRule[]
-  rolePriorities GuildRolePriority[]
-  claimConflicts GuildRosterClaimConflict[]
-  roleChangeEvents GuildRoleChangeEvent[]
-  rankChangeEvents GuildRankChangeEvent[]
-  pendingRosterMatches GuildPendingRosterMatch[]
-  memberActivity GuildMemberActivity[]
+  slug                  String                      @unique
+  discordGuildId        String                      @unique
+  // Admin kill switch — false pauses every automated background job for
+  // this guild (role sync, channel grants, pending-match retries, external
+  // character sync, inactivity filter) without touching any data. Live
+  // slash commands (/onboarding, /ourrecipes, /bossman, etc.) still work —
+  // this is for "the automation is misbehaving, stop touching my server",
+  // not a full outage switch. See botEnabled checks in apps/bot/src.
+  botEnabled            Boolean                     @default(true)
+  createdById           String
+  createdBy             User                        @relation(fields: [createdById], references: [id])
+  characters            GuildCharacter[]
+  requiredRoles         GuildRequiredRole[]
+  adminRoles            GuildAdminRole[]
+  rosterMembers         GuildRosterMember[]
+  roleRules             GuildRoleRule[]
+  rolePriorities        GuildRolePriority[]
+  claimConflicts        GuildRosterClaimConflict[]
+  roleChangeEvents      GuildRoleChangeEvent[]
+  rankChangeEvents      GuildRankChangeEvent[]
+  pendingRosterMatches  GuildPendingRosterMatch[]
+  memberActivity        GuildMemberActivity[]
   inactivityTargetRoles GuildInactivityTargetRole[]
-  protectedRoles GuildProtectedRole[]
-  pugMembers     GuildPugMember[]
-  externalCharacters GuildExternalCharacter[]
-  memberNicknames GuildMemberNickname[]
-  events         Event[]
-  eventChannelPresets EventChannelPreset[]
-  apiKeys        GuildApiKey[]
-  onboardingQuestions GuildOnboardingQuestion[]
-  onboardingEdges     GuildOnboardingEdge[]
-  onboardingAnswers   GuildOnboardingAnswer[]
-  createdAt      DateTime @default(now())
+  protectedRoles        GuildProtectedRole[]
+  pugMembers            GuildPugMember[]
+  externalCharacters    GuildExternalCharacter[]
+  memberNicknames       GuildMemberNickname[]
+  events                Event[]
+  eventChannelPresets   EventChannelPreset[]
+  apiKeys               GuildApiKey[]
+  onboardingQuestions   GuildOnboardingQuestion[]
+  onboardingEdges       GuildOnboardingEdge[]
+  onboardingAnswers     GuildOnboardingAnswer[]
+  createdAt             DateTime                    @default(now())
 
   // "addon" (default) — the roster comes from pasting the GuildThing
   // Roster addon's export; onboarding only matches/claims characters that
@@ -181,7 +188,7 @@ model Guild {
   // a guild member — set by an admin, bot assigns it directly with no rule
   // evaluation (see GuildRoleRule) when the bot's onboarding DM gets that
   // answer. Irrelevant while pugEnabled is false.
-  pugRoleId String?
+  pugRoleId  String?
 
   // Who last generated the addon export string, and when — shown on the
   // guild page so admins can tell if the pasted-in-game data is stale.
@@ -194,7 +201,7 @@ model Guild {
   // (name/rank/level/class, not recipes) import.
   lastRosterImportedAt   DateTime?
   lastRosterImportedById String?
-  lastRosterImportedBy   User?      @relation("GuildLastRosterImportedBy", fields: [lastRosterImportedById], references: [id])
+  lastRosterImportedBy   User?     @relation("GuildLastRosterImportedBy", fields: [lastRosterImportedById], references: [id])
 
   // Discord channel (visible to officers + the bot only, by convention —
   // not enforced here) the bot posts admin notices to, e.g. a roster-name
@@ -207,8 +214,8 @@ model Guild {
   // onboardingMessageId is the bot's own bookkeeping (which message is
   // "the" button, so it can be reused instead of reposted every check) —
   // not meant to be read or set from the website.
-  onboardingChannelId String?
-  onboardingMessageId String?
+  onboardingChannelId   String?
+  onboardingMessageId   String?
   // Admin-customizable button message text — null means use the bot's
   // built-in default (see buildButtonMessage in onboardingButton.ts).
   onboardingMessageText String?
@@ -315,11 +322,11 @@ model GuildProtectedRole {
 // than delete+recreate, since a full replace would wipe claimedBy* below
 // on every re-import.
 model GuildRosterMember {
-  id          String  @id @default(cuid())
-  guildId     String
-  guild       Guild   @relation(fields: [guildId], references: [id], onDelete: Cascade)
-  name        String
-  rank        String
+  id            String    @id @default(cuid())
+  guildId       String
+  guild         Guild     @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  name          String
+  rank          String
   // Bumped only when an import's incoming rank actually differs from what
   // was already stored (see applyRosterImport in wow-import.ts) — NOT a
   // plain @updatedAt, which would fire on every import regardless of
@@ -329,10 +336,10 @@ model GuildRosterMember {
   // to tell whether a rank change is newer than a human's manual Discord
   // role edit — "the newest change wins" — see GuildRoleChangeEvent.
   rankChangedAt DateTime?
-  level       Int
-  class       String?
-  note        String?
-  officerNote String?
+  level         Int
+  class         String?
+  note          String?
+  officerNote   String?
 
   // Set on first onboarding match: which Discord account claimed this
   // character. A later claim by a DIFFERENT Discord account still sets
@@ -346,7 +353,7 @@ model GuildRosterMember {
   // unified audit log (guild.auditLog) as a "claim" entry, so admins can
   // see when someone first linked their Discord account to a character —
   // not just that they eventually did.
-  claimedAt DateTime?
+  claimedAt              DateTime?
 
   // Created by an admin via "Claim a character" (guild.adminClaimCharacter)
   // instead of an addon roster scan — typically an out-of-guild alt that'll
@@ -407,8 +414,8 @@ model GuildRoleChangeEvent {
   // human made the edit), what the newest-wins comparison actually uses.
   // For source = "bot": just the moment the resync applied the change.
   // Neither is row-creation time.
-  detectedAt DateTime
-  createdAt  DateTime @default(now())
+  detectedAt       DateTime
+  createdAt        DateTime @default(now())
 
   @@index([guildId, discordUserId])
 }
@@ -447,7 +454,7 @@ model GuildPendingRosterMatch {
   guild                 Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
   discordUserId         String
   discordUserTag        String
-  names                 String   // JSON array of the names they typed, main first
+  names                 String // JSON array of the names they typed, main first
   includeAltsInNickname Boolean
   createdAt             DateTime @default(now())
 
@@ -544,9 +551,9 @@ model GuildMemberActivity {
 // can gate any set of roles (e.g. rank "Trial Raider" granting both a
 // generic "Guildie" role and a "Trial Raider" role from the same rule).
 model GuildRoleRule {
-  id              String  @id @default(cuid())
+  id              String                        @id @default(cuid())
   guildId         String
-  guild           Guild   @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  guild           Guild                         @relation(fields: [guildId], references: [id], onDelete: Cascade)
   label           String?
   grantedRoles    GuildRoleRuleGrantedRole[]
   grantedChannels GuildRoleRuleGrantedChannel[]
@@ -586,11 +593,11 @@ model GuildRoleRuleCondition {
   id        String        @id @default(cuid())
   ruleId    String
   rule      GuildRoleRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
-  field     String  // "rank" | "level" | "class"
-  operator  String  // "equals" (rank/class) | "between" (level)
+  field     String // "rank" | "level" | "class"
+  operator  String // "equals" (rank/class) | "between" (level)
   textValue String? // used when operator == "equals"
-  minNumber Int?    // used when operator == "between"
-  maxNumber Int?    // used when operator == "between"
+  minNumber Int? // used when operator == "between"
+  maxNumber Int? // used when operator == "between"
 }
 
 // One node in a guild's admin-built onboarding question graph (built via a
@@ -603,7 +610,7 @@ model GuildOnboardingQuestion {
   guildId   String
   guild     Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
   prompt    String
-  type      String   // "single_select" | "multi_select" | "free_text"
+  type      String // "single_select" | "multi_select" | "free_text"
   // Optional questions offer a "Skip" choice in Discord and, if skipped,
   // just aren't answered — no GuildOnboardingAnswer row is written for
   // that person/question, and the flow moves on rather than blocking.
@@ -650,7 +657,7 @@ model GuildOnboardingEdge {
   fromQuestion      GuildOnboardingQuestion? @relation("EdgeFrom", fields: [fromQuestionId], references: [id], onDelete: Cascade)
   toQuestionId      String
   toQuestion        GuildOnboardingQuestion  @relation("EdgeTo", fields: [toQuestionId], references: [id], onDelete: Cascade)
-  conditionType     String                   // "always" | "answer_equals" | "class_equals" | "level_between"
+  conditionType     String // "always" | "answer_equals" | "class_equals" | "level_between"
   // Used when conditionType == "level_between" — same min/max-range idea
   // as GuildRoleRuleCondition's "between" operator. Level comes from the
   // person's matched GuildRosterMember row (see onboardingQuestions.ts in
@@ -752,8 +759,8 @@ model EventChannelPreset {
   // Whether the bot keeps a standing "Create new event" button message at
   // the bottom of this channel — same idea as Guild.onboardingChannelId's
   // button, for people who'd rather click than type /guildthing event.
-  buttonEnabled   Boolean @default(false)
-  buttonMessageId String?
+  buttonEnabled     Boolean @default(false)
+  buttonMessageId   String?
   // Admin-customizable text shown above the button — null means use the
   // bot's built-in default (see EVENT_BUTTON_MESSAGE_TEXT in events.ts).
   buttonMessageText String?
@@ -764,7 +771,7 @@ model EventChannelPreset {
   // "daily" — the button is left wherever it drifts to as people chat, and
   // only gets forced back to the bottom once every 24h (see
   // repostDailyEventButtons in events.ts).
-  buttonRepostMode String @default("live")
+  buttonRepostMode   String    @default("live")
   // When the button message was last (re)posted, in either mode — the
   // clock "daily" mode checks against. Set on every repost, including the
   // very first post, so a fresh preset doesn't immediately re-fire.
@@ -778,16 +785,16 @@ model Event {
   guildId String
   guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
 
-  title    String
-  imageUrl String?
+  title                String
+  imageUrl             String?
   // "yyyy-mm-dd" — shown as "Date: {date}" on the embed. Defaults to
   // today's date in both the bot modal and the web form (not enforced
   // here), so it's rarely actually null in practice.
-  date String?
+  date                 String?
   // Free-text blurb shown under the title on the embed. Not on the bot's
   // create modal (already at Discord's 5-text-input cap) — set via the web
   // form at creation, or the bot's Edit modal afterward.
-  description String?
+  description          String?
   // Whether the "+ Add time option" button shows at all — off lets a
   // creator post one or more FIXED times (e.g. "just tonight at 20:00, no
   // discussion") without randoms tacking on more alternatives to vote
@@ -814,13 +821,13 @@ model Event {
   // doesn't clutter the parent channel — null until the bot's poll (or
   // immediate post, for bot-created events) creates it. Deleted outright
   // when the event is cancelled, for a clean "it's just gone" cancel.
-  discordThreadId String?
+  discordThreadId  String?
   // The embed message posted inside that thread — null until the thread
   // exists.
   discordMessageId String?
 
   // "open" | "locked" | "cancelled"
-  status String @default("open")
+  status             String  @default("open")
   // Set once locked (auto after 30min-since-createdAt or every role slot
   // full, whichever first — see runEventAutoLock) to whichever
   // EventTimeOption had the most votes.
@@ -845,9 +852,9 @@ model Event {
 // "19:00–21:00") rather than structured start/end — nothing here parses or
 // compares times, it's purely a votable option.
 model EventTimeOption {
-  id      String @id @default(cuid())
+  id      String          @id @default(cuid())
   eventId String
-  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event   Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
   label   String
   votes   EventTimeVote[]
 }
@@ -871,9 +878,9 @@ model EventTimeVote {
 // name rather than a fixed tank/healer/dps enum, so this isn't locked to
 // WoW's trinity if it's ever used for something else.
 model EventRoleSlot {
-  id       String @id @default(cuid())
+  id       String        @id @default(cuid())
   eventId  String
-  event    Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event    Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
   roleName String
   capacity Int
   // Unicode emoji ("🛡️") or a Discord custom emoji in its raw <:name:id>/
@@ -956,9 +963,9 @@ model GuildRolePriority {
 }
 
 model GuildCharacter {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   guildId     String
-  guild       Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  guild       Guild        @relation(fields: [guildId], references: [id], onDelete: Cascade)
   // Null means "unclaimed" — a peer-sourced row created from someone else's
   // P2P recipe cache (see OurRecipes' P2PSync.lua), not a self-import. Gets
   // claimed (set, and never unset again) the first time the real player
@@ -967,22 +974,22 @@ model GuildCharacter {
   // guild+user+name+realm: a WoW character name is already unique per
   // realm, so two different users can never legitimately claim the same row.
   userId      String?
-  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
   realm       String
   // WoW class token (e.g. "WARRIOR") — sent by the addon's export, null for
   // characters added through the manual entry form (createCharacter), which
   // has no way to know it.
   class       String?
-  importedAt  DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  importedAt  DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   professions Profession[]
 
   @@unique([guildId, name, realm])
 }
 
 model Profession {
-  id          String   @id @default(cuid())
+  id          String         @id @default(cuid())
   characterId String
   character   GuildCharacter @relation(fields: [characterId], references: [id], onDelete: Cascade)
   name        String
@@ -992,7 +999,7 @@ model Profession {
 }
 
 model Recipe {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   professionId String
   profession   Profession @relation(fields: [professionId], references: [id], onDelete: Cascade)
   name         String

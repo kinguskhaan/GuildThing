@@ -166,6 +166,7 @@ export async function runFullRoleSync(client: Client<true>): Promise<void> {
   const guilds = await loadGuildsWithRules();
 
   for (const guildRow of guilds) {
+    if (!guildRow.botEnabled) continue;
     if (guildRow.roleRules.length === 0) continue;
 
     const discordGuild = client.guilds.cache.get(guildRow.discordGuildId);

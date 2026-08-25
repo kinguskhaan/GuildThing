@@ -486,6 +486,7 @@ export const guildRouter = createTRPCRouter({
         retryAfterSeconds,
         rosterSource: guild.rosterSource,
         lastRosterImportedAt: guild.lastRosterImportedAt,
+        botEnabled: guild.botEnabled,
       };
     }),
 
@@ -711,7 +712,11 @@ export const guildRouter = createTRPCRouter({
       // else already claimed.
       const existing = await ctx.db.guildCharacter.findUnique({
         where: {
-          guildId_name_realm: { guildId: input.guildId, name: input.name, realm },
+          guildId_name_realm: {
+            guildId: input.guildId,
+            name: input.name,
+            realm,
+          },
         },
       });
       if (existing?.userId && existing.userId !== ctx.session.user.id) {
@@ -723,7 +728,11 @@ export const guildRouter = createTRPCRouter({
 
       return ctx.db.guildCharacter.upsert({
         where: {
-          guildId_name_realm: { guildId: input.guildId, name: input.name, realm },
+          guildId_name_realm: {
+            guildId: input.guildId,
+            name: input.name,
+            realm,
+          },
         },
         create: {
           guildId: input.guildId,
@@ -1026,10 +1035,15 @@ export const guildRouter = createTRPCRouter({
       const answerRows =
         claimedIds.length > 0
           ? await ctx.db.guildOnboardingAnswer.findMany({
-              where: { guildId: input.guildId, discordUserId: { in: claimedIds } },
+              where: {
+                guildId: input.guildId,
+                discordUserId: { in: claimedIds },
+              },
               include: {
                 question: { select: { prompt: true, type: true } },
-                selectedOptions: { include: { option: { select: { label: true } } } },
+                selectedOptions: {
+                  include: { option: { select: { label: true } } },
+                },
               },
             })
           : [];
@@ -1227,9 +1241,11 @@ export const guildRouter = createTRPCRouter({
         data: {
           guildId: input.guildId,
           name: input.name,
-          rank: trimmedRank === "" || trimmedRank == null ? "Member" : trimmedRank,
+          rank:
+            trimmedRank === "" || trimmedRank == null ? "Member" : trimmedRank,
           level: input.level ?? 1,
-          class: trimmedClass === "" || trimmedClass == null ? null : trimmedClass,
+          class:
+            trimmedClass === "" || trimmedClass == null ? null : trimmedClass,
           claimedByDiscordUserId: input.discordUserId,
           claimedByDiscordTag: input.discordUserTag,
           claimedAt: new Date(),
@@ -1325,51 +1341,52 @@ export const guildRouter = createTRPCRouter({
   auditLog: protectedProcedure
     .input(z.object({ guildId: z.string() }))
     .query(async ({ ctx, input }) => {
-      const { guild, isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
-        ctx.db,
-        input.guildId,
-        ctx.session.user.id,
-      );
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
       if (!isAdmin) {
         throw needsReauth
           ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
           : forbiddenOrRateLimited(retryAfterSeconds);
       }
 
-      const [rankEvents, roleChanges, claims, rosterMembers, snapshot] = await Promise.all([
-        ctx.db.guildRankChangeEvent.findMany({
-          where: { guildId: input.guildId },
-          orderBy: { detectedAt: "desc" },
-          take: 100,
-        }),
-        ctx.db.guildRoleChangeEvent.findMany({
-          where: { guildId: input.guildId },
-          orderBy: { detectedAt: "desc" },
-          take: 100,
-        }),
-        ctx.db.guildRosterMember.findMany({
-          where: { guildId: input.guildId, claimedAt: { not: null } },
-          select: {
-            id: true,
-            name: true,
-            claimedByDiscordUserId: true,
-            claimedByDiscordTag: true,
-            claimedAt: true,
-          },
-          orderBy: { claimedAt: "desc" },
-          take: 100,
-        }),
-        // For resolving a Discord identity's in-game character name (and
-        // vice versa) — role_change/claim entries key by discordUserId,
-        // rank_change entries key by characterName, but every entry
-        // should end up with BOTH so the UI can search/filter/display
-        // consistently regardless of which side originated it.
-        ctx.db.guildRosterMember.findMany({
-          where: { guildId: input.guildId, claimedByDiscordUserId: { not: null } },
-          select: { name: true, claimedByDiscordUserId: true },
-        }),
-        getGuildRolesSnapshot(guild.discordGuildId),
-      ]);
+      const [rankEvents, roleChanges, claims, rosterMembers, snapshot] =
+        await Promise.all([
+          ctx.db.guildRankChangeEvent.findMany({
+            where: { guildId: input.guildId },
+            orderBy: { detectedAt: "desc" },
+            take: 100,
+          }),
+          ctx.db.guildRoleChangeEvent.findMany({
+            where: { guildId: input.guildId },
+            orderBy: { detectedAt: "desc" },
+            take: 100,
+          }),
+          ctx.db.guildRosterMember.findMany({
+            where: { guildId: input.guildId, claimedAt: { not: null } },
+            select: {
+              id: true,
+              name: true,
+              claimedByDiscordUserId: true,
+              claimedByDiscordTag: true,
+              claimedAt: true,
+            },
+            orderBy: { claimedAt: "desc" },
+            take: 100,
+          }),
+          // For resolving a Discord identity's in-game character name (and
+          // vice versa) — role_change/claim entries key by discordUserId,
+          // rank_change entries key by characterName, but every entry
+          // should end up with BOTH so the UI can search/filter/display
+          // consistently regardless of which side originated it.
+          ctx.db.guildRosterMember.findMany({
+            where: {
+              guildId: input.guildId,
+              claimedByDiscordUserId: { not: null },
+            },
+            select: { name: true, claimedByDiscordUserId: true },
+          }),
+          getGuildRolesSnapshot(guild.discordGuildId),
+        ]);
 
       const nameByDiscordUserId = new Map<string, string>();
       const discordUserIdByName = new Map<string, string>();
@@ -1380,7 +1397,10 @@ export const guildRouter = createTRPCRouter({
       }
       const discordIdentity = (discordUserId: string | null | undefined) => {
         const entry = discordUserId ? snapshot[discordUserId] : undefined;
-        return { discordNick: entry?.nick ?? null, discordTag: entry?.tag ?? null };
+        return {
+          discordNick: entry?.nick ?? null,
+          discordTag: entry?.tag ?? null,
+        };
       };
 
       const entries = [
@@ -1397,7 +1417,8 @@ export const guildRouter = createTRPCRouter({
           kind: "role_change" as const,
           id: r.id,
           detectedAt: r.detectedAt,
-          characterName: nameByDiscordUserId.get(r.discordUserId) ?? r.discordUserTag,
+          characterName:
+            nameByDiscordUserId.get(r.discordUserId) ?? r.discordUserTag,
           source: r.source as "bot" | "manual",
           discordUserId: r.discordUserId,
           discordUserTag: r.discordUserTag,
@@ -1659,7 +1680,11 @@ export const guildRouter = createTRPCRouter({
       const results = await Promise.all(
         input.changes.map((c) =>
           c.add
-            ? addRoleToMember(guild.discordGuildId, c.discordUserId, c.discordRoleId)
+            ? addRoleToMember(
+                guild.discordGuildId,
+                c.discordUserId,
+                c.discordRoleId,
+              )
             : removeRoleFromMember(
                 guild.discordGuildId,
                 c.discordUserId,
@@ -1700,9 +1725,13 @@ export const guildRouter = createTRPCRouter({
 
       const [members, activityRows] = await Promise.all([
         getGuildMembers(guild.discordGuildId),
-        ctx.db.guildMemberActivity.findMany({ where: { guildId: input.guildId } }),
+        ctx.db.guildMemberActivity.findMany({
+          where: { guildId: input.guildId },
+        }),
       ]);
-      const activityByUser = new Map(activityRows.map((a) => [a.discordUserId, a]));
+      const activityByUser = new Map(
+        activityRows.map((a) => [a.discordUserId, a]),
+      );
       const targetRoleIds = new Set(
         guildRow.inactivityTargetRoles.map((r) => r.discordRoleId),
       );
@@ -1738,7 +1767,10 @@ export const guildRouter = createTRPCRouter({
   // use bulkReactivateMembers for that.
   bulkResetActivity: protectedProcedure
     .input(
-      z.object({ guildId: z.string(), discordUserIds: z.array(z.string()).min(1) }),
+      z.object({
+        guildId: z.string(),
+        discordUserIds: z.array(z.string()).min(1),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { guild, isAdmin, needsReauth, retryAfterSeconds } =
@@ -1781,7 +1813,10 @@ export const guildRouter = createTRPCRouter({
   // didn't have one yet, same reasoning as bulkResetActivity.
   bulkMarkInactive: protectedProcedure
     .input(
-      z.object({ guildId: z.string(), discordUserIds: z.array(z.string()).min(1) }),
+      z.object({
+        guildId: z.string(),
+        discordUserIds: z.array(z.string()).min(1),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { guild, isAdmin, needsReauth, retryAfterSeconds } =
@@ -1841,7 +1876,10 @@ export const guildRouter = createTRPCRouter({
   // apps/bot/src/activityTracking.ts).
   bulkReactivateMembers: protectedProcedure
     .input(
-      z.object({ guildId: z.string(), discordUserIds: z.array(z.string()).min(1) }),
+      z.object({
+        guildId: z.string(),
+        discordUserIds: z.array(z.string()).min(1),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { guild, isAdmin, needsReauth, retryAfterSeconds } =
@@ -2109,15 +2147,25 @@ export const guildRouter = createTRPCRouter({
 
       const [members, snapshot] = await Promise.all([
         ctx.db.guildRosterMember.findMany({
-          where: { guildId: input.guildId, claimedByDiscordUserId: { not: null } },
-          select: { id: true, name: true, rank: true, claimedByDiscordUserId: true },
+          where: {
+            guildId: input.guildId,
+            claimedByDiscordUserId: { not: null },
+          },
+          select: {
+            id: true,
+            name: true,
+            rank: true,
+            claimedByDiscordUserId: true,
+          },
           orderBy: { name: "asc" },
         }),
         getGuildRolesSnapshot(guild.discordGuildId),
       ]);
 
       return members.map((m) => {
-        const entry = m.claimedByDiscordUserId ? snapshot[m.claimedByDiscordUserId] : undefined;
+        const entry = m.claimedByDiscordUserId
+          ? snapshot[m.claimedByDiscordUserId]
+          : undefined;
         return {
           id: m.id,
           characterName: m.name,
@@ -2357,6 +2405,30 @@ export const guildRouter = createTRPCRouter({
           },
         }),
       ]);
+      return { ok: true };
+    }),
+
+  // Kill switch — see Guild.botEnabled in schema.prisma. Only pauses the
+  // bot's own automated background jobs; live slash commands still work,
+  // this isn't a full outage toggle.
+  setBotEnabled: protectedProcedure
+    .input(z.object({ guildId: z.string(), enabled: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      await ctx.db.guild.update({
+        where: { id: input.guildId },
+        data: { botEnabled: input.enabled },
+      });
       return { ok: true };
     }),
 
@@ -2899,11 +2971,14 @@ export const guildRouter = createTRPCRouter({
           ) {
             throw new TRPCError({
               code: "BAD_REQUEST",
-              message: "An unconditional edge can't also carry a condition value.",
+              message:
+                "An unconditional edge can't also carry a condition value.",
             });
           }
         } else if (e.conditionType === "answer_equals") {
-          const fromQuestion = input.questions.find((q) => q.id === e.fromQuestionId);
+          const fromQuestion = input.questions.find(
+            (q) => q.id === e.fromQuestionId,
+          );
           if (
             e.fromQuestionId == null ||
             e.conditionOptionIds.length === 0 ||
@@ -2968,7 +3043,8 @@ export const guildRouter = createTRPCRouter({
         if (hasCycle(id)) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "This flow contains a loop — a question can't (indirectly) lead back to itself.",
+            message:
+              "This flow contains a loop — a question can't (indirectly) lead back to itself.",
           });
         }
       }
@@ -2979,28 +3055,46 @@ export const guildRouter = createTRPCRouter({
       const submittedQuestionIds = [...questionIds];
       if (submittedQuestionIds.length > 0) {
         const foreignQuestions = await ctx.db.guildOnboardingQuestion.findMany({
-          where: { id: { in: submittedQuestionIds }, guildId: { not: input.guildId } },
+          where: {
+            id: { in: submittedQuestionIds },
+            guildId: { not: input.guildId },
+          },
           select: { id: true },
         });
         if (foreignQuestions.length > 0) {
-          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid question id." });
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Invalid question id.",
+          });
         }
       }
       const submittedOptionIds = [...optionIds];
       if (submittedOptionIds.length > 0) {
-        const foreignOptions = await ctx.db.guildOnboardingQuestionOption.findMany({
-          where: { id: { in: submittedOptionIds }, question: { guildId: { not: input.guildId } } },
-          select: { id: true },
-        });
+        const foreignOptions =
+          await ctx.db.guildOnboardingQuestionOption.findMany({
+            where: {
+              id: { in: submittedOptionIds },
+              question: { guildId: { not: input.guildId } },
+            },
+            select: { id: true },
+          });
         if (foreignOptions.length > 0) {
-          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid option id." });
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Invalid option id.",
+          });
         }
       }
 
       await ctx.db.$transaction(async (tx) => {
-        await tx.guildOnboardingEdge.deleteMany({ where: { guildId: input.guildId } });
+        await tx.guildOnboardingEdge.deleteMany({
+          where: { guildId: input.guildId },
+        });
         await tx.guildOnboardingQuestion.deleteMany({
-          where: { guildId: input.guildId, id: { notIn: submittedQuestionIds } },
+          where: {
+            guildId: input.guildId,
+            id: { notIn: submittedQuestionIds },
+          },
         });
 
         for (const q of input.questions) {
@@ -3031,7 +3125,12 @@ export const guildRouter = createTRPCRouter({
           for (const o of q.options) {
             await tx.guildOnboardingQuestionOption.upsert({
               where: { id: o.id },
-              create: { id: o.id, questionId: q.id, label: o.label, sortOrder: o.sortOrder },
+              create: {
+                id: o.id,
+                questionId: q.id,
+                label: o.label,
+                sortOrder: o.sortOrder,
+              },
               update: { label: o.label, sortOrder: o.sortOrder },
             });
           }
@@ -3041,7 +3140,10 @@ export const guildRouter = createTRPCRouter({
           // Generated up front (rather than relying on createMany's
           // auto-generated ids, which it doesn't return) so the OR-set
           // child rows below can reference the right edge.
-          const edgesWithIds = input.edges.map((e) => ({ ...e, id: randomUUID() }));
+          const edgesWithIds = input.edges.map((e) => ({
+            ...e,
+            id: randomUUID(),
+          }));
           await tx.guildOnboardingEdge.createMany({
             data: edgesWithIds.map((e) => ({
               id: e.id,
@@ -3054,7 +3156,10 @@ export const guildRouter = createTRPCRouter({
             })),
           });
           const conditionOptionRows = edgesWithIds.flatMap((e) =>
-            e.conditionOptionIds.map((optionId) => ({ edgeId: e.id, optionId })),
+            e.conditionOptionIds.map((optionId) => ({
+              edgeId: e.id,
+              optionId,
+            })),
           );
           if (conditionOptionRows.length > 0) {
             await tx.guildOnboardingEdgeConditionOption.createMany({

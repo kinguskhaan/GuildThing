@@ -23,6 +23,8 @@ export async function syncPendingRosterMatches(
   });
 
   for (const row of pending) {
+    if (!row.guild.botEnabled) continue;
+
     const discordGuild = client.guilds.cache.get(row.guild.discordGuildId);
     if (!discordGuild) continue; // bot isn't (or is no longer) in this server
 

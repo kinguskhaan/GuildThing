@@ -289,7 +289,7 @@ async function checkForceSyncRequests(
 ): Promise<void> {
   const pending = await db.guild.findMany({
     where: { forceSyncRequestedAt: { not: null } },
-    select: { id: true },
+    select: { id: true, botEnabled: true },
   });
   if (pending.length === 0) return;
 
@@ -298,10 +298,17 @@ async function checkForceSyncRequests(
   );
   await runFullRoleSync(client);
   await syncPendingRosterMatches(client);
-  await db.guild.updateMany({
-    where: { id: { in: pending.map((g) => g.id) } },
-    data: { forceSyncRequestedAt: null },
-  });
+  // Only clear the flag for guilds that actually got synced — runFullRoleSync/
+  // syncPendingRosterMatches skip disabled guilds internally, so a disabled
+  // guild's request stays pending and gets picked up once it's re-enabled,
+  // instead of silently getting dropped.
+  const synced = pending.filter((g) => g.botEnabled);
+  if (synced.length > 0) {
+    await db.guild.updateMany({
+      where: { id: { in: synced.map((g) => g.id) } },
+      data: { forceSyncRequestedAt: null },
+    });
+  }
 }
 
 // So /onboarding (and the onboarding button, once its channel is set) work

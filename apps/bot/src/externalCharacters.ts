@@ -56,6 +56,8 @@ export async function syncExternalCharacters(
 
   for (const group of groups.values()) {
     const { guild } = group;
+    if (!guild.botEnabled) continue;
+
     const discordGuild = client.guilds.cache.get(guild.discordGuildId);
     if (!discordGuild) continue;
 
@@ -83,7 +85,10 @@ export async function syncExternalCharacters(
 
     if (graduatedNow.length > 0) {
       const claimedRows = await db.guildRosterMember.findMany({
-        where: { guildId: guild.id, claimedByDiscordUserId: group.discordUserId },
+        where: {
+          guildId: guild.id,
+          claimedByDiscordUserId: group.discordUserId,
+        },
         select: { name: true },
       });
       const characters: NamedCharacter[] = [
@@ -118,7 +123,10 @@ export async function syncExternalCharacters(
     }
 
     for (const row of rows) {
-      if (row.guildId !== guild.id || row.discordUserId !== group.discordUserId) {
+      if (
+        row.guildId !== guild.id ||
+        row.discordUserId !== group.discordUserId
+      ) {
         continue;
       }
 

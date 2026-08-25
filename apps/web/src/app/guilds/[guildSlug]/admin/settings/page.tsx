@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { EditGuildForm } from "~/app/_components/edit-guild-form";
+import { GuildBotToggle } from "~/app/_components/guild-bot-toggle";
 import { api } from "~/trpc/server";
 
 export default async function AdminSettingsPage({
@@ -18,11 +19,12 @@ export default async function AdminSettingsPage({
     <div className="flex w-full flex-col items-center gap-6">
       <div className="w-full max-w-md">
         <h2 className="text-xl font-bold">Guild settings</h2>
-        <p className="mt-1 text-sm text-discord-text-muted">
-          Rename this guild, change its Discord server or required/admin
-          roles, or delete it entirely.
+        <p className="text-discord-text-muted mt-1 text-sm">
+          Rename this guild, change its Discord server or required/admin roles,
+          or delete it entirely.
         </p>
       </div>
+      <GuildBotToggle guildId={guildId} initialEnabled={guild.botEnabled} />
       <EditGuildForm
         guildId={guildId}
         initialName={guild.name}

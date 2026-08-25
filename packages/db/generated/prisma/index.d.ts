@@ -13379,6 +13379,7 @@ export namespace Prisma {
     name: string | null
     slug: string | null
     discordGuildId: string | null
+    botEnabled: boolean | null
     createdById: string | null
     createdAt: Date | null
     rosterSource: string | null
@@ -13407,6 +13408,7 @@ export namespace Prisma {
     name: string | null
     slug: string | null
     discordGuildId: string | null
+    botEnabled: boolean | null
     createdById: string | null
     createdAt: Date | null
     rosterSource: string | null
@@ -13435,6 +13437,7 @@ export namespace Prisma {
     name: number
     slug: number
     discordGuildId: number
+    botEnabled: number
     createdById: number
     createdAt: number
     rosterSource: number
@@ -13473,6 +13476,7 @@ export namespace Prisma {
     name?: true
     slug?: true
     discordGuildId?: true
+    botEnabled?: true
     createdById?: true
     createdAt?: true
     rosterSource?: true
@@ -13501,6 +13505,7 @@ export namespace Prisma {
     name?: true
     slug?: true
     discordGuildId?: true
+    botEnabled?: true
     createdById?: true
     createdAt?: true
     rosterSource?: true
@@ -13529,6 +13534,7 @@ export namespace Prisma {
     name?: true
     slug?: true
     discordGuildId?: true
+    botEnabled?: true
     createdById?: true
     createdAt?: true
     rosterSource?: true
@@ -13644,6 +13650,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled: boolean
     createdById: string
     createdAt: Date
     rosterSource: string
@@ -13691,6 +13698,7 @@ export namespace Prisma {
     name?: boolean
     slug?: boolean
     discordGuildId?: boolean
+    botEnabled?: boolean
     createdById?: boolean
     createdAt?: boolean
     rosterSource?: boolean
@@ -13745,6 +13753,7 @@ export namespace Prisma {
     name?: boolean
     slug?: boolean
     discordGuildId?: boolean
+    botEnabled?: boolean
     createdById?: boolean
     createdAt?: boolean
     rosterSource?: boolean
@@ -13776,6 +13785,7 @@ export namespace Prisma {
     name?: boolean
     slug?: boolean
     discordGuildId?: boolean
+    botEnabled?: boolean
     createdById?: boolean
     createdAt?: boolean
     rosterSource?: boolean
@@ -13807,6 +13817,7 @@ export namespace Prisma {
     name?: boolean
     slug?: boolean
     discordGuildId?: boolean
+    botEnabled?: boolean
     createdById?: boolean
     createdAt?: boolean
     rosterSource?: boolean
@@ -13830,7 +13841,7 @@ export namespace Prisma {
     wowNamespaceFlavor?: boolean
   }
 
-  export type GuildOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "slug" | "discordGuildId" | "createdById" | "createdAt" | "rosterSource" | "pugEnabled" | "pugRoleId" | "lastExportedAt" | "lastExportedById" | "lastRosterImportedAt" | "lastRosterImportedById" | "adminNotifyChannelId" | "onboardingChannelId" | "onboardingMessageId" | "onboardingMessageText" | "forceSyncRequestedAt" | "inactivityFilterEnabled" | "inactivityDays" | "inactivityRoleId" | "wowRegion" | "wowRealmSlug" | "wowGuildName" | "wowNamespaceFlavor", ExtArgs["result"]["guild"]>
+  export type GuildOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "slug" | "discordGuildId" | "botEnabled" | "createdById" | "createdAt" | "rosterSource" | "pugEnabled" | "pugRoleId" | "lastExportedAt" | "lastExportedById" | "lastRosterImportedAt" | "lastRosterImportedById" | "adminNotifyChannelId" | "onboardingChannelId" | "onboardingMessageId" | "onboardingMessageText" | "forceSyncRequestedAt" | "inactivityFilterEnabled" | "inactivityDays" | "inactivityRoleId" | "wowRegion" | "wowRealmSlug" | "wowGuildName" | "wowNamespaceFlavor", ExtArgs["result"]["guild"]>
   export type GuildInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     createdBy?: boolean | UserDefaultArgs<ExtArgs>
     characters?: boolean | Guild$charactersArgs<ExtArgs>
@@ -13904,6 +13915,7 @@ export namespace Prisma {
       name: string
       slug: string
       discordGuildId: string
+      botEnabled: boolean
       createdById: string
       createdAt: Date
       rosterSource: string
@@ -14377,6 +14389,7 @@ export namespace Prisma {
     readonly name: FieldRef<"Guild", 'String'>
     readonly slug: FieldRef<"Guild", 'String'>
     readonly discordGuildId: FieldRef<"Guild", 'String'>
+    readonly botEnabled: FieldRef<"Guild", 'Boolean'>
     readonly createdById: FieldRef<"Guild", 'String'>
     readonly createdAt: FieldRef<"Guild", 'DateTime'>
     readonly rosterSource: FieldRef<"Guild", 'String'>
@@ -56990,6 +57003,7 @@ export namespace Prisma {
     name: 'name',
     slug: 'slug',
     discordGuildId: 'discordGuildId',
+    botEnabled: 'botEnabled',
     createdById: 'createdById',
     createdAt: 'createdAt',
     rosterSource: 'rosterSource',
@@ -57995,6 +58009,7 @@ export namespace Prisma {
     name?: StringFilter<"Guild"> | string
     slug?: StringFilter<"Guild"> | string
     discordGuildId?: StringFilter<"Guild"> | string
+    botEnabled?: BoolFilter<"Guild"> | boolean
     createdById?: StringFilter<"Guild"> | string
     createdAt?: DateTimeFilter<"Guild"> | Date | string
     rosterSource?: StringFilter<"Guild"> | string
@@ -58048,6 +58063,7 @@ export namespace Prisma {
     name?: SortOrder
     slug?: SortOrder
     discordGuildId?: SortOrder
+    botEnabled?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
     rosterSource?: SortOrder
@@ -58104,6 +58120,7 @@ export namespace Prisma {
     OR?: GuildWhereInput[]
     NOT?: GuildWhereInput | GuildWhereInput[]
     name?: StringFilter<"Guild"> | string
+    botEnabled?: BoolFilter<"Guild"> | boolean
     createdById?: StringFilter<"Guild"> | string
     createdAt?: DateTimeFilter<"Guild"> | Date | string
     rosterSource?: StringFilter<"Guild"> | string
@@ -58157,6 +58174,7 @@ export namespace Prisma {
     name?: SortOrder
     slug?: SortOrder
     discordGuildId?: SortOrder
+    botEnabled?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
     rosterSource?: SortOrder
@@ -58193,6 +58211,7 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"Guild"> | string
     slug?: StringWithAggregatesFilter<"Guild"> | string
     discordGuildId?: StringWithAggregatesFilter<"Guild"> | string
+    botEnabled?: BoolWithAggregatesFilter<"Guild"> | boolean
     createdById?: StringWithAggregatesFilter<"Guild"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Guild"> | Date | string
     rosterSource?: StringWithAggregatesFilter<"Guild"> | string
@@ -61115,6 +61134,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -61165,6 +61185,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -61215,6 +61236,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -61265,6 +61287,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -61315,6 +61338,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -61343,6 +61367,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -61368,6 +61393,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -64437,6 +64463,7 @@ export namespace Prisma {
     name?: SortOrder
     slug?: SortOrder
     discordGuildId?: SortOrder
+    botEnabled?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
     rosterSource?: SortOrder
@@ -64469,6 +64496,7 @@ export namespace Prisma {
     name?: SortOrder
     slug?: SortOrder
     discordGuildId?: SortOrder
+    botEnabled?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
     rosterSource?: SortOrder
@@ -64497,6 +64525,7 @@ export namespace Prisma {
     name?: SortOrder
     slug?: SortOrder
     discordGuildId?: SortOrder
+    botEnabled?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
     rosterSource?: SortOrder
@@ -69366,6 +69395,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -69415,6 +69445,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -69473,6 +69504,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -69522,6 +69554,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -69580,6 +69613,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -69629,6 +69663,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -69881,6 +69916,7 @@ export namespace Prisma {
     name?: StringFilter<"Guild"> | string
     slug?: StringFilter<"Guild"> | string
     discordGuildId?: StringFilter<"Guild"> | string
+    botEnabled?: BoolFilter<"Guild"> | boolean
     createdById?: StringFilter<"Guild"> | string
     createdAt?: DateTimeFilter<"Guild"> | Date | string
     rosterSource?: StringFilter<"Guild"> | string
@@ -71824,6 +71860,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -71873,6 +71910,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -71981,6 +72019,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -72030,6 +72069,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -72128,6 +72168,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -72177,6 +72218,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -72242,6 +72284,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -72291,6 +72334,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -72340,6 +72384,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -72389,6 +72434,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -72454,6 +72500,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -72503,6 +72550,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -72552,6 +72600,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -72601,6 +72650,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -72691,6 +72741,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -72740,6 +72791,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -72805,6 +72857,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -72854,6 +72907,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -72956,6 +73010,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -73005,6 +73060,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -73097,6 +73153,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -73146,6 +73203,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -73211,6 +73269,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -73260,6 +73319,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -73309,6 +73369,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -73358,6 +73419,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -73423,6 +73485,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -73472,6 +73535,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -73521,6 +73585,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -73570,6 +73635,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -73635,6 +73701,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -73684,6 +73751,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -73733,6 +73801,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -73782,6 +73851,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -73847,6 +73917,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -73896,6 +73967,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -73945,6 +74017,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -73994,6 +74067,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -74059,6 +74133,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -74108,6 +74183,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -74157,6 +74233,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -74206,6 +74283,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -74271,6 +74349,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -74320,6 +74399,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -74369,6 +74449,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -74418,6 +74499,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -74483,6 +74565,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -74532,6 +74615,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -74581,6 +74665,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -74630,6 +74715,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -74762,6 +74848,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -74811,6 +74898,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -75084,6 +75172,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -75133,6 +75222,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -75314,6 +75404,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -75363,6 +75454,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -75646,6 +75738,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -75695,6 +75788,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -75864,6 +75958,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -75913,6 +76008,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -76249,6 +76345,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -76298,6 +76395,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -76415,6 +76513,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -76464,6 +76563,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -76672,6 +76772,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -76721,6 +76822,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -76786,6 +76888,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -76835,6 +76938,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -76884,6 +76988,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -76933,6 +77038,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -77098,6 +77204,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -77147,6 +77254,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -77912,6 +78020,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -77961,6 +78070,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -78026,6 +78136,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -78075,6 +78186,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -78124,6 +78236,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -78173,6 +78286,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -78238,6 +78352,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -78287,6 +78402,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -78336,6 +78452,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -78385,6 +78502,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -78450,6 +78568,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -78499,6 +78618,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -78548,6 +78668,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -78597,6 +78718,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -78726,6 +78848,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -78775,6 +78898,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -79080,6 +79204,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdAt?: Date | string
     rosterSource?: string
     pugEnabled?: boolean
@@ -79107,6 +79232,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -79134,6 +79260,7 @@ export namespace Prisma {
     name: string
     slug: string
     discordGuildId: string
+    botEnabled?: boolean
     createdById: string
     createdAt?: Date | string
     rosterSource?: string
@@ -79284,6 +79411,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -79333,6 +79461,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -79382,6 +79511,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -79409,6 +79539,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -79458,6 +79589,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -79507,6 +79639,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -79534,6 +79667,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
     pugEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -79583,6 +79717,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string
@@ -79632,6 +79767,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     discordGuildId?: StringFieldUpdateOperationsInput | string
+    botEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rosterSource?: StringFieldUpdateOperationsInput | string

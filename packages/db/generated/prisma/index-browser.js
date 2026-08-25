@@ -190,6 +190,7 @@ exports.Prisma.GuildScalarFieldEnum = {
   name: 'name',
   slug: 'slug',
   discordGuildId: 'discordGuildId',
+  botEnabled: 'botEnabled',
   createdById: 'createdById',
   createdAt: 'createdAt',
   rosterSource: 'rosterSource',
