@@ -236,6 +236,19 @@ function dmNotifier(member: GuildMember): (message: string) => Promise<void> {
   };
 }
 
+// Channels currently known to be broken (bot lacks "Manage Channels" there,
+// or a role hierarchy issue) — keyed by "guildId:channelId", not by member,
+// since the failure is per-channel: EVERY member's grant on that channel
+// fails the same way. Without this, one broken channel notifies once per
+// member who has a grant on it, every single sync run, forever — see the
+// incident that motivated this (dozens of "Couldn't update channel access"
+// messages in one run, across level-bracket dungeon channels sharing the
+// same missing permission). Lives only for this process's uptime — a bot
+// restart re-arms every channel, which is fine, worst case one redundant
+// notification. Cleared the moment an edit on that channel succeeds again,
+// so a real permission fix is reflected without needing a restart.
+const notifiedBrokenChannels = new Set<string>();
+
 // Adds/removes a per-member permission overwrite (not a role) on every
 // "managed" channel (one that's a grantedChannel on at least one of the
 // guild's rules) — ViewChannel for text, ViewChannel+Connect for voice.
@@ -268,27 +281,34 @@ export async function applyChannelGrants(
       continue;
     }
 
+    const brokenKey = `${guildId}:${channelId}`;
     try {
       await channel.permissionOverwrites.edit(
         member,
         channelGrantPermissions(type, desired.has(channelId) ? true : null),
       );
+      notifiedBrokenChannels.delete(brokenKey);
     } catch (err) {
       console.error(
         `[bot] failed to update channel grant for ${member.user.tag} on #${channel.name}:`,
         err,
       );
-      const notified = await notifyAdmins(
-        member,
-        guildId,
-        `⚠️ Couldn't update channel access for ${member.user.tag} on #${channel.name} — most likely missing "Manage Channels" permission there, or a role hierarchy issue. Check the bot's permissions on that channel.`,
-      );
-      if (options.notifyOnFailure ?? true) {
-        await notify(
-          notified
-            ? `Heads up — I couldn't update your access to #${channel.name} due to a permissions issue on my end. An officer has been notified.`
-            : `Heads up — I couldn't update your access to #${channel.name}, most likely because I'm missing "Manage Channels" permission there, or my role isn't positioned above the relevant roles. Ask an officer to check.`,
+      const alreadyNotified = notifiedBrokenChannels.has(brokenKey);
+      notifiedBrokenChannels.add(brokenKey);
+
+      if (!alreadyNotified) {
+        const notified = await notifyAdmins(
+          member,
+          guildId,
+          `⚠️ Couldn't update channel access for ${member.user.tag} on #${channel.name} — most likely missing "Manage Channels" permission there, or a role hierarchy issue. Check the bot's permissions on that channel. (Further failures on this channel won't repeat this notice until it starts working again.)`,
         );
+        if (options.notifyOnFailure ?? true) {
+          await notify(
+            notified
+              ? `Heads up — I couldn't update your access to #${channel.name} due to a permissions issue on my end. An officer has been notified.`
+              : `Heads up — I couldn't update your access to #${channel.name}, most likely because I'm missing "Manage Channels" permission there, or my role isn't positioned above the relevant roles. Ask an officer to check.`,
+          );
+        }
       }
     }
   }
@@ -707,13 +727,19 @@ export async function matchRosterAndApply(
         },
       });
       matched.push({ rank: row.rank, level: row.level, class: row.class });
-      if (row.rankChangedAt && (!latestRankChangedAt || row.rankChangedAt > latestRankChangedAt)) {
+      if (
+        row.rankChangedAt &&
+        (!latestRankChangedAt || row.rankChangedAt > latestRankChangedAt)
+      ) {
         latestRankChangedAt = row.rankChangedAt;
       }
       matchedNames.push(row.name);
     } else if (row.claimedByDiscordUserId === member.id) {
       matched.push({ rank: row.rank, level: row.level, class: row.class });
-      if (row.rankChangedAt && (!latestRankChangedAt || row.rankChangedAt > latestRankChangedAt)) {
+      if (
+        row.rankChangedAt &&
+        (!latestRankChangedAt || row.rankChangedAt > latestRankChangedAt)
+      ) {
         latestRankChangedAt = row.rankChangedAt;
       }
       matchedNames.push(row.name);
@@ -854,15 +880,17 @@ export async function matchRosterAndApply(
       where: { guildId: guild.id },
     });
     if (matched.length > 0) {
-      ({ roleIds, channelGrants } = evaluateRules(rules, matched, rolePriorities));
+      ({ roleIds, channelGrants } = evaluateRules(
+        rules,
+        matched,
+        rolePriorities,
+      ));
     }
     if (externalCharacters.length > 0) {
       // Only channel-only rules (no granted roles) ever fire off an
       // external character — they're not a member of this guild, so no
       // rule should ever hand them a role through this path.
-      const channelOnlyRules = rules.filter(
-        (r) => r.grantedRoles.length === 0,
-      );
+      const channelOnlyRules = rules.filter((r) => r.grantedRoles.length === 0);
       const externalAsMatched: MatchedCharacter[] = externalCharacters.map(
         (c) => ({ rank: "", level: c.level, class: c.class }),
       );
@@ -870,9 +898,7 @@ export async function matchRosterAndApply(
         channelOnlyRules,
         [...matched, ...externalAsMatched],
       );
-      const existingChannelIds = new Set(
-        channelGrants.map((g) => g.channelId),
-      );
+      const existingChannelIds = new Set(channelGrants.map((g) => g.channelId));
       for (const grant of externalGrants) {
         if (!existingChannelIds.has(grant.channelId)) {
           channelGrants.push(grant);
