@@ -31,6 +31,13 @@ const MODAL_TIMEOUT_MS = 5 * 60_000;
 // deleted by archiving, just hidden — only an explicit cancel deletes it).
 const THREAD_AUTO_ARCHIVE_MINUTES = 1440;
 
+// Sent as the first reply in a freshly created event thread — a thread with
+// zero activity beyond its own starter message tends to sink out of the
+// channel's active-threads sidebar almost immediately, since Discord treats
+// "recent activity" as messages *in* the thread. This one line is enough to
+// keep it listed.
+const THREAD_KICKOFF_MESSAGE = "💬 Questions or chat about the event — post here!";
+
 const eventInclude = {
   timeOptions: { include: { votes: true } },
   roleSlots: { include: { signups: true } },
@@ -580,7 +587,13 @@ async function createEventPost(
   event: EventWithRelations,
   existingMessageId: string | null,
 ): Promise<{ thread: AnyThreadChannel | null; message: Message }> {
-  const name = event.title.slice(0, 100);
+  // "yyyy-mm-dd Titel" when the event has a date (almost always — see the
+  // Event.date field), so the thread reads the same whether you're
+  // scanning the sidebar or the channel's thread browser.
+  const name = (event.date ? `${event.date} ${event.title}` : event.title).slice(
+    0,
+    100,
+  );
   const payload = {
     embeds: buildEventEmbeds(event),
     components: buildEventComponents(event),
@@ -599,6 +612,7 @@ async function createEventPost(
     const message = await thread.fetchStarterMessage();
     if (!message)
       throw new Error("forum post created but starter message wasn't found");
+    await thread.send(THREAD_KICKOFF_MESSAGE).catch(() => {});
     return { thread, message };
   }
 
@@ -617,6 +631,7 @@ async function createEventPost(
       autoArchiveDuration: THREAD_AUTO_ARCHIVE_MINUTES,
       reason: "Event discussion",
     });
+    await thread.send(THREAD_KICKOFF_MESSAGE).catch(() => {});
     return { thread, message };
   } catch (err) {
     console.error(
@@ -1769,6 +1784,16 @@ export async function syncPendingWebEvents(
   }
 }
 
+// Guards against overlapping runs — index.ts fires this off every
+// EVENT_TICK_INTERVAL_MS (15s) without awaiting the previous call. A run
+// that has to cancel + Discord-repost a big batch of same-day recurring
+// events (e.g. everything expiring at once at midnight) can take well over
+// 15s, so a second run can start, re-select the same still-open events the
+// first run hasn't reached yet, and cancel + spawn each one twice. Bit the
+// guild on 2026-08-25 — several dungeon channels got two "next occurrence"
+// events apiece. See git history around this comment for the incident.
+let eventExpiryRunning = false;
+
 // 24h after an event's own date (not creation date) has passed, auto-cancel
 // it — same cleanup as clicking "Cancel group" (post edited to cancelled,
 // thread locked+archived via syncEventMessage), except the DB row is kept
@@ -1777,6 +1802,16 @@ export async function syncPendingWebEvents(
 // expire this way —
 // nothing to compare against.
 export async function runEventExpiry(client: Client<true>): Promise<void> {
+  if (eventExpiryRunning) return;
+  eventExpiryRunning = true;
+  try {
+    await runEventExpiryUnguarded(client);
+  } finally {
+    eventExpiryRunning = false;
+  }
+}
+
+async function runEventExpiryUnguarded(client: Client<true>): Promise<void> {
   const candidates = await db.event.findMany({
     where: { status: { not: "cancelled" }, date: { not: null } },
     select: {
