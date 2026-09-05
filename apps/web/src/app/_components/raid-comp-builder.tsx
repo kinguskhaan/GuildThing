@@ -273,6 +273,22 @@ export function RaidCompBuilder({
     [draft, place],
   );
 
+  const benchFromDrawer = useCallback(
+    (member: NonNullable<typeof roster.data>[number]) => {
+      place(
+        {
+          source: "roster",
+          memberId: member.id,
+          name: member.name,
+          classToken: member.class,
+          specToken: member.spec,
+        },
+        { kind: "bench" },
+      );
+    },
+    [place],
+  );
+
   const placePlaceholder = useCallback(
     (classToken: string) => {
       const target: DropTarget = draft
@@ -705,9 +721,11 @@ export function RaidCompBuilder({
             {members.map((m) => {
               const placed = placedMemberIds.has(m.id);
               return (
-                <button
+                <div
                   key={m.id}
-                  type="button"
+                  role="button"
+                  tabIndex={placed ? -1 : 0}
+                  aria-disabled={placed}
                   draggable={!placed}
                   onDragStart={() =>
                     setDragPayload({
@@ -723,11 +741,15 @@ export function RaidCompBuilder({
                     if (placed) return;
                     placeFromDrawer(m);
                   }}
-                  disabled={placed}
+                  onKeyDown={(e) => {
+                    if (placed || (e.key !== "Enter" && e.key !== " ")) return;
+                    e.preventDefault();
+                    placeFromDrawer(m);
+                  }}
                   className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-left transition ${
                     placed
                       ? "cursor-default opacity-40"
-                      : "hover:bg-discord-elevated-hover"
+                      : "cursor-pointer hover:bg-discord-elevated-hover"
                   }`}
                 >
                   <img
@@ -753,7 +775,27 @@ export function RaidCompBuilder({
                       {expansion.specs.find((s) => s.token === m.spec)?.label ?? m.spec}
                     </span>
                   )}
-                </button>
+                  {!placed && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        benchFromDrawer(m);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key !== "Enter" && e.key !== " ") return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        benchFromDrawer(m);
+                      }}
+                      title="Add to bench without placing in a group"
+                      className="text-discord-text-muted ml-auto shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase transition hover:bg-discord-elevated-hover hover:text-discord-text"
+                    >
+                      Bench
+                    </span>
+                  )}
+                </div>
               );
             })}
           </div>
