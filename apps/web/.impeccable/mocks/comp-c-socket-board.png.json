@@ -1,8 +1,0 @@
-{
-  "prompt": "Cabinet Schematic comp C — 'Socket Board': members-x-roles matrix as the hero. Role sockets as lit squares across the top; one row per member (Khingus, Symah, Transan with rank/main) with toggle cells: held (phosphor), staged add (green), staged remove (red dashed), sealed (dashed — a rule keeps it); firing rule R1 wired from a compact rule list on the left into the @guildie socket with pulse dots; amber APPLY 2 STAGED CHANGES footer; legend row; 'nothing reached Discord yet' staged note. Bottom rail: audit tape + inactivity filter panel. World: vector-phosphor on arcade void #0a0a12, functional color states only, scanline material.",
-  "createdAt": "2026-09-05T11:14:00Z",
-  "tool": "hand-authored HTML comp rendered in chromium (no image-gen available), captured via tab.screenshot",
-  "viewport": "1440x900 desktop landscape",
-  "variant": "socket-board",
-  "source": ".impeccable/mocks/src/comp-c-socket-board.html"
-}
