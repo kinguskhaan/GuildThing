@@ -24,7 +24,9 @@ pub struct RosterMember {
 #[derive(Debug, Clone, Serialize)]
 pub struct RecipeEntry {
     pub name: String,
+    #[serde(rename = "itemID")]
     pub item_id: Option<f64>,
+    #[serde(rename = "spellID")]
     pub spell_id: Option<f64>,
 }
 

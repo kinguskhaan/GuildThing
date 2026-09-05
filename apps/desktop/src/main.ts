@@ -54,6 +54,10 @@ function setStatus(id: string, message: string, kind: "ok" | "error" | "") {
 let wowDir = "";
 let version = "";
 let detection: Detection | null = null;
+// True when the wizard was opened from the dashboard's "Settings" button
+// (which skips straight to step 2) rather than the first-run flow — lets
+// "back" return to the dashboard instead of the wizard's welcome step.
+let cameFromSettings = false;
 
 async function refreshVersions(dir?: string) {
   const result = await invoke<VersionDetection>("detect_versions", {
@@ -167,7 +171,10 @@ function addTargetCard(target: Target) {
   $("targets").append(card);
 }
 
+let watching = false;
+
 async function setWatchDot(running: boolean) {
+  watching = running;
   const dot = $("watch-dot");
   const label = $("watch-label");
   dot.className = `dot ${running ? "on" : "off"}`;
@@ -178,6 +185,7 @@ async function setWatchDot(running: boolean) {
 
 async function refreshDashboard(config: Config | null) {
   wizardStep(1);
+  cameFromSettings = false;
   show($("view-wizard"), false);
   show($("view-dashboard"), true);
   $("targets").innerHTML = "";
@@ -234,7 +242,15 @@ $("version").addEventListener("change", async (event) => {
   version = (event.target as HTMLSelectElement).value;
   await runDetection();
 });
-$("btn-w2-back").addEventListener("click", () => wizardStep(1));
+$("btn-w2-back").addEventListener("click", () => {
+  if (cameFromSettings) {
+    cameFromSettings = false;
+    show($("view-wizard"), false);
+    show($("view-dashboard"), true);
+  } else {
+    wizardStep(1);
+  }
+});
 $("btn-w2-next").addEventListener("click", () => wizardStep(3));
 
 // Wizard: step 3
@@ -313,7 +329,34 @@ $("btn-w3-save-another").addEventListener("click", async () => {
     setStatus("step3-status", String(err), "error");
   }
 });
+$("btn-sync-now").addEventListener("click", async () => {
+  const btn = $("btn-sync-now") as HTMLButtonElement;
+  btn.disabled = true;
+  appendLog({ kind: "started", target: null, message: "manual sync requested…", ts: Date.now() });
+  try {
+    await invoke("sync_now");
+  } catch (err) {
+    appendLog({ kind: "error", target: null, message: String(err), ts: Date.now() });
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+$("btn-toggle-watch").addEventListener("click", async () => {
+  const btn = $("btn-toggle-watch") as HTMLButtonElement;
+  btn.disabled = true;
+  try {
+    await invoke(watching ? "stop_watch" : "start_watch");
+    await setWatchDot(await invoke<boolean>("watch_status"));
+  } catch (err) {
+    appendLog({ kind: "error", target: null, message: String(err), ts: Date.now() });
+  } finally {
+    btn.disabled = false;
+  }
+});
+
 $("btn-edit-config").addEventListener("click", async () => {
+  cameFromSettings = true;
   show($("view-dashboard"), false);
   show($("view-wizard"), true);
   wizardStep(2);
