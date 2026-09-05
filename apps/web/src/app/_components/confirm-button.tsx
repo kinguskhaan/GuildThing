@@ -8,18 +8,25 @@ export function ConfirmButton({
   description,
   onConfirm,
   className,
+  disabled,
 }: {
   label: string;
   confirmLabel?: string;
   description: string;
   onConfirm: () => void;
   className?: string;
+  disabled?: boolean;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   return (
     <>
-      <button type="button" onClick={() => dialogRef.current?.showModal()} className={className}>
+      <button
+        type="button"
+        onClick={() => dialogRef.current?.showModal()}
+        className={className}
+        disabled={disabled}
+      >
         {label}
       </button>
 

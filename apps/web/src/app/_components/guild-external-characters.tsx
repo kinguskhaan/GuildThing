@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { CollapsibleCard } from "~/app/_components/collapsible-card";
 import { api } from "~/trpc/react";
 import type { RouterOutputs } from "~/trpc/react";
 
@@ -30,17 +31,12 @@ export function GuildExternalCharacters({
   if (rows.length === 0) return null;
 
   return (
-    <div className="bg-discord-elevated flex w-full flex-col gap-2 rounded-xl p-4">
-      <button
-        type="button"
-        onClick={() => setCollapsed((c) => !c)}
-        className="flex items-center justify-between text-left"
-      >
-        <h3 className="font-bold">External characters ({rows.length})</h3>
-        <span className="text-discord-text-muted">{collapsed ? "▸" : "▾"}</span>
-      </button>
-      {!collapsed && (
-        <>
+    <CollapsibleCard
+      title="External characters"
+      count={rows.length}
+      collapsed={collapsed}
+      onToggle={() => setCollapsed((c) => !c)}
+    >
           <p className="text-discord-text-muted text-sm">
             Real characters (Battle.net-verified) typed during onboarding
             that aren&apos;t a member of this guild — granted level-range
@@ -116,8 +112,6 @@ export function GuildExternalCharacters({
             </table>
           </div>
           <p className="text-discord-text-muted text-xs">{rows.length} total</p>
-        </>
-      )}
-    </div>
+    </CollapsibleCard>
   );
 }

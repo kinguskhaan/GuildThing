@@ -1,0 +1,159 @@
+/* Discord Server Controls — hybrid system: Discord hosts, schematic inside.
+   Discord's own surfaces, radii, text scale and blurple accent carry the
+   page; the Cabinet Schematic survives as content — mono kickers, sealed
+   latches, the bot breaker, rule sentence chips and the sync pulse drawn
+   inside Discord panels. Fluid layout, no fixed frame. */
+
+:root {
+  --schem-line: #9fd4f5;
+  --schem-line-dim: #3d5a75;
+  --schem-line-text: #7a9cbf;
+  --schem-green: #23a55a;
+  --schem-amber: #ffb000;
+}
+
+.schem-kicker {
+  font-family: var(--font-arcade-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--schem-line);
+}
+
+.schem-mono {
+  font-family: var(--font-arcade-mono), monospace;
+}
+
+/* rule sentence chip */
+.schem-chip {
+  border: 1px solid rgba(159, 212, 245, 0.35);
+  background: rgba(49, 51, 56, 0.6);
+  border-radius: 8px;
+  padding: 6px 10px;
+  text-align: left;
+  min-width: 0;
+}
+
+.schem-chip:hover {
+  border-color: var(--schem-line);
+}
+
+.schem-chip-hot {
+  border-color: var(--schem-line);
+  box-shadow: 0 0 10px rgba(159, 212, 245, 0.25);
+}
+
+/* sealed protected-role latch */
+.schem-latch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px dashed var(--schem-amber);
+  background: rgba(255, 176, 0, 0.05);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.schem-stamp {
+  font-family: var(--font-arcade-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--schem-amber);
+  border: 1px solid var(--schem-amber);
+  background: transparent;
+  padding: 2px 8px;
+  border-radius: 4px;
+  transform: rotate(3deg);
+  cursor: pointer;
+}
+
+/* bot breaker */
+.schem-breaker-track {
+  position: relative;
+  width: 52px;
+  height: 26px;
+  border-radius: 4px;
+  border: 1px solid var(--schem-green);
+  background: transparent;
+  cursor: pointer;
+  flex: none;
+  box-shadow:
+    0 0 8px rgba(35, 165, 90, 0.35),
+    inset 0 0 6px rgba(35, 165, 90, 0.2);
+}
+
+.schem-breaker-track[data-paused="true"] {
+  border-color: var(--schem-amber);
+  box-shadow:
+    0 0 8px rgba(255, 176, 0, 0.3),
+    inset 0 0 6px rgba(255, 176, 0, 0.15);
+}
+
+.schem-breaker-knob {
+  position: absolute;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  background: var(--schem-green);
+  box-shadow: 0 0 8px rgba(35, 165, 90, 0.8);
+}
+
+/* the trace between condition and grants, with the travelling sync pulse */
+.schem-trace {
+  position: relative;
+  height: 2px;
+  background: rgba(159, 212, 245, 0.4);
+  border-radius: 1px;
+  overflow: visible;
+}
+
+.schem-pulse {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: var(--schem-line);
+  box-shadow: 0 0 12px 3px rgba(159, 212, 245, 0.55);
+  animation: schem-pulse-run 2.8s linear infinite;
+}
+
+@keyframes schem-pulse-run {
+  0% {
+    left: 0%;
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+.schem-trace[data-firing="false"] .schem-pulse {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .schem-pulse {
+    animation: none;
+    left: 50%;
+    opacity: 0.7;
+  }
+}
+
+/* status lamp */
+.schem-lamp-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}

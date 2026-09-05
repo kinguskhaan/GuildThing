@@ -1,5 +1,55 @@
 @import "tailwindcss";
 
+/* Tailwind's preflight resets margin to 0 on every element, which breaks
+   the native <dialog> centering (position: fixed; margin: auto) every
+   modal in this app relies on — restore just that. */
+dialog {
+  margin: auto;
+}
+
+/* The arcade register owns the landing page's ground: keep the document
+   dark even before/without the particle canvas, and on full-page captures. */
+body {
+  background-color: var(--color-arcade-void);
+  caret-color: var(--color-discord-text);
+}
+
+/* Browser chrome carries the palette: selection, caret, scrollbars, and the
+   default keyboard-focus outline are themed from the tokens, not left to
+   the UA. */
+::selection {
+  background-color: var(--color-discord-brand);
+  color: #ffffff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-discord-link);
+  outline-offset: 2px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-discord-elevated-hover) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: var(--color-discord-elevated-hover);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-discord-text-muted);
+}
+
 @theme {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -18,4 +68,7 @@
   --color-discord-green: #23a55a;
   --color-discord-red: #f23f42;
   --color-discord-red-hover: #da373c;
+
+  /* Retro-arcade register backdrop (login / future low-frequency moments) */
+  --color-arcade-void: #0a0a12;
 }

@@ -4,6 +4,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { MyRoleIdChips } from "~/app/_components/my-role-id-chips";
+import {
+  mergeRolesWithSelected,
+  RoleChipGroup,
+  toggleRoleId,
+} from "~/app/_components/role-chip-picker";
 import { RoleIdList } from "~/app/_components/role-id-list";
 import { api } from "~/trpc/react";
 
@@ -48,6 +53,15 @@ export function EditGuildForm({
     initialRequiredRoleIds.length > 0 ? initialRequiredRoleIds : [""],
   );
   const [adminRoleIds, setAdminRoleIds] = useState(initialAdminRoleIds);
+
+  // Bot-fetched named roles for this server — lets required/admin roles be
+  // picked by name instead of pasted IDs, same as the create-guild wizard.
+  // Falls back to the raw-ID RoleIdList/MyRoleIdChips UI below when the bot
+  // isn't in this server (discordRoles then comes back empty).
+  const roles = api.guild.discordRoles.useQuery({ guildId });
+  const namedRolesAvailable = (roles.data?.length ?? 0) > 0;
+  const requiredSelected = requiredRoleIds.filter((r) => r.trim() !== "");
+  const adminSelected = adminRoleIds.filter((r) => r.trim() !== "");
 
   const updateGuild = api.guild.update.useMutation({
     onSuccess: () => {
@@ -107,27 +121,56 @@ export function EditGuildForm({
           required
         />
       </label>
-      <RoleIdList roleIds={requiredRoleIds} onChange={setRequiredRoleIds} />
-      {discordGuildId && (
-        <MyRoleIdChips
-          discordGuildId={discordGuildId}
-          exclude={requiredRoleIds}
-          onPick={(roleId) => setRequiredRoleIds(addRoleId(requiredRoleIds, roleId))}
-        />
-      )}
-      <RoleIdList
-        roleIds={adminRoleIds}
-        onChange={setAdminRoleIds}
-        label="Admin role IDs (optional — grants edit rights + raw recipe catalog access)"
-        addLabel="+ Add admin role"
-        allowEmpty
-      />
-      {discordGuildId && (
-        <MyRoleIdChips
-          discordGuildId={discordGuildId}
-          exclude={adminRoleIds}
-          onPick={(roleId) => setAdminRoleIds(addRoleId(adminRoleIds, roleId))}
-        />
+      {namedRolesAvailable ? (
+        <>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm">Required (any of these grants access)</span>
+            <RoleChipGroup
+              roles={mergeRolesWithSelected(roles.data ?? [], requiredSelected)}
+              selected={requiredSelected}
+              onToggle={(id) =>
+                setRequiredRoleIds((r) => toggleRoleId(r.filter((x) => x.trim() !== ""), id))
+              }
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm">
+              Admin (optional — grants edit rights + raw recipe catalog access)
+            </span>
+            <RoleChipGroup
+              roles={mergeRolesWithSelected(roles.data ?? [], adminSelected)}
+              selected={adminSelected}
+              onToggle={(id) =>
+                setAdminRoleIds((r) => toggleRoleId(r.filter((x) => x.trim() !== ""), id))
+              }
+            />
+          </div>
+        </>
+      ) : (
+        <>
+          <RoleIdList roleIds={requiredRoleIds} onChange={setRequiredRoleIds} />
+          {discordGuildId && (
+            <MyRoleIdChips
+              discordGuildId={discordGuildId}
+              exclude={requiredRoleIds}
+              onPick={(roleId) => setRequiredRoleIds(addRoleId(requiredRoleIds, roleId))}
+            />
+          )}
+          <RoleIdList
+            roleIds={adminRoleIds}
+            onChange={setAdminRoleIds}
+            label="Admin role IDs (optional — grants edit rights + raw recipe catalog access)"
+            addLabel="+ Add admin role"
+            allowEmpty
+          />
+          {discordGuildId && (
+            <MyRoleIdChips
+              discordGuildId={discordGuildId}
+              exclude={adminRoleIds}
+              onPick={(roleId) => setAdminRoleIds(addRoleId(adminRoleIds, roleId))}
+            />
+          )}
+        </>
       )}
       {updateGuild.error && (
         <p className="text-sm text-discord-red">{updateGuild.error.message}</p>

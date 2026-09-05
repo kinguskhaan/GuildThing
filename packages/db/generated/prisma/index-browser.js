@@ -192,9 +192,9 @@ exports.Prisma.GuildScalarFieldEnum = {
   discordGuildId: 'discordGuildId',
   botEnabled: 'botEnabled',
   createdById: 'createdById',
+  onboardingFlowMigratedAt: 'onboardingFlowMigratedAt',
   createdAt: 'createdAt',
   rosterSource: 'rosterSource',
-  pugEnabled: 'pugEnabled',
   pugRoleId: 'pugRoleId',
   lastExportedAt: 'lastExportedAt',
   lastExportedById: 'lastExportedById',
@@ -211,7 +211,8 @@ exports.Prisma.GuildScalarFieldEnum = {
   wowRegion: 'wowRegion',
   wowRealmSlug: 'wowRealmSlug',
   wowGuildName: 'wowGuildName',
-  wowNamespaceFlavor: 'wowNamespaceFlavor'
+  wowNamespaceFlavor: 'wowNamespaceFlavor',
+  expansion: 'expansion'
 };
 
 exports.Prisma.GuildApiKeyScalarFieldEnum = {
@@ -227,6 +228,12 @@ exports.Prisma.GuildApiKeyScalarFieldEnum = {
 };
 
 exports.Prisma.GuildInactivityTargetRoleScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  discordRoleId: 'discordRoleId'
+};
+
+exports.Prisma.GuildNonClaimableRoleScalarFieldEnum = {
   id: 'id',
   guildId: 'guildId',
   discordRoleId: 'discordRoleId'
@@ -248,6 +255,8 @@ exports.Prisma.GuildRosterMemberScalarFieldEnum = {
   class: 'class',
   note: 'note',
   officerNote: 'officerNote',
+  spec: 'spec',
+  specSyncedAt: 'specSyncedAt',
   claimedByDiscordUserId: 'claimedByDiscordUserId',
   claimedByDiscordTag: 'claimedByDiscordTag',
   claimedAt: 'claimedAt',
@@ -296,14 +305,6 @@ exports.Prisma.GuildPendingRosterMatchScalarFieldEnum = {
   names: 'names',
   includeAltsInNickname: 'includeAltsInNickname',
   createdAt: 'createdAt'
-};
-
-exports.Prisma.GuildPugMemberScalarFieldEnum = {
-  id: 'id',
-  guildId: 'guildId',
-  discordUserId: 'discordUserId',
-  discordUserTag: 'discordUserTag',
-  markedAt: 'markedAt'
 };
 
 exports.Prisma.GuildMemberNicknameScalarFieldEnum = {
@@ -364,7 +365,8 @@ exports.Prisma.GuildRoleRuleConditionScalarFieldEnum = {
   operator: 'operator',
   textValue: 'textValue',
   minNumber: 'minNumber',
-  maxNumber: 'maxNumber'
+  maxNumber: 'maxNumber',
+  onboardingStepId: 'onboardingStepId'
 };
 
 exports.Prisma.GuildOnboardingQuestionScalarFieldEnum = {
@@ -420,6 +422,93 @@ exports.Prisma.GuildOnboardingAnswerScalarFieldEnum = {
 exports.Prisma.GuildOnboardingAnswerOptionScalarFieldEnum = {
   id: 'id',
   answerId: 'answerId',
+  optionId: 'optionId'
+};
+
+exports.Prisma.GuildOnboardingStepScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  type: 'type',
+  label: 'label',
+  canvasX: 'canvasX',
+  canvasY: 'canvasY',
+  createdAt: 'createdAt',
+  prompt: 'prompt',
+  questionType: 'questionType',
+  varName: 'varName',
+  varType: 'varType',
+  required: 'required',
+  appendList: 'appendList',
+  actionType: 'actionType',
+  nicknameTemplate: 'nicknameTemplate',
+  textTemplate: 'textTemplate',
+  namesVariable: 'namesVariable',
+  classesVariable: 'classesVariable',
+  listVariable: 'listVariable'
+};
+
+exports.Prisma.GuildOnboardingStepOptionScalarFieldEnum = {
+  id: 'id',
+  stepId: 'stepId',
+  label: 'label',
+  sortOrder: 'sortOrder'
+};
+
+exports.Prisma.GuildOnboardingActionGrantScalarFieldEnum = {
+  id: 'id',
+  stepId: 'stepId',
+  discordRoleId: 'discordRoleId',
+  discordChannelId: 'discordChannelId',
+  channelType: 'channelType'
+};
+
+exports.Prisma.GuildOnboardingStepEdgeScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  fromStepId: 'fromStepId',
+  toStepId: 'toStepId',
+  conditionType: 'conditionType',
+  conditionMinLevel: 'conditionMinLevel',
+  conditionMaxLevel: 'conditionMaxLevel'
+};
+
+exports.Prisma.GuildOnboardingStepEdgeConditionOptionScalarFieldEnum = {
+  id: 'id',
+  edgeId: 'edgeId',
+  optionId: 'optionId'
+};
+
+exports.Prisma.GuildOnboardingEdgeConditionValueScalarFieldEnum = {
+  id: 'id',
+  edgeId: 'edgeId',
+  value: 'value'
+};
+
+exports.Prisma.GuildOnboardingStepEdgeConditionClassScalarFieldEnum = {
+  id: 'id',
+  edgeId: 'edgeId',
+  class: 'class'
+};
+
+exports.Prisma.GuildOnboardingStepAnswerScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  discordUserId: 'discordUserId',
+  discordUserTag: 'discordUserTag',
+  stepId: 'stepId',
+  textValue: 'textValue',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.GuildOnboardingStepAnswerOptionScalarFieldEnum = {
+  id: 'id',
+  answerId: 'answerId',
+  optionId: 'optionId'
+};
+
+exports.Prisma.GuildRoleRuleConditionOptionScalarFieldEnum = {
+  id: 'id',
+  conditionId: 'conditionId',
   optionId: 'optionId'
 };
 
@@ -554,6 +643,33 @@ exports.Prisma.DiscordRolesSnapshotCacheScalarFieldEnum = {
   fetchedAt: 'fetchedAt'
 };
 
+exports.Prisma.GuildRoleMismatchCacheScalarFieldEnum = {
+  guildId: 'guildId',
+  data: 'data',
+  computedAt: 'computedAt'
+};
+
+exports.Prisma.GuildRaidCompScalarFieldEnum = {
+  id: 'id',
+  guildId: 'guildId',
+  name: 'name',
+  groupCount: 'groupCount',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.GuildRaidCompSlotScalarFieldEnum = {
+  id: 'id',
+  compId: 'compId',
+  groupIndex: 'groupIndex',
+  slotIndex: 'slotIndex',
+  rosterMemberId: 'rosterMemberId',
+  characterName: 'characterName',
+  classToken: 'classToken',
+  specToken: 'specToken'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -576,13 +692,13 @@ exports.Prisma.ModelName = {
   Guild: 'Guild',
   GuildApiKey: 'GuildApiKey',
   GuildInactivityTargetRole: 'GuildInactivityTargetRole',
+  GuildNonClaimableRole: 'GuildNonClaimableRole',
   GuildProtectedRole: 'GuildProtectedRole',
   GuildRosterMember: 'GuildRosterMember',
   GuildRosterClaimConflict: 'GuildRosterClaimConflict',
   GuildRoleChangeEvent: 'GuildRoleChangeEvent',
   GuildRankChangeEvent: 'GuildRankChangeEvent',
   GuildPendingRosterMatch: 'GuildPendingRosterMatch',
-  GuildPugMember: 'GuildPugMember',
   GuildMemberNickname: 'GuildMemberNickname',
   GuildExternalCharacter: 'GuildExternalCharacter',
   GuildMemberActivity: 'GuildMemberActivity',
@@ -597,6 +713,16 @@ exports.Prisma.ModelName = {
   GuildOnboardingEdgeConditionClass: 'GuildOnboardingEdgeConditionClass',
   GuildOnboardingAnswer: 'GuildOnboardingAnswer',
   GuildOnboardingAnswerOption: 'GuildOnboardingAnswerOption',
+  GuildOnboardingStep: 'GuildOnboardingStep',
+  GuildOnboardingStepOption: 'GuildOnboardingStepOption',
+  GuildOnboardingActionGrant: 'GuildOnboardingActionGrant',
+  GuildOnboardingStepEdge: 'GuildOnboardingStepEdge',
+  GuildOnboardingStepEdgeConditionOption: 'GuildOnboardingStepEdgeConditionOption',
+  GuildOnboardingEdgeConditionValue: 'GuildOnboardingEdgeConditionValue',
+  GuildOnboardingStepEdgeConditionClass: 'GuildOnboardingStepEdgeConditionClass',
+  GuildOnboardingStepAnswer: 'GuildOnboardingStepAnswer',
+  GuildOnboardingStepAnswerOption: 'GuildOnboardingStepAnswerOption',
+  GuildRoleRuleConditionOption: 'GuildRoleRuleConditionOption',
   EventChannelPreset: 'EventChannelPreset',
   Event: 'Event',
   EventTimeOption: 'EventTimeOption',
@@ -611,7 +737,10 @@ exports.Prisma.ModelName = {
   Recipe: 'Recipe',
   DiscordMemberRoleCache: 'DiscordMemberRoleCache',
   DiscordGuildInfoCache: 'DiscordGuildInfoCache',
-  DiscordRolesSnapshotCache: 'DiscordRolesSnapshotCache'
+  DiscordRolesSnapshotCache: 'DiscordRolesSnapshotCache',
+  GuildRoleMismatchCache: 'GuildRoleMismatchCache',
+  GuildRaidComp: 'GuildRaidComp',
+  GuildRaidCompSlot: 'GuildRaidCompSlot'
 };
 
 /**

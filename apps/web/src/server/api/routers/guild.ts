@@ -4,7 +4,12 @@ import { deflateSync } from "node:zlib";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { generateApiKey, uniqueGuildSlug } from "@guildthing/db";
+import {
+  ensureOnboardingFlowMigrated,
+  ensurePugActionStepsMigrated,
+  generateApiKey,
+  uniqueGuildSlug,
+} from "@guildthing/db";
 import { env } from "~/env";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { WOW_CLASS_TOKENS } from "~/lib/format";
@@ -15,7 +20,7 @@ import {
   rosterExportSchema,
   wowImportSchema,
 } from "~/server/wow-import";
-import { tbcProfessionRecipes, tbcRecipes } from "@guildthing/wowhead-data";
+import { EXPANSION_ORDER, tbcProfessionRecipes, tbcRecipes } from "@guildthing/wowhead-data";
 import {
   addRoleToMember,
   DiscordRateLimitedError,
@@ -30,6 +35,7 @@ import {
   getGuildRolesSnapshot,
   getMyRoleIds,
   hasGuildRole,
+  isBotInGuild,
   isGuildMember,
   removeRoleFromMember,
   sendDirectMessage,
@@ -49,24 +55,38 @@ async function safeGuildIconUrl(
 
 // One condition within a GuildRoleRule (see schema.prisma) — "equals"
 // pairs with rank/class (a text value), "between" pairs with level (a
-// min/max pair). Refined so the admin UI can't save a nonsensical
-// combination (e.g. a level condition with no numbers).
+// min/max pair), "includes" pairs with answer (an onboarding step id +
+// at least one of its option ids). Refined so the admin UI can't save a
+// nonsensical combination (e.g. a level condition with no numbers).
 const roleRuleConditionSchema = z
   .object({
-    field: z.enum(["rank", "level", "class"]),
-    operator: z.enum(["equals", "between"]),
+    field: z.enum(["rank", "level", "class", "answer"]),
+    operator: z.enum(["equals", "between", "includes"]),
     textValue: z.string().min(1).optional(),
     minNumber: z.number().optional(),
     maxNumber: z.number().optional(),
+    onboardingStepId: z.string().min(1).optional(),
+    optionIds: z.array(z.string().min(1)).optional(),
   })
   .refine(
-    (c) =>
-      c.field === "level"
-        ? c.operator === "between" && c.minNumber != null && c.maxNumber != null
-        : c.operator === "equals" && !!c.textValue,
+    (c) => {
+      if (c.field === "level") {
+        return (
+          c.operator === "between" && c.minNumber != null && c.maxNumber != null
+        );
+      }
+      if (c.field === "answer") {
+        return (
+          c.operator === "includes" &&
+          !!c.onboardingStepId &&
+          (c.optionIds?.length ?? 0) > 0
+        );
+      }
+      return c.operator === "equals" && !!c.textValue;
+    },
     {
       message:
-        "level conditions need a min/max range; rank/class conditions need a text value",
+        "level conditions need a min/max range; answer conditions need a question and at least one option; rank/class conditions need a text value",
     },
   );
 
@@ -283,16 +303,39 @@ export const guildRouter = createTRPCRouter({
       }
     }),
 
+  // Step 2 of the create-guild wizard polls this to find out whether the
+  // bot has actually been invited yet, so it can auto-advance to the named
+  // role picker instead of making the user click "continue" on faith.
+  checkBotPresence: protectedProcedure
+    .input(z.object({ guildId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { guild, isAdmin, needsReauth, retryAfterSeconds } =
+        await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      return isBotInGuild(guild.discordGuildId);
+    }),
+
   // Who's allowed to create guilds is governed by InstanceSettings (see
   // isAllowedToCreateGuild) — canCreateGuild above is just UI dressing,
   // this check is the actual enforcement (client checks are trivially
   // bypassable).
+  //
+  // requiredRoleIds may be empty — the creator always passes checkGuildRole/
+  // checkGuildAdmin regardless (see the createdById bypass above), so an
+  // empty list just means "nobody but the creator can see this guild page
+  // yet," not "everyone can." The create-guild wizard leans on this to let
+  // people finish setup before they've picked any Discord roles.
   create: protectedProcedure
     .input(
       z.object({
         name: z.string().min(1),
         discordGuildId: z.string().min(1),
-        requiredRoleIds: z.array(z.string().min(1)).min(1),
+        requiredRoleIds: z.array(z.string().min(1)).default([]),
         adminRoleIds: z.array(z.string().min(1)).default([]),
       }),
     )
@@ -487,6 +530,16 @@ export const guildRouter = createTRPCRouter({
         rosterSource: guild.rosterSource,
         lastRosterImportedAt: guild.lastRosterImportedAt,
         botEnabled: guild.botEnabled,
+        expansion: guild.expansion,
+        // Whether the raid comp tool's Battle.net spec sync can run at all
+        // for this guild — all three fields come from the same armory
+        // config used by onboarding's character lookup (see
+        // battlenetApi.ts), so "configured" means the same thing here.
+        bnetConfigured: !!(
+          guild.wowRegion &&
+          guild.wowRealmSlug &&
+          guild.wowNamespaceFlavor
+        ),
       };
     }),
 
@@ -1034,13 +1087,13 @@ export const guildRouter = createTRPCRouter({
       // to a specific roster row.
       const answerRows =
         claimedIds.length > 0
-          ? await ctx.db.guildOnboardingAnswer.findMany({
+          ? await ctx.db.guildOnboardingStepAnswer.findMany({
               where: {
                 guildId: input.guildId,
                 discordUserId: { in: claimedIds },
               },
               include: {
-                question: { select: { prompt: true, type: true } },
+                step: { select: { prompt: true, questionType: true } },
                 selectedOptions: {
                   include: { option: { select: { label: true } } },
                 },
@@ -1053,41 +1106,55 @@ export const guildRouter = createTRPCRouter({
       >();
       for (const a of answerRows) {
         const value =
-          a.question.type === "free_text"
+          a.step.questionType === "free_text"
             ? (a.textValue ?? "")
             : a.selectedOptions.map((so) => so.option.label).join(", ");
         if (!value) continue;
         const list = answersByDiscordId.get(a.discordUserId) ?? [];
-        list.push({ prompt: a.question.prompt, value });
+        list.push({ prompt: a.step.prompt ?? "", value });
         answersByDiscordId.set(a.discordUserId, list);
       }
 
-      // Roster-table badge only — same "was a resync recently skipped for
-      // this person" signal as the admin-page list (guild.auditLog),
-      // just a boolean here rather than the full detail.
-      const recentManualChangeIds =
-        claimedIds.length > 0
-          ? new Set(
-              (
-                await ctx.db.guildRoleChangeEvent.findMany({
-                  where: {
-                    guildId: input.guildId,
-                    discordUserId: { in: claimedIds },
-                    source: "manual",
-                  },
-                  select: { discordUserId: true },
-                  distinct: ["discordUserId"],
-                })
-              ).map((r) => r.discordUserId),
-            )
-          : new Set<string>();
+      // Roster-table badge: the exact manual change that's causing the
+      // resync to back off for this person, not just a yes/no flag — "role
+      // sync skipped" with no reason attached was the one badge in this
+      // table an admin couldn't actually act on. Keeps only the most
+      // recent manual change per account (ordered desc, first-wins Map).
+      const roleSyncSkipReasonByDiscordId = new Map<
+        string,
+        {
+          executorTag: string | null;
+          addedRoleNames: string[];
+          removedRoleNames: string[];
+          detectedAt: Date;
+        }
+      >();
+      if (claimedIds.length > 0) {
+        const manualChanges = await ctx.db.guildRoleChangeEvent.findMany({
+          where: {
+            guildId: input.guildId,
+            discordUserId: { in: claimedIds },
+            source: "manual",
+          },
+          orderBy: { detectedAt: "desc" },
+        });
+        for (const change of manualChanges) {
+          if (roleSyncSkipReasonByDiscordId.has(change.discordUserId)) continue;
+          roleSyncSkipReasonByDiscordId.set(change.discordUserId, {
+            executorTag: change.executorTag,
+            addedRoleNames: JSON.parse(change.addedRoleNames) as string[],
+            removedRoleNames: JSON.parse(change.removedRoleNames) as string[],
+            detectedAt: change.detectedAt,
+          });
+        }
+      }
 
       const withConflictFlag = members.map(({ claimConflicts, ...m }) => ({
         ...m,
         hasClaimConflict: claimConflicts.length > 0,
-        hasSkippedRoleSync: m.claimedByDiscordUserId
-          ? recentManualChangeIds.has(m.claimedByDiscordUserId)
-          : false,
+        roleSyncSkipReason: m.claimedByDiscordUserId
+          ? (roleSyncSkipReasonByDiscordId.get(m.claimedByDiscordUserId) ?? null)
+          : null,
         lastActiveAt: m.claimedByDiscordUserId
           ? (lastActiveByDiscordId.get(m.claimedByDiscordUserId) ?? null)
           : null,
@@ -1104,6 +1171,7 @@ export const guildRouter = createTRPCRouter({
         claimedByDiscordUserId: null,
         claimedByDiscordTag: null,
         lastActiveAt: null,
+        roleSyncSkipReason: null,
       }));
     }),
 
@@ -1339,7 +1407,17 @@ export const guildRouter = createTRPCRouter({
   // Guild_Roster_Manager addon's own audit log but spanning both sides.
   // Relayed into the addon via apps/sync as part of GuildThing.lua.
   auditLog: protectedProcedure
-    .input(z.object({ guildId: z.string() }))
+    .input(
+      z.object({
+        guildId: z.string(),
+        // Scopes the feed to one Discord account's own history (the roster
+        // table's per-member detail drawer) instead of the whole guild's
+        // most recent 100 events — without this, a person whose events fall
+        // outside that global top-100 window would show an empty log even
+        // though their history exists further back.
+        discordUserId: z.string().optional(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const { guild, isAdmin, needsReauth, retryAfterSeconds } =
         await checkGuildAdmin(ctx.db, input.guildId, ctx.session.user.id);
@@ -1349,20 +1427,49 @@ export const guildRouter = createTRPCRouter({
           : forbiddenOrRateLimited(retryAfterSeconds);
       }
 
+      const personCharacterNames = input.discordUserId
+        ? (
+            await ctx.db.guildRosterMember.findMany({
+              where: {
+                guildId: input.guildId,
+                claimedByDiscordUserId: input.discordUserId,
+              },
+              select: { name: true },
+            })
+          ).map((m) => m.name)
+        : null;
+      const take = personCharacterNames ? 200 : 100;
+
       const [rankEvents, roleChanges, claims, rosterMembers, snapshot] =
         await Promise.all([
           ctx.db.guildRankChangeEvent.findMany({
-            where: { guildId: input.guildId },
+            where: {
+              guildId: input.guildId,
+              ...(personCharacterNames
+                ? { characterName: { in: personCharacterNames } }
+                : {}),
+            },
             orderBy: { detectedAt: "desc" },
-            take: 100,
+            take,
           }),
           ctx.db.guildRoleChangeEvent.findMany({
-            where: { guildId: input.guildId },
+            where: {
+              guildId: input.guildId,
+              ...(input.discordUserId
+                ? { discordUserId: input.discordUserId }
+                : {}),
+            },
             orderBy: { detectedAt: "desc" },
-            take: 100,
+            take,
           }),
           ctx.db.guildRosterMember.findMany({
-            where: { guildId: input.guildId, claimedAt: { not: null } },
+            where: {
+              guildId: input.guildId,
+              claimedAt: { not: null },
+              ...(input.discordUserId
+                ? { claimedByDiscordUserId: input.discordUserId }
+                : {}),
+            },
             select: {
               id: true,
               name: true,
@@ -1371,7 +1478,7 @@ export const guildRouter = createTRPCRouter({
               claimedAt: true,
             },
             orderBy: { claimedAt: "desc" },
-            take: 100,
+            take,
           }),
           // For resolving a Discord identity's in-game character name (and
           // vice versa) — role_change/claim entries key by discordUserId,
@@ -1438,7 +1545,7 @@ export const guildRouter = createTRPCRouter({
         })),
       ];
       entries.sort((a, b) => b.detectedAt.getTime() - a.detectedAt.getTime());
-      return entries.slice(0, 100);
+      return entries.slice(0, take);
     }),
 
   // Drops the tracking row — e.g. the admin knows that character will never
@@ -1490,11 +1597,12 @@ export const guildRouter = createTRPCRouter({
     }),
 
   // Discord server members who haven't claimed a roster character —
-  // everyone except bots, PUGs (they were never meant to claim one — see
-  // GuildPugMember, the authoritative "chose PUG" record, not a role
-  // check, since a PUG role might not even be configured), and whoever
-  // already has at least one GuildRosterMember row claimed to them.
-  // Computed live against Discord + the roster each call rather than
+  // everyone except bots, holders of an admin-configured "non-claimable"
+  // role (see GuildNonClaimableRole — PUGs and any other role admins don't
+  // want nagged, checked live against Discord roles rather than tracked,
+  // so it stays correct even if a role is added/removed after the fact),
+  // and whoever already has at least one GuildRosterMember row claimed to
+  // them. Computed live against Discord + the roster each call rather than
   // tracked, since claim state can change from either side.
   unclaimedMembers: protectedProcedure
     .input(z.object({ guildId: z.string() }))
@@ -1507,7 +1615,7 @@ export const guildRouter = createTRPCRouter({
           : forbiddenOrRateLimited(retryAfterSeconds);
       }
 
-      const [members, claimedRows, pugRows] = await Promise.all([
+      const [members, claimedRows, nonClaimableRoleRows, nicknameRows] = await Promise.all([
         getGuildMembers(guild.discordGuildId),
         ctx.db.guildRosterMember.findMany({
           where: {
@@ -1516,22 +1624,45 @@ export const guildRouter = createTRPCRouter({
           },
           select: { claimedByDiscordUserId: true },
         }),
-        ctx.db.guildPugMember.findMany({
+        ctx.db.guildNonClaimableRole.findMany({
           where: { guildId: input.guildId },
-          select: { discordUserId: true },
+          select: { discordRoleId: true },
+        }),
+        // Someone can complete onboarding (typing character names, getting a
+        // computed nickname) without ever matching a roster row — they're
+        // still unclaimed by the definition above, but their nickname is
+        // already real and worth showing/editing here rather than only in
+        // the claimed-member drawer.
+        ctx.db.guildMemberNickname.findMany({
+          where: { guildId: input.guildId },
+          select: { discordUserId: true, computedName: true, preferredNickname: true },
         }),
       ]);
 
       const claimedIds = new Set(
         claimedRows.map((r) => r.claimedByDiscordUserId),
       );
-      const pugIds = new Set(pugRows.map((r) => r.discordUserId));
+      const nonClaimableRoleIds = new Set(
+        nonClaimableRoleRows.map((r) => r.discordRoleId),
+      );
+      const nicknameByDiscordId = new Map(
+        nicknameRows.map((r) => [r.discordUserId, r]),
+      );
 
       return members
         .filter((m) => !m.bot)
-        .filter((m) => !pugIds.has(m.id))
+        .filter((m) => !m.roleIds.some((id) => nonClaimableRoleIds.has(id)))
         .filter((m) => !claimedIds.has(m.id))
-        .map((m) => ({ id: m.id, tag: m.tag, roleIds: m.roleIds }));
+        .map((m) => {
+          const nickname = nicknameByDiscordId.get(m.id);
+          return {
+            id: m.id,
+            tag: m.tag,
+            roleIds: m.roleIds,
+            computedName: nickname?.computedName ?? null,
+            preferredNickname: nickname?.preferredNickname ?? null,
+          };
+        });
     }),
 
   // DMs each given member a reminder to onboard, via the bot's own token
@@ -2089,7 +2220,6 @@ export const guildRouter = createTRPCRouter({
     .input(
       z.object({
         guildId: z.string(),
-        enabled: z.boolean(),
         discordRoleId: z.string().nullable(),
       }),
     )
@@ -2107,8 +2237,45 @@ export const guildRouter = createTRPCRouter({
 
       await ctx.db.guild.update({
         where: { id: input.guildId },
-        data: { pugEnabled: input.enabled, pugRoleId: input.discordRoleId },
+        data: { pugRoleId: input.discordRoleId },
       });
+      return { ok: true };
+    }),
+
+  // Roles that exclude a member from "unclaimed members" (see
+  // GuildNonClaimableRole and unclaimedMembers above) — OR'd, rows fully
+  // replaced on save, same convention as the inactivity filter's
+  // targetRoleIds.
+  setNonClaimableRoles: protectedProcedure
+    .input(
+      z.object({
+        guildId: z.string(),
+        roleIds: z.array(z.string().min(1)),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      await ctx.db.$transaction([
+        ctx.db.guildNonClaimableRole.deleteMany({
+          where: { guildId: input.guildId },
+        }),
+        ctx.db.guildNonClaimableRole.createMany({
+          data: input.roleIds.map((discordRoleId) => ({
+            guildId: input.guildId,
+            discordRoleId,
+          })),
+        }),
+      ]);
       return { ok: true };
     }),
 
@@ -2432,6 +2599,37 @@ export const guildRouter = createTRPCRouter({
       return { ok: true };
     }),
 
+  // Which game expansion this guild's raid comp tool targets — also flows
+  // to the bot's onboarding class list (see EXPANSIONS in
+  // @guildthing/wowhead-data). A guild's own setting, same "small
+  // dedicated mutation" convention as setBotEnabled above, not folded into
+  // the general `update` form.
+  setExpansion: protectedProcedure
+    .input(
+      z.object({
+        guildId: z.string(),
+        expansion: z.enum(EXPANSION_ORDER as [string, ...string[]]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { isAdmin, needsReauth, retryAfterSeconds } = await checkGuildAdmin(
+        ctx.db,
+        input.guildId,
+        ctx.session.user.id,
+      );
+      if (!isAdmin) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      await ctx.db.guild.update({
+        where: { id: input.guildId },
+        data: { expansion: input.expansion },
+      });
+      return { ok: true };
+    }),
+
   // Roles the bot must never add or remove for anyone, full stop — see
   // GuildProtectedRole in schema.prisma. Full replace, same convention as
   // setInactivitySettings' targetRoleIds.
@@ -2469,9 +2667,10 @@ export const guildRouter = createTRPCRouter({
     }),
 
   // pugRoleId + adminNotifyChannelId + onboardingChannelId/MessageText +
-  // inactivity-filter settings + every role rule (with conditions) for the
-  // guild, one call for the Discord-roles admin page — same "small
-  // dedicated query" shape as exportStatus/rosterImportStatus above.
+  // inactivity-filter settings + non-claimable roles + every role rule
+  // (with conditions) for the guild, one call for the Discord-roles admin
+  // page — same "small dedicated query" shape as exportStatus/
+  // rosterImportStatus above.
   discordRoleConfig: protectedProcedure
     .input(z.object({ guildId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -2486,12 +2685,11 @@ export const guildRouter = createTRPCRouter({
           : forbiddenOrRateLimited(retryAfterSeconds);
       }
 
-      const [guild, rules, rolePriorities] = await Promise.all([
+      const [guild, rules, rolePriorities, suggestedRealm] = await Promise.all([
         ctx.db.guild.findUnique({
           where: { id: input.guildId },
           select: {
             rosterSource: true,
-            pugEnabled: true,
             pugRoleId: true,
             adminNotifyChannelId: true,
             onboardingChannelId: true,
@@ -2501,6 +2699,7 @@ export const guildRouter = createTRPCRouter({
             inactivityRoleId: true,
             inactivityTargetRoles: { select: { discordRoleId: true } },
             protectedRoles: { select: { discordRoleId: true } },
+            nonClaimableRoles: { select: { discordRoleId: true } },
             wowRegion: true,
             wowRealmSlug: true,
             wowGuildName: true,
@@ -2510,7 +2709,12 @@ export const guildRouter = createTRPCRouter({
         ctx.db.guildRoleRule.findMany({
           where: { guildId: input.guildId },
           include: {
-            conditions: true,
+            conditions: {
+              include: {
+                onboardingStep: { select: { prompt: true } },
+                answerOptions: { include: { option: { select: { label: true } } } },
+              },
+            },
             grantedRoles: true,
             grantedChannels: true,
           },
@@ -2520,12 +2724,21 @@ export const guildRouter = createTRPCRouter({
           where: { guildId: input.guildId },
           orderBy: { priority: "asc" },
         }),
+        // Only ever used as a placeholder suggestion for the armory-lookup
+        // realm field below — an /ourrecipes profession import already
+        // carries a real realm value, so there's no reason to leave that
+        // field blank once at least one character's been imported.
+        ctx.db.guildCharacter.findFirst({
+          where: { guildId: input.guildId },
+          orderBy: { importedAt: "desc" },
+          select: { realm: true },
+        }),
       ]);
       if (!guild) throw new TRPCError({ code: "NOT_FOUND" });
 
       return {
+        suggestedRealm: suggestedRealm?.realm ?? null,
         rosterSource: guild.rosterSource,
-        pugEnabled: guild.pugEnabled,
         pugRoleId: guild.pugRoleId,
         adminNotifyChannelId: guild.adminNotifyChannelId,
         onboardingChannelId: guild.onboardingChannelId,
@@ -2536,12 +2749,28 @@ export const guildRouter = createTRPCRouter({
           (r) => r.discordRoleId,
         ),
         protectedRoleIds: guild.protectedRoles.map((r) => r.discordRoleId),
+        nonClaimableRoleIds: guild.nonClaimableRoles.map((r) => r.discordRoleId),
         inactivityRoleId: guild.inactivityRoleId,
         wowRegion: guild.wowRegion,
         wowRealmSlug: guild.wowRealmSlug,
         wowGuildName: guild.wowGuildName,
         wowNamespaceFlavor: guild.wowNamespaceFlavor,
-        rules,
+        rules: rules.map((r) => ({
+          ...r,
+          conditions: r.conditions.map((c) => ({
+            id: c.id,
+            ruleId: c.ruleId,
+            field: c.field,
+            operator: c.operator,
+            textValue: c.textValue,
+            minNumber: c.minNumber,
+            maxNumber: c.maxNumber,
+            onboardingStepId: c.onboardingStepId,
+            onboardingStepPrompt: c.onboardingStep?.prompt ?? null,
+            optionIds: c.answerOptions.map((ao) => ao.optionId),
+            optionLabels: c.answerOptions.map((ao) => ao.option.label),
+          })),
+        })),
         rolePriorityIds: rolePriorities.map((p) => p.discordRoleId),
       };
     }),
@@ -2629,12 +2858,46 @@ export const guildRouter = createTRPCRouter({
         });
       }
 
+      const answerConditions = input.conditions.filter(
+        (c) => c.field === "answer",
+      );
+      if (answerConditions.length > 0) {
+        const stepIds = [
+          ...new Set(answerConditions.map((c) => c.onboardingStepId!)),
+        ];
+        const steps = await ctx.db.guildOnboardingStep.findMany({
+          where: { id: { in: stepIds }, guildId: input.guildId },
+          select: { id: true, options: { select: { id: true } } },
+        });
+        const stepById = new Map(steps.map((s) => [s.id, s]));
+        for (const c of answerConditions) {
+          const step = stepById.get(c.onboardingStepId!);
+          if (!step) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Invalid onboarding question for an answer condition.",
+            });
+          }
+          const validOptionIds = new Set(step.options.map((o) => o.id));
+          if (!c.optionIds!.every((id) => validOptionIds.has(id))) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Invalid answer option for an answer condition.",
+            });
+          }
+        }
+      }
+
       const conditionsData = input.conditions.map((c) => ({
         field: c.field,
         operator: c.operator,
         textValue: c.textValue ?? null,
         minNumber: c.minNumber ?? null,
         maxNumber: c.maxNumber ?? null,
+        onboardingStepId: c.onboardingStepId ?? null,
+        answerOptions: c.optionIds
+          ? { create: c.optionIds.map((optionId) => ({ optionId })) }
+          : undefined,
       }));
       const grantedRolesData = input.discordRoleIds.map((discordRoleId) => ({
         discordRoleId,
@@ -2832,8 +3095,12 @@ export const guildRouter = createTRPCRouter({
       return { ok: true };
     }),
 
-  // Admin-only: the full question graph for the flowchart canvas builder —
-  // see GuildOnboardingQuestion/Edge in schema.prisma.
+  // Admin-only: the full step graph for the flowchart canvas builder — see
+  // GuildOnboardingStep*/GuildOnboardingStepEdge* in schema.prisma. Runs
+  // the one-time legacy migration first (see onboardingMigration.ts) so a
+  // guild that's never opened this page yet still gets a populated graph,
+  // then the pug->grant actionType backfill for guilds that migrated
+  // before that rename shipped.
   onboardingFlow: protectedProcedure
     .input(z.object({ guildId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -2848,41 +3115,117 @@ export const guildRouter = createTRPCRouter({
           : forbiddenOrRateLimited(retryAfterSeconds);
       }
 
-      const [questions, edges] = await Promise.all([
-        ctx.db.guildOnboardingQuestion.findMany({
+      await ensureOnboardingFlowMigrated(ctx.db, input.guildId);
+      await ensurePugActionStepsMigrated(ctx.db, input.guildId);
+
+      const [steps, edges] = await Promise.all([
+        ctx.db.guildOnboardingStep.findMany({
           where: { guildId: input.guildId },
-          include: { options: { orderBy: { sortOrder: "asc" } } },
+          include: {
+            options: { orderBy: { sortOrder: "asc" } },
+            grants: true,
+          },
           orderBy: { createdAt: "asc" },
         }),
-        ctx.db.guildOnboardingEdge.findMany({
+        ctx.db.guildOnboardingStepEdge.findMany({
           where: { guildId: input.guildId },
-          include: { conditionOptions: true, conditionClasses: true },
+          include: {
+            conditionOptions: true,
+            conditionValues: true,
+            conditionClasses: true,
+          },
         }),
       ]);
-      return { questions, edges };
+
+      return {
+        steps: steps.map((s) => ({
+          id: s.id,
+          type: s.type,
+          label: s.label,
+          canvasX: s.canvasX,
+          canvasY: s.canvasY,
+          prompt: s.prompt,
+          questionType: s.questionType,
+          varName: s.varName,
+          varType: s.varType,
+          required: s.required,
+          appendList: s.appendList,
+          actionType: s.actionType,
+          namesVariable: s.namesVariable,
+          classesVariable: s.classesVariable,
+          nicknameTemplate: s.nicknameTemplate,
+          textTemplate: s.textTemplate,
+          listVariable: s.listVariable,
+          options: s.options.map((o) => ({
+            id: o.id,
+            label: o.label,
+            sortOrder: o.sortOrder,
+          })),
+          grants: s.grants.map((g) => ({
+            id: g.id,
+            discordRoleId: g.discordRoleId,
+            discordChannelId: g.discordChannelId,
+            channelType: g.channelType,
+          })),
+        })),
+        edges: edges.map((e) => ({
+          id: e.id,
+          fromStepId: e.fromStepId,
+          toStepId: e.toStepId,
+          conditionType: e.conditionType,
+          conditionMinLevel: e.conditionMinLevel,
+          conditionMaxLevel: e.conditionMaxLevel,
+          conditionOptionIds: e.conditionOptions.map((c) => c.optionId),
+          conditionValues: e.conditionValues.map((c) => c.value),
+          conditionClasses: e.conditionClasses.map((c) => c.class),
+        })),
+        onboardingQuestions: steps
+          .filter((s) => s.type === "question")
+          .map((s) => ({
+            id: s.id,
+            prompt: s.prompt ?? "",
+            options: s.options.map((o) => ({ id: o.id, label: o.label })),
+          })),
+      };
     }),
 
-  // Full replace of the guild's onboarding question flow — BUT unlike
-  // upsertRoleRule this can't be a blind delete-and-recreate of questions/
-  // options, since GuildOnboardingAnswer rows FK onto them: wiping and
+  // Full replace of the guild's onboarding flow graph — BUT unlike
+  // upsertRoleRule this can't be a blind delete-and-recreate of steps/
+  // options, since GuildOnboardingStepAnswer rows FK onto them: wiping and
   // recreating on every canvas edit would orphan (and cascade-delete)
   // every answer already collected. Instead the client sends a stable id
-  // per question/option (a fresh crypto.randomUUID() for new ones, the
+  // per step/option/grant (a fresh crypto.randomUUID() for new ones, the
   // real id for existing ones) and this does an id-diff upsert+prune for
-  // questions/options, keeping already-collected answers intact — edges
+  // steps/options/grants, keeping already-collected answers intact — edges
   // carry no historical data, so those alone are still blind-replaced.
   saveOnboardingFlow: protectedProcedure
     .input(
       z.object({
         guildId: z.string(),
-        questions: z.array(
+        steps: z.array(
           z.object({
             id: z.string().min(1),
-            prompt: z.string().min(1).max(300),
-            type: z.enum(["single_select", "multi_select", "free_text"]),
-            required: z.boolean().default(true),
+            type: z.enum(["question", "condition", "action", "loop"]),
+            label: z.string().max(100).optional(),
             canvasX: z.number(),
             canvasY: z.number(),
+            // --- question ---
+            prompt: z.string().min(1).max(300).optional(),
+            questionType: z
+              .enum(["single_select", "multi_select", "free_text"])
+              .optional(),
+            varName: z
+              .string()
+              .regex(
+                /^[a-z][a-z0-9_]*$/,
+                "lowercase letters, numbers, and underscores only",
+              )
+              .optional(),
+            varType: z
+              .enum(["text", "choice", "class", "number", "character"])
+              .optional(),
+            required: z.boolean().default(true),
+            appendList: z.boolean().default(false),
             options: z
               .array(
                 z.object({
@@ -2898,19 +3241,41 @@ export const guildRouter = createTRPCRouter({
               // without needing a separate cap per question type.
               .max(24)
               .default([]),
+            // --- action ---
+            actionType: z
+              .enum(["claim_characters", "set_nickname", "grant", "dm"])
+              .optional(),
+            namesVariable: z.string().min(1).optional(),
+            classesVariable: z.string().min(1).optional(),
+            nicknameTemplate: z.string().max(200).optional(),
+            textTemplate: z.string().max(2000).optional(),
+            grants: z
+              .array(
+                z.object({
+                  id: z.string().min(1),
+                  discordRoleId: z.string().min(1).nullable(),
+                  discordChannelId: z.string().min(1).nullable(),
+                  channelType: z.enum(["text", "voice"]).nullable(),
+                }),
+              )
+              .default([]),
+            // --- loop ---
+            listVariable: z.string().min(1).optional(),
           }),
         ),
         edges: z.array(
           z.object({
-            fromQuestionId: z.string().min(1).nullable(),
-            toQuestionId: z.string().min(1),
+            fromStepId: z.string().min(1).nullable(),
+            toStepId: z.string().min(1),
             conditionType: z.enum([
               "always",
               "answer_equals",
+              "var_equals",
               "class_equals",
               "level_between",
             ]),
             conditionOptionIds: z.array(z.string().min(1)).default([]),
+            conditionValues: z.array(z.string().min(1)).default([]),
             conditionClasses: z.array(z.string().min(1)).default([]),
             conditionMinLevel: z.number().int().optional(),
             conditionMaxLevel: z.number().int().optional(),
@@ -2930,41 +3295,124 @@ export const guildRouter = createTRPCRouter({
           : forbiddenOrRateLimited(retryAfterSeconds);
       }
 
-      const questionIds = new Set(input.questions.map((q) => q.id));
+      const stepsById = new Map(input.steps.map((s) => [s.id, s]));
       const optionIds = new Set<string>();
-      for (const q of input.questions) {
-        if (q.type === "free_text") {
-          if (q.options.length > 0) {
+      const grantIds = new Set<string>();
+      const seenVarNames = new Set<string>();
+
+      for (const s of input.steps) {
+        if (s.type === "question") {
+          if (!s.prompt || !s.questionType || !s.varName || !s.varType) {
             throw new TRPCError({
               code: "BAD_REQUEST",
-              message: `"${q.prompt}" is free text and can't have options.`,
+              message:
+                "A question step needs a prompt, question type, variable name, and variable type.",
             });
           }
-        } else if (q.options.length < 2) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `"${q.prompt}" needs at least 2 options.`,
-          });
+          if (s.questionType === "free_text") {
+            if (s.options.length > 0) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: `"${s.prompt}" is free text and can't have options.`,
+              });
+            }
+          } else if (s.options.length < 2) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `"${s.prompt}" needs at least 2 options.`,
+            });
+          }
+        } else if (s.type === "action") {
+          if (!s.actionType) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "An action step needs an action type.",
+            });
+          }
+          if (s.actionType === "claim_characters" && !s.namesVariable) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `A "${s.actionType}" action needs a names variable.`,
+            });
+          }
+          if (s.actionType === "set_nickname" && !s.nicknameTemplate) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: 'A "set nickname" action needs a nickname template.',
+            });
+          }
+          if (s.actionType === "dm" && !s.textTemplate) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: 'A "DM" action needs a message template.',
+            });
+          }
+          if (s.actionType === "grant") {
+            if (s.grants.length === 0) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message:
+                  'A "grant" action needs at least one role or channel to grant.',
+              });
+            }
+            for (const g of s.grants) {
+              const hasRole = g.discordRoleId != null;
+              const hasChannel = g.discordChannelId != null;
+              if (hasRole === hasChannel) {
+                throw new TRPCError({
+                  code: "BAD_REQUEST",
+                  message:
+                    "Each grant needs exactly one of a role or a channel.",
+                });
+              }
+              if (hasChannel && !g.channelType) {
+                throw new TRPCError({
+                  code: "BAD_REQUEST",
+                  message: "A channel grant needs a channel type.",
+                });
+              }
+            }
+          }
+        } else if (s.type === "loop") {
+          if (!s.listVariable) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "A loop step needs a list variable.",
+            });
+          }
         }
-        for (const o of q.options) optionIds.add(o.id);
+
+        if (s.varName) {
+          if (seenVarNames.has(s.varName)) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `Variable name "${s.varName}" is used by more than one step.`,
+            });
+          }
+          seenVarNames.add(s.varName);
+        }
+        for (const o of s.options) optionIds.add(o.id);
+        for (const g of s.grants) grantIds.add(g.id);
       }
 
       for (const e of input.edges) {
-        if (!questionIds.has(e.toQuestionId)) {
+        if (!stepsById.has(e.toStepId)) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "An edge points at an unknown question.",
+            message: "An edge points at an unknown step.",
           });
         }
-        if (e.fromQuestionId != null && !questionIds.has(e.fromQuestionId)) {
+        const fromStep = e.fromStepId ? stepsById.get(e.fromStepId) : null;
+        if (e.fromStepId != null && !fromStep) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "An edge starts at an unknown question.",
+            message: "An edge starts at an unknown step.",
           });
         }
         if (e.conditionType === "always") {
           if (
             e.conditionOptionIds.length > 0 ||
+            e.conditionValues.length > 0 ||
             e.conditionClasses.length > 0 ||
             e.conditionMinLevel != null ||
             e.conditionMaxLevel != null
@@ -2976,20 +3424,25 @@ export const guildRouter = createTRPCRouter({
             });
           }
         } else if (e.conditionType === "answer_equals") {
-          const fromQuestion = input.questions.find(
-            (q) => q.id === e.fromQuestionId,
-          );
           if (
-            e.fromQuestionId == null ||
+            fromStep?.type !== "question" ||
             e.conditionOptionIds.length === 0 ||
             !e.conditionOptionIds.every((id) =>
-              fromQuestion?.options.some((o) => o.id === id),
+              fromStep.options.some((o) => o.id === id),
             )
           ) {
             throw new TRPCError({
               code: "BAD_REQUEST",
               message:
                 '"Previous answer includes" needs a source question and at least one of its own options.',
+            });
+          }
+        } else if (e.conditionType === "var_equals") {
+          if (fromStep == null || e.conditionValues.length === 0) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message:
+                '"Variable equals" needs a source step and at least one value.',
             });
           }
         } else if (e.conditionType === "class_equals") {
@@ -3017,121 +3470,275 @@ export const guildRouter = createTRPCRouter({
         }
       }
 
+      // Per-node outgoing-edge shape: condition nodes need >=1 unconditional
+      // + >=1 conditional outgoing edge (so there's always a branch to take
+      // and something worth branching on); loop nodes need exactly one
+      // unconditional edge, which is the body's entry point.
+      const outgoingEdges = new Map<string, (typeof input.edges)[number][]>();
+      for (const e of input.edges) {
+        if (e.fromStepId == null) continue;
+        const list = outgoingEdges.get(e.fromStepId) ?? [];
+        list.push(e);
+        outgoingEdges.set(e.fromStepId, list);
+      }
+      for (const s of input.steps) {
+        if (s.type === "condition") {
+          const edgesOut = outgoingEdges.get(s.id) ?? [];
+          const hasAlways = edgesOut.some((e) => e.conditionType === "always");
+          const hasConditional = edgesOut.some(
+            (e) => e.conditionType !== "always",
+          );
+          if (edgesOut.length < 2 || !hasAlways || !hasConditional) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `Condition step "${s.label ?? s.id}" needs at least one unconditional edge and at least one conditional edge.`,
+            });
+          }
+        } else if (s.type === "loop") {
+          const edgesOut = outgoingEdges.get(s.id) ?? [];
+          if (edgesOut.length !== 1 || edgesOut[0]?.conditionType !== "always") {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `Loop step "${s.label ?? s.id}" needs exactly one unconditional outgoing edge (the loop body's start).`,
+            });
+          }
+        }
+      }
+
       // Cycle check over the graph as it will exist after this save (Start
-      // = null) — rejects a save that would leave the bot's DAG walk
-      // spinning forever, rather than relying on the walk itself to notice.
+      // = null) — rejects a save that would leave the bot's walk spinning
+      // forever, except a back-edge INTO a loop node, which is how a loop
+      // body's last step re-enters the next iteration by design.
       const outgoing = new Map<string | null, string[]>();
       for (const e of input.edges) {
-        const list = outgoing.get(e.fromQuestionId) ?? [];
-        list.push(e.toQuestionId);
-        outgoing.set(e.fromQuestionId, list);
+        const list = outgoing.get(e.fromStepId) ?? [];
+        list.push(e.toStepId);
+        outgoing.set(e.fromStepId, list);
       }
       const visiting = new Set<string>();
       const finished = new Set<string>();
-      function hasCycle(id: string): boolean {
+      function hasIllegalCycle(id: string): boolean {
         if (finished.has(id)) return false;
-        if (visiting.has(id)) return true;
         visiting.add(id);
         for (const next of outgoing.get(id) ?? []) {
-          if (hasCycle(next)) return true;
+          if (visiting.has(next)) {
+            if (stepsById.get(next)?.type !== "loop") return true;
+            continue;
+          }
+          if (hasIllegalCycle(next)) return true;
         }
         visiting.delete(id);
         finished.add(id);
         return false;
       }
-      for (const id of questionIds) {
-        if (hasCycle(id)) {
+      for (const id of stepsById.keys()) {
+        if (hasIllegalCycle(id)) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message:
-              "This flow contains a loop — a question can't (indirectly) lead back to itself.",
+              "This flow contains a loop — a step can't (indirectly) lead back to itself outside of a loop node.",
           });
+        }
+      }
+
+      // Template validation: {var} references (question prompts, nickname/
+      // DM templates) and bare variable refs (claim/pug names/classes
+      // variables) may only name a variable collected by an ancestor step —
+      // one reachable by walking backwards from this step along the edges
+      // above — never a variable collected later in the flow, or one that's
+      // never collected on any path leading here.
+      const incoming = new Map<string, (string | null)[]>();
+      for (const e of input.edges) {
+        const list = incoming.get(e.toStepId) ?? [];
+        list.push(e.fromStepId);
+        incoming.set(e.toStepId, list);
+      }
+      function collectAvailableVars(stepId: string): Set<string> {
+        const seen = new Set<string>();
+        const available = new Set<string>();
+        const stack: (string | null)[] = [...(incoming.get(stepId) ?? [])];
+        while (stack.length > 0) {
+          const ancestorId = stack.pop();
+          if (ancestorId == null || seen.has(ancestorId)) continue;
+          seen.add(ancestorId);
+          const ancestor = stepsById.get(ancestorId);
+          if (ancestor?.varName) available.add(ancestor.varName);
+          if (ancestor?.listVariable) available.add(ancestor.listVariable);
+          for (const next of incoming.get(ancestorId) ?? []) stack.push(next);
+        }
+        return available;
+      }
+      function checkTemplateVars(stepId: string, template: string, label: string) {
+        const available = collectAvailableVars(stepId);
+        for (const match of template.matchAll(/\{([a-z][a-z0-9_]*)\}/g)) {
+          const varName = match[1]!;
+          if (!available.has(varName)) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `${label} references "{${varName}}", which isn't collected before this step.`,
+            });
+          }
+        }
+      }
+      function checkVarRef(stepId: string, varName: string, label: string) {
+        if (!collectAvailableVars(stepId).has(varName)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `${label} references "${varName}", which isn't collected before this step.`,
+          });
+        }
+      }
+      for (const s of input.steps) {
+        if (s.type === "question" && s.prompt) {
+          checkTemplateVars(s.id, s.prompt, `Question "${s.prompt}"`);
+        }
+        if (s.type === "action") {
+          if (s.actionType === "claim_characters") {
+            if (s.namesVariable) checkVarRef(s.id, s.namesVariable, "Names variable");
+            if (s.classesVariable) {
+              checkVarRef(s.id, s.classesVariable, "Classes variable");
+            }
+          }
+          if (s.actionType === "set_nickname" && s.nicknameTemplate) {
+            checkTemplateVars(s.id, s.nicknameTemplate, "Nickname template");
+          }
+          if (s.actionType === "dm" && s.textTemplate) {
+            checkTemplateVars(s.id, s.textTemplate, "DM template");
+          }
         }
       }
 
       // Client-supplied ids mean a crafted payload could otherwise upsert
-      // straight over a DIFFERENT guild's question/option row — reject any
-      // id that already exists under another guild before writing anything.
-      const submittedQuestionIds = [...questionIds];
-      if (submittedQuestionIds.length > 0) {
-        const foreignQuestions = await ctx.db.guildOnboardingQuestion.findMany({
+      // straight over a DIFFERENT guild's step/option/grant row — reject
+      // any id that already exists under another guild before writing
+      // anything.
+      const submittedStepIds = [...stepsById.keys()];
+      if (submittedStepIds.length > 0) {
+        const foreignSteps = await ctx.db.guildOnboardingStep.findMany({
           where: {
-            id: { in: submittedQuestionIds },
+            id: { in: submittedStepIds },
             guildId: { not: input.guildId },
           },
           select: { id: true },
         });
-        if (foreignQuestions.length > 0) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Invalid question id.",
-          });
+        if (foreignSteps.length > 0) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid step id." });
         }
       }
       const submittedOptionIds = [...optionIds];
       if (submittedOptionIds.length > 0) {
-        const foreignOptions =
-          await ctx.db.guildOnboardingQuestionOption.findMany({
-            where: {
-              id: { in: submittedOptionIds },
-              question: { guildId: { not: input.guildId } },
-            },
-            select: { id: true },
-          });
+        const foreignOptions = await ctx.db.guildOnboardingStepOption.findMany({
+          where: {
+            id: { in: submittedOptionIds },
+            step: { guildId: { not: input.guildId } },
+          },
+          select: { id: true },
+        });
         if (foreignOptions.length > 0) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Invalid option id.",
-          });
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid option id." });
+        }
+      }
+      const submittedGrantIds = [...grantIds];
+      if (submittedGrantIds.length > 0) {
+        const foreignGrants = await ctx.db.guildOnboardingActionGrant.findMany({
+          where: {
+            id: { in: submittedGrantIds },
+            step: { guildId: { not: input.guildId } },
+          },
+          select: { id: true },
+        });
+        if (foreignGrants.length > 0) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid grant id." });
         }
       }
 
       await ctx.db.$transaction(async (tx) => {
-        await tx.guildOnboardingEdge.deleteMany({
+        await tx.guildOnboardingStepEdge.deleteMany({
           where: { guildId: input.guildId },
         });
-        await tx.guildOnboardingQuestion.deleteMany({
-          where: {
-            guildId: input.guildId,
-            id: { notIn: submittedQuestionIds },
-          },
+        await tx.guildOnboardingStep.deleteMany({
+          where: { guildId: input.guildId, id: { notIn: submittedStepIds } },
         });
 
-        for (const q of input.questions) {
-          await tx.guildOnboardingQuestion.upsert({
-            where: { id: q.id },
+        for (const s of input.steps) {
+          await tx.guildOnboardingStep.upsert({
+            where: { id: s.id },
             create: {
-              id: q.id,
+              id: s.id,
               guildId: input.guildId,
-              prompt: q.prompt,
-              type: q.type,
-              required: q.required,
-              canvasX: q.canvasX,
-              canvasY: q.canvasY,
+              type: s.type,
+              label: s.label ?? null,
+              canvasX: s.canvasX,
+              canvasY: s.canvasY,
+              prompt: s.prompt ?? null,
+              questionType: s.questionType ?? null,
+              varName: s.varName ?? null,
+              varType: s.varType ?? null,
+              required: s.required,
+              appendList: s.appendList,
+              actionType: s.actionType ?? null,
+              namesVariable: s.namesVariable ?? null,
+              classesVariable: s.classesVariable ?? null,
+              nicknameTemplate: s.nicknameTemplate ?? null,
+              textTemplate: s.textTemplate ?? null,
+              listVariable: s.listVariable ?? null,
             },
             update: {
-              prompt: q.prompt,
-              type: q.type,
-              required: q.required,
-              canvasX: q.canvasX,
-              canvasY: q.canvasY,
+              type: s.type,
+              label: s.label ?? null,
+              canvasX: s.canvasX,
+              canvasY: s.canvasY,
+              prompt: s.prompt ?? null,
+              questionType: s.questionType ?? null,
+              varName: s.varName ?? null,
+              varType: s.varType ?? null,
+              required: s.required,
+              appendList: s.appendList,
+              actionType: s.actionType ?? null,
+              namesVariable: s.namesVariable ?? null,
+              classesVariable: s.classesVariable ?? null,
+              nicknameTemplate: s.nicknameTemplate ?? null,
+              textTemplate: s.textTemplate ?? null,
+              listVariable: s.listVariable ?? null,
             },
           });
 
-          const keepOptionIds = q.options.map((o) => o.id);
-          await tx.guildOnboardingQuestionOption.deleteMany({
-            where: { questionId: q.id, id: { notIn: keepOptionIds } },
+          const keepOptionIds = s.options.map((o) => o.id);
+          await tx.guildOnboardingStepOption.deleteMany({
+            where: { stepId: s.id, id: { notIn: keepOptionIds } },
           });
-          for (const o of q.options) {
-            await tx.guildOnboardingQuestionOption.upsert({
+          for (const o of s.options) {
+            await tx.guildOnboardingStepOption.upsert({
               where: { id: o.id },
               create: {
                 id: o.id,
-                questionId: q.id,
+                stepId: s.id,
                 label: o.label,
                 sortOrder: o.sortOrder,
               },
               update: { label: o.label, sortOrder: o.sortOrder },
+            });
+          }
+
+          const keepGrantIds = s.grants.map((g) => g.id);
+          await tx.guildOnboardingActionGrant.deleteMany({
+            where: { stepId: s.id, id: { notIn: keepGrantIds } },
+          });
+          for (const g of s.grants) {
+            await tx.guildOnboardingActionGrant.upsert({
+              where: { id: g.id },
+              create: {
+                id: g.id,
+                stepId: s.id,
+                discordRoleId: g.discordRoleId,
+                discordChannelId: g.discordChannelId,
+                channelType: g.channelType,
+              },
+              update: {
+                discordRoleId: g.discordRoleId,
+                discordChannelId: g.discordChannelId,
+                channelType: g.channelType,
+              },
             });
           }
         }
@@ -3144,12 +3751,12 @@ export const guildRouter = createTRPCRouter({
             ...e,
             id: randomUUID(),
           }));
-          await tx.guildOnboardingEdge.createMany({
+          await tx.guildOnboardingStepEdge.createMany({
             data: edgesWithIds.map((e) => ({
               id: e.id,
               guildId: input.guildId,
-              fromQuestionId: e.fromQuestionId,
-              toQuestionId: e.toQuestionId,
+              fromStepId: e.fromStepId,
+              toStepId: e.toStepId,
               conditionType: e.conditionType,
               conditionMinLevel: e.conditionMinLevel ?? null,
               conditionMaxLevel: e.conditionMaxLevel ?? null,
@@ -3162,15 +3769,26 @@ export const guildRouter = createTRPCRouter({
             })),
           );
           if (conditionOptionRows.length > 0) {
-            await tx.guildOnboardingEdgeConditionOption.createMany({
+            await tx.guildOnboardingStepEdgeConditionOption.createMany({
               data: conditionOptionRows,
+            });
+          }
+          const conditionValueRows = edgesWithIds.flatMap((e) =>
+            e.conditionValues.map((value) => ({
+              edgeId: e.id,
+              value: value.toLowerCase(),
+            })),
+          );
+          if (conditionValueRows.length > 0) {
+            await tx.guildOnboardingEdgeConditionValue.createMany({
+              data: conditionValueRows,
             });
           }
           const conditionClassRows = edgesWithIds.flatMap((e) =>
             e.conditionClasses.map((cls) => ({ edgeId: e.id, class: cls })),
           );
           if (conditionClassRows.length > 0) {
-            await tx.guildOnboardingEdgeConditionClass.createMany({
+            await tx.guildOnboardingStepEdgeConditionClass.createMany({
               data: conditionClassRows,
             });
           }

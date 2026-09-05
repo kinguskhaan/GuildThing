@@ -23,11 +23,18 @@ export async function resolveApiKey(
   if (!key || key.revokedAt) return null;
 
   // Fire-and-forget — a slightly stale lastUsedAt is fine, no request
-  // should wait on it.
-  void db.guildApiKey.update({
-    where: { id: key.id },
-    data: { lastUsedAt: new Date() },
-  });
+  // should wait on it. Still logged on failure: an unawaited rejection
+  // here is otherwise invisible (no request fails, nothing shows up in
+  // the logs), which is exactly how a stale generated Prisma client
+  // silently stopped writing this column in prod once already.
+  db.guildApiKey
+    .update({
+      where: { id: key.id },
+      data: { lastUsedAt: new Date() },
+    })
+    .catch((err: unknown) => {
+      console.error("[api-key-auth] failed to update lastUsedAt:", err);
+    });
 
   return { guildId: key.guildId, keyId: key.id };
 }

@@ -1,0 +1,30 @@
+{
+  "regions": [
+    { "id": "header", "kind": "chrome", "box": { "x": 0, "y": 0, "w": 1, "h": 0.0922 }, "note": "Title bar on void: DISCORD SERVER CONTROLS wordmark left, GUILD test right, hairline bottom border" },
+    { "id": "power-panel", "kind": "chrome", "box": { "x": 0.0195, "y": 0.1031, "w": 0.2148, "h": 0.6078 }, "note": "Left power and interlocks column: hairline border box on void" },
+    { "id": "power-heading", "kind": "text", "box": { "x": 0.039, "y": 0.125, "w": 0.1074, "h": 0.0156 }, "codeDrawn": true, "note": "caption POWER & INTERLOCKS, small tracked caps in DOM text" },
+    { "id": "breaker", "kind": "control", "box": { "x": 0.039, "y": 0.1641, "w": 0.2021, "h": 0.0781 }, "note": "BOT AUTOMATION breaker: bordered box, green ENABLED state + toggle switch, mono hint line" },
+    { "id": "lamps", "kind": "text", "box": { "x": 0.039, "y": 0.2969, "w": 0.2021, "h": 0.0781 }, "note": "Three status lamp rows: dot + key + mono value (DISCORD API 12ms, LAST RESYNC 21:14, VIEW AUDIT LOG PERM CHECK)" },
+    { "id": "latches", "kind": "control", "box": { "x": 0.039, "y": 0.3938, "w": 0.2021, "h": 0.1609 }, "note": "PROTECTED ROLES — SEALED heading + dashed amber latch rows with SEALED stamps + ghost add row" },
+    { "id": "mutex", "kind": "text", "box": { "x": 0.039, "y": 0.575, "w": 0.2021, "h": 0.0688 }, "note": "MUTUALLY EXCLUSIVE mono note: officer ⊕ trial raider ⊕ pug, top tier wins" },
+    { "id": "rule-chips", "kind": "control", "box": { "x": 0.2598, "y": 0.1031, "w": 0.7275, "h": 0.0531 }, "note": "Four rule chips in a strip: R1 hot phosphor border, R2, R3, dashed + new rule" },
+    { "id": "detail-panel", "kind": "chrome", "box": { "x": 0.2559, "y": 0.175, "w": 0.7266, "h": 0.5469 }, "codeDrawn": true, "container": true, "note": "hairline border box the code renders over the separate glow ground region" },
+    { "id": "detail-label", "kind": "text", "box": { "x": 0.293, "y": 0.1781, "w": 0.1855, "h": 0.0156 }, "codeDrawn": true, "note": "caption R1 · INITIATE — SCHEMATIC DETAIL, small tracked caps in DOM text" },
+    { "id": "cond-node", "kind": "control", "box": { "x": 0.3105, "y": 0.2891, "w": 0.1113, "h": 0.0547 }, "note": "Condition node: CONDITION kicker + RANK = Initiate editable value" },
+    { "id": "wire-main", "kind": "control", "box": { "x": 0.4224, "y": 0.3188, "w": 0.1855, "h": 0.0156 }, "note": "Phosphor wire condition → junction with travelling sync pulse" },
+    { "id": "junction-node", "kind": "control", "box": { "x": 0.5898, "y": 0.2891, "w": 0.0703, "h": 0.0563 }, "note": "Junction node: JUNCTION kicker + grant all" },
+    { "id": "wire-grant", "kind": "control", "box": { "x": 0.6602, "y": 0.325, "w": 0.2266, "h": 0.0125 }, "note": "Green phosphor wire junction → role socket" },
+    { "id": "role-grant", "kind": "control", "box": { "x": 0.8867, "y": 0.2844, "w": 0.0797, "h": 0.0547 }, "note": "Green role socket node: ROLE kicker + @guildie" },
+    { "id": "wire-branch", "kind": "control", "box": { "x": 0.6357, "y": 0.3453, "w": 0.251, "h": 0.1469 }, "note": "Dim phosphor branch wire dropping from junction to channel grants" },
+    { "id": "channel-grants", "kind": "control", "box": { "x": 0.8867, "y": 0.4563, "w": 0.0898, "h": 0.0984 }, "note": "CHANNEL #bot-logs chip + dashed add channel grant chip" },
+    { "id": "r2-preview", "kind": "control", "box": { "x": 0.3105, "y": 0.575, "w": 0.1338, "h": 0.05 }, "note": "Dim preview node: CONDITION R2 + LEVEL ≥ 60 (any char)" },
+    { "id": "matrix-panel", "kind": "chrome", "box": { "x": 0.0195, "y": 0.8125, "w": 0.3955, "h": 0.1563 }, "note": "Bottom rail left: members × roles staged matrix panel, amber apply chip right" },
+    { "id": "matrix-heading", "kind": "text", "box": { "x": 0.039, "y": 0.8359, "w": 0.1904, "h": 0.0219 }, "codeDrawn": true, "note": "caption MEMBERS × ROLES — STAGED (2), small tracked caps in DOM text" },
+    { "id": "matrix-rows", "kind": "control", "box": { "x": 0.039, "y": 0.8625, "w": 0.1719, "h": 0.075 }, "note": "Three member rows: name + five toggle cells, amber staged cells glowing" },
+    { "id": "audit-panel", "kind": "chrome", "box": { "x": 0.4219, "y": 0.8125, "w": 0.5596, "h": 0.1563 }, "note": "Bottom rail right: audit tape panel ground" },
+    { "id": "audit-heading", "kind": "text", "box": { "x": 0.4316, "y": 0.8375, "w": 0.0859, "h": 0.0219 }, "codeDrawn": true, "note": "caption AUDIT TAPE, small tracked caps in DOM text" },
+    { "id": "audit-lines", "kind": "text", "box": { "x": 0.4316, "y": 0.8625, "w": 0.252, "h": 0.075 }, "note": "Three mono event lines: timestamp, +trial raider/rank 1→2/−pug what, executor who" },
+    { "id": "scanlines", "kind": "texture", "box": { "x": 0.7, "y": 0.7, "w": 0.2, "h": 0.1 }, "note": "Clean void ground with horizontal scanline pattern, no ink — tiles whole page" },
+    { "id": "phosphor-glow", "kind": "texture", "box": { "x": 0.45, "y": 0.3, "w": 0.25, "h": 0.25 }, "note": "Soft blue-white phosphor radial glow on void, no ink — the bay's ambient light" }
+  ]
+}

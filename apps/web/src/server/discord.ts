@@ -392,6 +392,29 @@ export async function getGuildRoles(
     }));
 }
 
+/**
+ * Whether the GuildThing Roster bot has actually been invited into
+ * `discordGuildId` yet — unlike getGuildRoles (which swallows a 403/404
+ * into an empty list so admin forms can fall back quietly), the create-guild
+ * wizard needs to tell "bot not here yet" apart from "bot's here but this
+ * server genuinely has zero custom roles", so this reports that distinction
+ * as a boolean instead.
+ */
+export async function isBotInGuild(discordGuildId: string): Promise<boolean> {
+  const res = await fetch(
+    `https://discord.com/api/v10/guilds/${discordGuildId}/roles`,
+    { headers: { Authorization: `Bot ${env.DISCORD_BOT_TOKEN}` } },
+  );
+
+  if (res.status === 403 || res.status === 404) return false;
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    console.error(`[discord] bot-membership check failed: ${res.status} ${body}`);
+    throw new Error(`Discord API error ${res.status}`);
+  }
+  return true;
+}
+
 export interface DiscordChannelSummary {
   id: string;
   name: string;

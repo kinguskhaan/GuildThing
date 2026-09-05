@@ -9,6 +9,14 @@ local GT = GuildThingRoster
 -- with human Discord role edits the bot's resync skipped. No "Request
 -- sync" button here — that lives on the Discord Roles tab and already
 -- covers this data in the same relayed request.
+--
+-- A player with characters in more than one guild on the same WoW install
+-- has apps/sync merge every one of those guilds' entries into this one
+-- file (see the wtfDir-grouping comment in apps/sync/src/index.ts), so
+-- BuildRows filters rows to the currently-logged-in character's guild
+-- (via GetGuildInfo("player"), same call Core.lua already uses) before
+-- displaying anything — audit data is officer-sensitive and must not leak
+-- across guilds.
 
 local ROW_HEIGHT = 18
 local LIST_WIDTH = 600
@@ -81,9 +89,24 @@ local function BuildRows(scrollChild, statusText)
     -- once — same "nothing yet" framing as the Discord Roles tab.
     local allEntries = (GuildThingAuditLogDB and GuildThingAuditLogDB.entries) or {}
 
+    -- Filter to the current character's guild before anything else touches
+    -- allEntries — apps/sync can merge several guilds' entries into this
+    -- one file (players with characters in multiple guilds on one WoW
+    -- install), and audit data is officer-sensitive. e.guildName == nil
+    -- covers rows written by an older apps/sync before this field existed;
+    -- show those rather than hiding everything until the next sync
+    -- overwrites the file.
+    local currentGuildName = GetGuildInfo("player")
+    local guildEntries = {}
+    for _, e in ipairs(allEntries) do
+        if e.guildName == nil or e.guildName == currentGuildName then
+            table.insert(guildEntries, e)
+        end
+    end
+
     local query = searchText:lower()
     local entries = {}
-    for _, e in ipairs(allEntries) do
+    for _, e in ipairs(guildEntries) do
         if EntryMatchesSearch(e, query) then
             table.insert(entries, e)
         end
@@ -91,8 +114,10 @@ local function BuildRows(scrollChild, statusText)
 
     if #allEntries == 0 then
         statusText:SetText("No audit log data yet — run apps/sync at least once.")
+    elseif #guildEntries == 0 then
+        statusText:SetText(string.format("No audit log entries for %s.", currentGuildName or "your guild"))
     else
-        statusText:SetText(string.format("%d of %d entrie(s)", #entries, #allEntries))
+        statusText:SetText(string.format("%d of %d entrie(s)", #entries, #guildEntries))
     end
 
     local shown = 0

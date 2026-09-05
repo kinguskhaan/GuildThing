@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { SpaceInvaderGlyph } from "~/app/_components/space-invader";
 import { api } from "~/trpc/react";
 
 type SortKey = "characterName" | "rank" | "discordNick" | "discordTag";
@@ -73,9 +74,15 @@ export function GuildDiscordRolesTable({ guildId }: { guildId: string }) {
   if (rows.isLoading) return null;
   if (data.length === 0) {
     return (
-      <p className="text-discord-text-muted text-sm">
-        No claimed characters yet — nothing to show here until someone runs /onboarding.
-      </p>
+      <div className="flex flex-col items-center gap-2 rounded-xl bg-discord-elevated px-6 py-12 text-center">
+        <SpaceInvaderGlyph className="h-8 w-8 text-discord-brand" />
+        <p className="m-0 font-[family-name:var(--font-arcade-display)] text-lg text-discord-text">
+          No claimed characters yet
+        </p>
+        <p className="m-0 max-w-sm font-[family-name:var(--font-arcade-mono)] text-xs text-discord-text-muted">
+          nothing to show here until someone runs /onboarding
+        </p>
+      </div>
     );
   }
 

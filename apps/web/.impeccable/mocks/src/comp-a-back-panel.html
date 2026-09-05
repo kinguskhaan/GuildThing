@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#0a0a12; --panel:#0d0f1a; --line:#9fd4f5; --line-dim:#3d5a75;
+    --text:#dceeff; --muted:#6d84a0; --amber:#ffb000; --red:#ff5a52; --green:#35e08a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{width:1440px;height:900px;overflow:hidden;background:var(--void);color:var(--text);
+    font-family:'Chakra Petch',sans-serif;position:relative}
+  body::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg,rgba(159,212,245,.028) 0 1px,transparent 1px 3px)}
+  .mono{font-family:'Share Tech Mono',monospace}
+  .title{font-family:'Michroma',sans-serif}
+
+  /* header */
+  header{display:flex;align-items:center;justify-content:space-between;
+    padding:20px 40px 16px;border-bottom:1px solid rgba(159,212,245,.25)}
+  header h1{font-size:19px;letter-spacing:.14em;color:var(--text)}
+  header h1 span{color:var(--line)}
+  .hdr-right{display:flex;align-items:center;gap:22px}
+  .breaker{display:flex;align-items:center;gap:10px}
+  .breaker .lbl{font-size:10px;letter-spacing:.18em;color:var(--muted)}
+  .switch{width:44px;height:22px;border:1px solid var(--green);border-radius:3px;position:relative;
+    box-shadow:0 0 8px rgba(53,224,138,.35), inset 0 0 6px rgba(53,224,138,.2)}
+  .switch::after{content:"";position:absolute;right:2px;top:2px;width:16px;height:16px;
+    background:var(--green);border-radius:2px;box-shadow:0 0 10px rgba(53,224,138,.8)}
+
+  /* interlock band */
+  .interlocks{display:flex;gap:0;padding:14px 40px;border-bottom:1px solid rgba(159,212,245,.14)}
+  .lock{padding:0 28px;border-right:1px solid rgba(159,212,245,.14)}
+  .lock:first-child{padding-left:0}
+  .lock .k{font-size:9px;letter-spacing:.22em;color:var(--muted);margin-bottom:4px}
+  .lock .v{font-size:13px;color:var(--text)}
+  .lock .v .ok{color:var(--green)}
+  .lock .v .warn{color:var(--amber)}
+
+  /* schematic canvas */
+  .bay{position:relative;height:566px;margin:26px 40px 0;
+    border:1px solid rgba(159,212,245,.22);background:
+    radial-gradient(ellipse 70% 60% at 50% 40%, rgba(159,212,245,.05), transparent 70%)}
+  .bay-label{position:absolute;top:-9px;left:24px;background:var(--void);padding:0 12px;
+    font-size:10px;letter-spacing:.26em;color:var(--line)}
+  .pulse-note{position:absolute;top:-9px;right:24px;background:var(--void);padding:0 12px;
+    font-size:10px;letter-spacing:.22em;color:var(--amber)}
+  svg.wires{position:absolute;inset:0;width:100%;height:100%}
+  .cond{position:absolute;left:56px;width:238px;border:1px solid var(--line-dim);
+    background:rgba(13,15,26,.9);padding:9px 14px}
+  .cond .ck{font-size:8px;letter-spacing:.24em;color:var(--muted)}
+  .cond .cv{font-size:13px;color:var(--text);margin-top:2px}
+  .cond.hot{border-color:var(--line);box-shadow:0 0 12px rgba(159,212,245,.25)}
+  .socket{position:absolute;right:56px;width:210px;border:1px solid var(--line-dim);
+    background:rgba(13,15,26,.9);padding:9px 14px}
+  .socket .cv{font-size:13px;color:var(--text);margin-top:2px;display:flex;align-items:center;gap:8px}
+  .chip{width:10px;height:10px;border-radius:50%;border:1px solid var(--line-dim)}
+  .chip.on{background:var(--green);border-color:var(--green);box-shadow:0 0 8px rgba(53,224,138,.6)}
+  .chip.seal{border-color:var(--amber);box-shadow:0 0 8px rgba(255,176,0,.5)}
+  .socket.protected{border-style:dashed}
+  .stamp{position:absolute;right:-8px;top:-10px;transform:rotate(6deg);font-size:9px;letter-spacing:.2em;
+    color:var(--amber);border:1px solid var(--amber);padding:2px 6px;background:var(--void)}
+  .ruletag{position:absolute;left:56px;margin-top:-24px;font-size:9px;letter-spacing:.22em;color:var(--muted)}
+  .xor{position:absolute;right:300px;top:436px;border:1px solid var(--amber);color:var(--amber);
+    font-size:10px;letter-spacing:.18em;padding:5px 12px;background:rgba(255,176,0,.06)}
+  .pulse{position:absolute;width:14px;height:14px;border-radius:50%;background:var(--line);
+    box-shadow:0 0 18px 4px rgba(159,212,245,.55)}
+
+  /* bottom rail */
+  .rail{position:absolute;left:40px;right:40px;bottom:26px;height:118px;
+    border:1px solid rgba(159,212,245,.22);display:flex;flex-direction:column;background:var(--panel)}
+  .rail-head{display:flex;justify-content:space-between;padding:8px 18px 6px;
+    border-bottom:1px solid rgba(159,212,245,.14)}
+  .rail-head .k{font-size:10px;letter-spacing:.26em;color:var(--line)}
+  .rail-head .tabs{display:flex;gap:18px}
+  .rail-head .tabs span{font-size:10px;letter-spacing:.2em;color:var(--muted)}
+  .rail-head .tabs .on{color:var(--amber)}
+  .tape{flex:1;padding:8px 18px;display:flex;flex-direction:column;gap:6px;justify-content:center}
+  .ev{display:flex;gap:16px;font-size:12px;color:var(--muted)}
+  .ev .t{color:var(--line-dim);width:44px}
+  .ev .what{color:var(--text)}
+  .ev .who{color:var(--muted)}
+  .add{color:var(--green)} .rem{color:var(--red)}
+</style>
+</head>
+<body>
+  <header>
+    <h1 class="title">DISCORD SERVER CONTROLS</h1>
+    <div class="hdr-right">
+      <span class="mono" style="font-size:11px;color:var(--muted)">GUILD test</span>
+      <div class="breaker"><span class="lbl">BOT AUTOMATION</span><div class="switch"></div></div>
+    </div>
+  </header>
+
+  <div class="interlocks">
+    <div class="lock"><div class="k">BOT STATUS</div><div class="v"><span class="ok">● ONLINE</span> <span class="mono">— resync 21:14</span></div></div>
+    <div class="lock"><div class="k">ADMIN NOTICES</div><div class="v mono">#bot-logs</div></div>
+    <div class="lock"><div class="k">VIEW AUDIT LOG PERM</div><div class="v"><span class="ok">● GRANTED</span> <span class="mono">— manual role edits protected</span></div></div>
+    <div class="lock"><div class="k">PROTECTED ROLES</div><div class="v mono"><span class="warn">2 SEALED</span></div></div>
+    <div class="lock"><div class="k">NEXT DAILY PASS</div><div class="v mono">04:00 UTC</div></div>
+  </div>
+
+  <div class="bay">
+    <div class="bay-label">RULE SCHEMATIC</div>
+    <div class="pulse-note">▲ SYNC PULSE IN TRANSIT — 1 RULE FIRING</div>
+    <svg class="wires" viewBox="0 0 1360 566" fill="none">
+      <!-- rule 1: RANK=Initiate -> guildie (hot) -->
+      <path d="M294 128 H340 V128 H1010" stroke="#9fd4f5" stroke-width="2" opacity=".9"/>
+      <!-- rule 2: LEVEL>=60 -> trial raider (dim) -->
+      <path d="M294 248 H360 V300 H1010" stroke="#3d5a75" stroke-width="1.5"/>
+      <!-- rule 3: CLASS in {any} -> officer (dim) -->
+      <path d="M294 368 H380 V452 H1010" stroke="#3d5a75" stroke-width="1.5"/>
+    </svg>
+    <div class="ruletag" style="top:76px">R1 · INITIATE</div>
+    <div class="cond hot" style="top:100px">
+      <div class="ck">CONDITION</div><div class="cv">RANK = Initiate</div>
+    </div>
+    <div class="socket" style="top:100px">
+      <div class="ck" style="font-size:9px;letter-spacing:.24em;color:var(--muted)">GRANTS</div>
+      <div class="cv"><span class="chip on"></span><span class="mono">@guildie</span></div>
+    </div>
+
+    <div class="ruletag" style="top:196px">R2 · VETERAN</div>
+    <div class="cond" style="top:220px">
+      <div class="ck">CONDITION</div><div class="cv">LEVEL ≥ 60 (any char)</div>
+    </div>
+    <div class="socket" style="top:272px">
+      <div class="ck" style="font-size:9px;letter-spacing:.24em;color:var(--muted)">GRANTS</div>
+      <div class="cv"><span class="chip"></span><span class="mono">@trial raider</span></div>
+    </div>
+
+    <div class="ruletag" style="top:316px">R3 · CLASS CALL</div>
+    <div class="cond" style="top:340px">
+      <div class="ck">CONDITION</div><div class="cv">CLASS = Warrior, Paladin</div>
+    </div>
+    <div class="socket" style="top:424px">
+      <div class="ck" style="font-size:9px;letter-spacing:.24em;color:var(--muted)">GRANTS</div>
+      <div class="cv"><span class="chip"></span><span class="mono">@officer</span></div>
+    </div>
+
+    <div class="socket protected" style="top:512px;right:56px">
+      <div class="cv"><span class="chip"></span><span class="mono">@Guild Master</span></div>
+      <div class="stamp mono">PROTECTED</div>
+    </div>
+    <div style="position:absolute;left:56px;bottom:26px;display:flex;align-items:flex-end;gap:0;opacity:.85">
+      <div style="font-size:9px;letter-spacing:.22em;color:var(--muted);position:absolute;top:-18px">CUSTOM QUESTIONS — ONBOARDING FLOW</div>
+      <div style="border:1px dashed var(--line-dim);padding:7px 12px;font-size:11px;color:var(--text);background:rgba(13,15,26,.9)">▶ Start</div>
+      <div style="width:34px;border-top:1px dashed var(--line-dim);margin:0 4px"></div>
+      <div style="border:1px solid var(--line-dim);padding:7px 12px;font-size:11px;color:var(--text)">Class: WARRIOR</div>
+      <div style="width:34px;border-top:1px dashed var(--line-dim);margin:0 4px"></div>
+      <div style="border:1px solid var(--line-dim);padding:7px 12px;font-size:11px;color:var(--text)">what roles are you gonna play?</div>
+    </div>
+    <div class="pulse" style="left:640px;top:120px"></div>
+    <div class="pulse" style="left:600px;top:128px;opacity:.45;width:8px;height:8px"></div>
+  </div>
+
+  <div class="rail">
+    <div class="rail-head">
+      <span class="k">AUDIT TAPE — WHAT THE BOT DID</span>
+      <div class="tabs mono"><span>ROLES ×12</span><span class="on">AUDIT LOG</span></div>
+    </div>
+    <div class="tape mono">
+      <div class="ev"><span class="t">21:12</span><span class="what"><span class="add">+trial raider</span> → Symah</span><span class="who">— the bot · rule R2</span></div>
+      <div class="ev"><span class="t">20:58</span><span class="what"><span class="what">rank 1 → 2</span> → Transan</span><span class="who">— roster import</span></div>
+      <div class="ev"><span class="t">20:41</span><span class="what"><span class="rem">−pug</span> → Symah</span><span class="who">— manual edit by dankomme · resync left alone</span></div>
+      <div class="ev"><span class="t">20:12</span><span class="what">claimed</span><span class="who">— Symah claimed by dankomme</span></div>
+    </div>
+  </div>
+</body>
+</html>

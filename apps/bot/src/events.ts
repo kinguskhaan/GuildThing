@@ -222,6 +222,45 @@ function parseTimeList(input: string): string[] | null {
 
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
+const EVENT_EXPIRY_ZONE = "Europe/Stockholm";
+const EVENT_EXPIRY_HOUR = 10;
+
+// Resolves "10:00 in Europe/Stockholm on this date" to the correct UTC
+// instant, honoring CET/CEST — a plain `T10:00:00Z` would drift by an hour
+// across the DST boundary.
+function stockholmTimeToUtc(dateStr: string, hour: number): Date {
+  const guess = Date.UTC(
+    Number(dateStr.slice(0, 4)),
+    Number(dateStr.slice(5, 7)) - 1,
+    Number(dateStr.slice(8, 10)),
+    hour,
+  );
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: EVENT_EXPIRY_ZONE,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  })
+    .formatToParts(new Date(guess))
+    .reduce<Record<string, string>>((acc, p) => {
+      if (p.type !== "literal") acc[p.type] = p.value;
+      return acc;
+    }, {});
+  const asZoned = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second),
+  );
+  return new Date(guess - (asZoned - guess));
+}
+
 // Date-only version for the Edit modal, which doesn't touch time options.
 function parseEventDate(input: string): string {
   const trimmed = input.trim();
@@ -867,7 +906,32 @@ export async function handleEventCreateCommand(
   const confirmation = posted?.discordThreadId
     ? `Created **${created.title}** — head to <#${posted.discordThreadId}> to sign up!`
     : `Created **${created.title}**, but I couldn't create its thread — check my permissions in this channel.`;
-  await notify(cursor, confirmation);
+  const signupPrompt = await askYesNo(
+    cursor,
+    `${confirmation}\n\nSign yourself up for a role?`,
+    "Yes",
+    "No",
+  );
+  if (signupPrompt?.value) {
+    await signupPrompt.interaction.reply({
+      content: "Which role are you signing up for?",
+      flags: MessageFlags.Ephemeral,
+      components: [
+        new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+          new StringSelectMenuBuilder()
+            .setCustomId(`event:${created.id}:role`)
+            .setPlaceholder("Sign up for a role...")
+            .addOptions(
+              created.roleSlots.map((s) => ({
+                label: s.roleName,
+                value: s.id,
+                emoji: toSelectEmoji(s.emoji),
+              })),
+            ),
+        ),
+      ],
+    });
+  }
 }
 
 // Ephemeral Yes/No question via buttons. Smart about how to respond to
@@ -1834,8 +1898,12 @@ async function runEventExpiryUnguarded(client: Client<true>): Promise<void> {
   for (const event of candidates) {
     const { id, date } = event;
     if (!date || !ISO_DATE_PATTERN.test(date)) continue;
-    const expiresAt =
-      new Date(`${date}T00:00:00Z`).getTime() + 24 * 60 * 60_000;
+    const dayAfter = new Date(`${date}T00:00:00Z`);
+    dayAfter.setUTCDate(dayAfter.getUTCDate() + 1);
+    const expiresAt = stockholmTimeToUtc(
+      dayAfter.toISOString().slice(0, 10),
+      EVENT_EXPIRY_HOUR,
+    ).getTime();
     if (Date.now() < expiresAt) continue;
 
     await db.event.update({ where: { id }, data: { status: "cancelled" } });

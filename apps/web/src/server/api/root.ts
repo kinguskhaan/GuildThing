@@ -2,6 +2,7 @@ import { eventRouter } from "~/server/api/routers/event";
 import { guildRouter } from "~/server/api/routers/guild";
 import { instanceSettingsRouter } from "~/server/api/routers/instanceSettings";
 import { postRouter } from "~/server/api/routers/post";
+import { raidCompRouter } from "~/server/api/routers/raidComp";
 import { userRouter } from "~/server/api/routers/user";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   user: userRouter,
   instanceSettings: instanceSettingsRouter,
   event: eventRouter,
+  raidComp: raidCompRouter,
 });
 
 // export type definition of API

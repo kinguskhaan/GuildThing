@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { CreateGuildForm } from "~/app/_components/create-guild-form";
+import { env } from "~/env";
 import { api } from "~/trpc/server";
 
 export default async function GuildsPage() {
@@ -51,7 +52,9 @@ export default async function GuildsPage() {
         </ul>
       )}
 
-      {canCreateGuild && <CreateGuildForm />}
+      {canCreateGuild && (
+        <CreateGuildForm discordClientId={env.BETTER_AUTH_DISCORD_CLIENT_ID} />
+      )}
     </main>
   );
 }

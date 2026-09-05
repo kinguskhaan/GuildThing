@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { EditGuildForm } from "~/app/_components/edit-guild-form";
 import { GuildBotToggle } from "~/app/_components/guild-bot-toggle";
+import { GuildExpansionSelector } from "~/app/_components/guild-expansion-selector";
 import { api } from "~/trpc/server";
 
 export default async function AdminSettingsPage({
@@ -25,6 +26,7 @@ export default async function AdminSettingsPage({
         </p>
       </div>
       <GuildBotToggle guildId={guildId} initialEnabled={guild.botEnabled} />
+      <GuildExpansionSelector guildId={guildId} initialExpansion={guild.expansion} />
       <EditGuildForm
         guildId={guildId}
         initialName={guild.name}

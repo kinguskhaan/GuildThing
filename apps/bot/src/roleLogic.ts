@@ -26,6 +26,13 @@ export interface RoleCondition {
   textValue: string | null;
   minNumber: number | null;
   maxNumber: number | null;
+  // Only set (and only checked) when field === "answer" — see
+  // GuildRoleRuleCondition in schema.prisma. onboardingStepId names the
+  // flow question step whose persisted GuildOnboardingStepAnswer this
+  // condition inspects; answerOptions are the OR'd option ids that satisfy
+  // it (fires if the person's given answer includes ANY of them).
+  onboardingStepId: string | null;
+  answerOptions: { optionId: string }[];
 }
 
 export interface ChannelGrant {
@@ -46,17 +53,24 @@ export interface RolePriorityEntry {
 
 // Shared by matchRosterAndApply (onboarding) and roleSync.ts (the daily
 // background resync) so both decide "what should this person have right
-// now" via the exact same rule-firing logic.
+// now" via the exact same rule-firing logic. `answers` is the person's
+// persisted onboarding-flow answers (stepId -> selected option ids),
+// needed for any condition with field "answer" — omit it (or pass an
+// empty map) to make every "answer" condition simply never fire, which is
+// exactly what the external-character-only evaluation pass wants (see
+// matchRosterAndApply below: an external character has no reliable
+// discordUserId-backed answer to check).
 export function evaluateRules(
   rules: RuleWithGrants[],
   matched: MatchedCharacter[],
   priorityRoles: RolePriorityEntry[] = [],
+  answers = new Map<string, string[]>(),
 ): { roleIds: Set<string>; channelGrants: ChannelGrant[] } {
   const roleIds = new Set<string>();
   const channelGrants: ChannelGrant[] = [];
   for (const rule of rules) {
     const fires = rule.conditions.every((condition) =>
-      matched.some((character) => conditionMatches(character, condition)),
+      matched.some((character) => conditionMatches(character, condition, answers)),
     );
     if (!fires) continue;
     for (const granted of rule.grantedRoles) roleIds.add(granted.discordRoleId);
@@ -81,6 +95,7 @@ export function evaluateRules(
 
   return { roleIds, channelGrants };
 }
+
 
 // Posts to the guild's admin notify channel (if configured) — used for
 // anything only an admin can actually fix (permission/hierarchy issues,
@@ -117,8 +132,10 @@ export async function notifyAdmins(
 }
 
 // Cuts at the last "/" boundary that still fits under Discord's 32-char
-// nickname cap, rather than chopping a name in half.
-function truncateNickname(fullName: string): string {
+// nickname cap, rather than chopping a name in half. Exported for
+// onboardingFlowEngine.ts's set_nickname action, which interpolates its
+// own template string and needs the exact same truncation rule.
+export function truncateNickname(fullName: string): string {
   if (fullName.length <= MAX_NICKNAME_LENGTH) return fullName;
   const cut = fullName.slice(0, MAX_NICKNAME_LENGTH);
   const lastBoundary = cut.lastIndexOf("/");
@@ -127,11 +144,14 @@ function truncateNickname(fullName: string): string {
 
 // field/operator meanings match GuildRoleRuleCondition (schema.prisma):
 // rank/class use "equals" against textValue, level uses "between" against
-// minNumber/maxNumber. operator itself isn't checked here since field alone
-// determines how a condition is evaluated.
+// minNumber/maxNumber, answer uses "includes" against a persisted
+// onboarding-flow answer (see evaluateRules' `answers` param above).
+// operator itself isn't checked here since field alone determines how a
+// condition is evaluated.
 export function conditionMatches(
   character: MatchedCharacter,
   condition: RoleCondition,
+  answers = new Map<string, string[]>(),
 ): boolean {
   if (condition.field === "rank") {
     return character.rank.toLowerCase() === condition.textValue?.toLowerCase();
@@ -150,18 +170,27 @@ export function conditionMatches(
       character.level <= condition.maxNumber
     );
   }
+  if (condition.field === "answer") {
+    if (!condition.onboardingStepId) return false;
+    const given = answers.get(condition.onboardingStepId) ?? [];
+    return condition.answerOptions.some((o) => given.includes(o.optionId));
+  }
   return false;
 }
 
 // The full set of roles the bot itself might ever hand out for this guild —
-// the PUG role plus every rule's granted roles, minus any GuildProtectedRole
-// (a role an admin has marked hands-off, e.g. one meant to stay entirely
-// human-assigned even though it's also wired to a rule). Used to scope
-// which of a member's current roles are "ours" to add/remove; anything an
-// admin gave them manually for an unrelated reason is never touched, and a
-// protected role is never touched even when a rule does grant it.
-async function getManagedRoleIds(guildId: string): Promise<Set<string>> {
-  const [guild, rules, protectedRoles] = await Promise.all([
+// the PUG role, every rule's granted roles, and every flow action-step's
+// granted role (GuildOnboardingActionGrant — see the "grant" action in
+// onboardingFlowEngine.ts), minus any GuildProtectedRole (a role an admin
+// has marked hands-off, e.g. one meant to stay entirely human-assigned
+// even though it's also wired to a rule/grant). Used to scope which of a
+// member's current roles are "ours" to add/remove; anything an admin gave
+// them manually for an unrelated reason is never touched, and a protected
+// role is never touched even when a rule/grant does grant it. Exported for
+// onboardingFlowEngine.ts's grant action, which needs the same scope to
+// add its role additively without clobbering roles granted elsewhere.
+export async function getManagedRoleIds(guildId: string): Promise<Set<string>> {
+  const [guild, rules, protectedRoles, actionGrants] = await Promise.all([
     db.guild.findUnique({
       where: { id: guildId },
       select: { pugRoleId: true },
@@ -174,6 +203,10 @@ async function getManagedRoleIds(guildId: string): Promise<Set<string>> {
       where: { guildId },
       select: { discordRoleId: true },
     }),
+    db.guildOnboardingActionGrant.findMany({
+      where: { step: { guildId }, discordRoleId: { not: null } },
+      select: { discordRoleId: true },
+    }),
   ]);
 
   const ids = new Set<string>();
@@ -181,25 +214,35 @@ async function getManagedRoleIds(guildId: string): Promise<Set<string>> {
   for (const rule of rules) {
     for (const granted of rule.grantedRoles) ids.add(granted.discordRoleId);
   }
+  for (const grant of actionGrants) {
+    if (grant.discordRoleId) ids.add(grant.discordRoleId);
+  }
   for (const p of protectedRoles) ids.delete(p.discordRoleId);
   return ids;
 }
 
 // The full set of channels the bot itself might ever grant direct access to
-// for this guild — every rule's grantedChannels. Mirrors getManagedRoleIds
-// but keyed by channel id -> its type (text/voice), since that determines
-// which permission bits get granted.
-async function getManagedChannelGrants(
+// for this guild — every rule's grantedChannels plus every flow action-
+// step's granted channel. Mirrors getManagedRoleIds but keyed by channel id
+// -> its type (text/voice), since that determines which permission bits
+// get granted. Exported for onboardingFlowEngine.ts's grant action.
+export async function getManagedChannelGrants(
   guildId: string,
 ): Promise<Map<string, "text" | "voice">> {
-  const rules = await db.guildRoleRule.findMany({
-    where: { guildId },
-    select: {
-      grantedChannels: {
-        select: { discordChannelId: true, channelType: true },
+  const [rules, actionGrants] = await Promise.all([
+    db.guildRoleRule.findMany({
+      where: { guildId },
+      select: {
+        grantedChannels: {
+          select: { discordChannelId: true, channelType: true },
+        },
       },
-    },
-  });
+    }),
+    db.guildOnboardingActionGrant.findMany({
+      where: { step: { guildId }, discordChannelId: { not: null } },
+      select: { discordChannelId: true, channelType: true },
+    }),
+  ]);
 
   const grants = new Map<string, "text" | "voice">();
   for (const rule of rules) {
@@ -210,7 +253,54 @@ async function getManagedChannelGrants(
       );
     }
   }
+  for (const grant of actionGrants) {
+    if (grant.discordChannelId) {
+      grants.set(
+        grant.discordChannelId,
+        grant.channelType === "voice" ? "voice" : "text",
+      );
+    }
+  }
   return grants;
+}
+
+
+// Just the role-id half of what getManagedRoleIds folds in from
+// GuildOnboardingActionGrant — used on its own by matchRosterAndApply and
+// roleSync.ts to preserve flow-granted roles a member already holds
+// (they're one-time assignments, never re-evaluated like a rule) without
+// pulling in the full rule/PUG/protected-role computation too.
+export async function getFlowGrantRoleIds(guildId: string): Promise<Set<string>> {
+  const grants = await db.guildOnboardingActionGrant.findMany({
+    where: { step: { guildId }, discordRoleId: { not: null } },
+    select: { discordRoleId: true },
+  });
+  const ids = new Set<string>();
+  for (const grant of grants) {
+    if (grant.discordRoleId) ids.add(grant.discordRoleId);
+  }
+  return ids;
+}
+
+// Default fallback for evaluateRules' `answers` parameter — every
+// background caller (roleSync.ts batches this itself for the whole guild
+// in one query; pendingMatches.ts relies on this per-member default via
+// matchRosterAndApply) needs the person's persisted onboarding-flow
+// answers in the same stepId -> optionId[] shape the live flow's
+// in-memory ctx.answersByStep already uses.
+async function loadPersistedAnswers(
+  guildId: string,
+  discordUserId: string,
+): Promise<Map<string, string[]>> {
+  const rows = await db.guildOnboardingStepAnswer.findMany({
+    where: { guildId, discordUserId },
+    include: { selectedOptions: true },
+  });
+  const answers = new Map<string, string[]>();
+  for (const row of rows) {
+    answers.set(row.stepId, row.selectedOptions.map((o) => o.optionId));
+  }
+  return answers;
 }
 
 function channelGrantPermissions(
@@ -435,33 +525,22 @@ interface ApplyNicknameAndRolesOptions {
   rankChangedAt?: Date | null;
 }
 
-export async function applyNicknameAndRoles(
+// Sets `nickname` on Discord and handles the two known failure shapes the
+// same way everywhere: the unfixable "can't rename the server owner"
+// platform limitation, and an actual permission/hierarchy problem (which
+// also posts an admin notice, deduped the same way other failure notices
+// in this file are — `notified` just controls the member-facing wording).
+// Exported for onboardingFlowEngine.ts's set_nickname action, which
+// applies an admin-authored template directly rather than going through
+// applyNicknameAndRoles' own name-list/overflow handling.
+export async function setDiscordNickname(
   member: GuildMember,
   guildId: string,
-  names: string[],
-  desiredRoleIds: string[],
-  desiredChannelGrants: ChannelGrant[],
-  options: ApplyNicknameAndRolesOptions = {},
+  nickname: string,
+  notify: (message: string) => Promise<void>,
 ): Promise<void> {
-  const notify = options.notify ?? dmNotifier(member);
-
-  const fullName = names.join("/");
-  let nicknameNames = names;
-  if (fullName.length > MAX_NICKNAME_LENGTH && options.chooseNicknameNames) {
-    nicknameNames = await options.chooseNicknameNames(names);
-  }
-  const chosenFullName = nicknameNames.join("/");
-  const nickname = truncateNickname(chosenFullName);
   try {
     await member.setNickname(nickname);
-    if (nickname !== chosenFullName) {
-      // Either no chooseNicknameNames was supplied (background job), or
-      // their chosen selection still didn't fit — either way, say so
-      // rather than silently dropping names off the end.
-      await notify(
-        `Heads up — your name list (\`${chosenFullName}\`) didn't fit Discord's 32-character nickname limit, so I set it to \`${nickname}\`. Ask an officer if you'd like a different combination shown instead.`,
-      );
-    }
   } catch (err) {
     console.error(`[bot] failed to set nickname for ${member.user.tag}:`, err);
 
@@ -486,6 +565,34 @@ export async function applyNicknameAndRoles(
       );
     }
   }
+}
+
+export async function applyNicknameAndRoles(
+  member: GuildMember,
+  guildId: string,
+  names: string[],
+  desiredRoleIds: string[],
+  desiredChannelGrants: ChannelGrant[],
+  options: ApplyNicknameAndRolesOptions = {},
+): Promise<void> {
+  const notify = options.notify ?? dmNotifier(member);
+
+  const fullName = names.join("/");
+  let nicknameNames = names;
+  if (fullName.length > MAX_NICKNAME_LENGTH && options.chooseNicknameNames) {
+    nicknameNames = await options.chooseNicknameNames(names);
+  }
+  const chosenFullName = nicknameNames.join("/");
+  const nickname = truncateNickname(chosenFullName);
+  if (nickname !== chosenFullName) {
+    // Either no chooseNicknameNames was supplied (background job), or
+    // their chosen selection still didn't fit — either way, say so
+    // rather than silently dropping names off the end.
+    await notify(
+      `Heads up — your name list (\`${chosenFullName}\`) didn't fit Discord's 32-character nickname limit, so I set it to \`${nickname}\`. Ask an officer if you'd like a different combination shown instead.`,
+    );
+  }
+  await setDiscordNickname(member, guildId, nickname, notify);
 
   // Re-running onboarding (e.g. someone who first said PUG, then re-ran it
   // and matched as a real guild member) should leave them with exactly the
@@ -515,6 +622,15 @@ interface MatchAndApplyOptions {
   // comments. Only the live onboarding conversation supplies either.
   chooseNicknameNames?: (names: string[]) => Promise<string[]>;
   notify?: (message: string) => Promise<void>;
+  // The person's persisted onboarding-flow answers (stepId -> selected
+  // option ids), for evaluating any rule condition with field "answer".
+  // Live onboarding (onboardingFlowEngine.ts) passes its in-memory
+  // ctx.answersByStep directly — no need to re-read what was just
+  // written. Omitted entirely (undefined, not an empty map) means "load
+  // whatever's persisted for this person" (see loadPersistedAnswers
+  // below) — the background pending-match retry (pendingMatches.ts) relies
+  // on this default rather than duplicating the query itself.
+  answers?: Map<string, string[]>;
 }
 
 export interface NamedCharacter {
@@ -874,22 +990,40 @@ export async function matchRosterAndApply(
   if (matched.length > 0 || externalCharacters.length > 0) {
     const rules = await db.guildRoleRule.findMany({
       where: { guildId: guild.id },
-      include: { conditions: true, grantedRoles: true, grantedChannels: true },
+      include: {
+        conditions: { include: { answerOptions: true } },
+        grantedRoles: true,
+        grantedChannels: true,
+      },
     });
     const rolePriorities = await db.guildRolePriority.findMany({
       where: { guildId: guild.id },
     });
     if (matched.length > 0) {
+      const answers = options.answers ?? (await loadPersistedAnswers(guild.id, member.id));
       ({ roleIds, channelGrants } = evaluateRules(
         rules,
         matched,
         rolePriorities,
+        answers,
       ));
+      // Flow "grant" actions (onboardingFlowEngine.ts) are one-time,
+      // never-re-evaluated role assignments — preserve any the member
+      // already holds so this rule-driven desired-set doesn't get treated
+      // as authoritative and have applyManagedRoles strip them right back
+      // off. See getManagedRoleIds' own doc comment for why flow-grant
+      // roles count as "managed" in the first place.
+      const flowGrantRoleIds = await getFlowGrantRoleIds(guild.id);
+      for (const roleId of member.roles.cache.keys()) {
+        if (flowGrantRoleIds.has(roleId)) roleIds.add(roleId);
+      }
     }
     if (externalCharacters.length > 0) {
       // Only channel-only rules (no granted roles) ever fire off an
       // external character — they're not a member of this guild, so no
-      // rule should ever hand them a role through this path.
+      // rule should ever hand them a role through this path. No answers
+      // passed here either — see evaluateRules' own doc comment: an
+      // external character has no reliable discordUserId-backed answer.
       const channelOnlyRules = rules.filter((r) => r.grantedRoles.length === 0);
       const externalAsMatched: MatchedCharacter[] = externalCharacters.map(
         (c) => ({ rank: "", level: c.level, class: c.class }),

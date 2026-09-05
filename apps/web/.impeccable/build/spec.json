@@ -1,0 +1,1223 @@
+{
+  "tool": "comp-spec",
+  "version": 1,
+  "createdAt": "2026-09-05T09:45:21.945Z",
+  "comp": ".impeccable/mocks/comp-b-operator-bench.png",
+  "warnings": [
+    "region power-heading: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region detail-panel: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region detail-panel: \"container\": true set in the regions file (the region-size refusal is overridden: one undivided element)",
+    "region detail-label: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region matrix-heading: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region audit-heading: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)"
+  ],
+  "uncoveredInkCells": [],
+  "compSize": {
+    "width": 1024,
+    "height": 640
+  },
+  "aspect": 1.6,
+  "orientation": "landscape",
+  "palette": [
+    {
+      "hex": "#0b0e19",
+      "coverage": 0.9726
+    },
+    {
+      "hex": "#182623",
+      "coverage": 0.0119
+    },
+    {
+      "hex": "#404654",
+      "coverage": 0.0112
+    },
+    {
+      "hex": "#0f0828",
+      "coverage": 0.0027
+    },
+    {
+      "hex": "#6f6f7f",
+      "coverage": 0.0016
+    }
+  ],
+  "bands": [
+    {
+      "y": 0.025,
+      "strength": 0.2178
+    },
+    {
+      "y": 0.05,
+      "strength": 0.2803
+    }
+  ],
+  "regions": [
+    {
+      "id": "header",
+      "kind": "chrome",
+      "note": "Title bar on void: DISCORD SERVER CONTROLS wordmark left, GUILD test right, hairline bottom border",
+      "grid": null,
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.0922
+      },
+      "px": {
+        "x": 0,
+        "y": 0,
+        "w": 1024,
+        "h": 59
+      },
+      "aspect": 17.3559,
+      "palette": [
+        {
+          "hex": "#080818",
+          "coverage": 0.9143
+        },
+        {
+          "hex": "#242626",
+          "coverage": 0.0633
+        },
+        {
+          "hex": "#4d515d",
+          "coverage": 0.0103
+        },
+        {
+          "hex": "#e5ebef",
+          "coverage": 0.0069
+        },
+        {
+          "hex": "#697378",
+          "coverage": 0.0052
+        }
+      ],
+      "detail": {
+        "energy": 11.3611
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "power-panel",
+      "kind": "chrome",
+      "note": "Left power and interlocks column: hairline border box on void",
+      "grid": null,
+      "box": {
+        "x": 0.0195,
+        "y": 0.1031,
+        "w": 0.2148,
+        "h": 0.6078
+      },
+      "px": {
+        "x": 20,
+        "y": 66,
+        "w": 220,
+        "h": 389
+      },
+      "aspect": 0.5656,
+      "palette": [
+        {
+          "hex": "#0d141a",
+          "coverage": 0.914
+        },
+        {
+          "hex": "#3e4550",
+          "coverage": 0.0331
+        },
+        {
+          "hex": "#170e2b",
+          "coverage": 0.0227
+        },
+        {
+          "hex": "#25220d",
+          "coverage": 0.0162
+        },
+        {
+          "hex": "#46432e",
+          "coverage": 0.0141
+        }
+      ],
+      "detail": {
+        "energy": 12.9674
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "power-heading",
+      "kind": "text",
+      "note": "caption POWER & INTERLOCKS, small tracked caps in DOM text",
+      "grid": null,
+      "codeDrawn": true,
+      "box": {
+        "x": 0.039,
+        "y": 0.125,
+        "w": 0.1074,
+        "h": 0.0156
+      },
+      "px": {
+        "x": 40,
+        "y": 80,
+        "w": 110,
+        "h": 10
+      },
+      "aspect": 11,
+      "palette": [
+        {
+          "hex": "#0d1520",
+          "coverage": 0.75
+        },
+        {
+          "hex": "#5a6270",
+          "coverage": 0.1757
+        },
+        {
+          "hex": "#3a3f4c",
+          "coverage": 0.0608
+        },
+        {
+          "hex": "#180828",
+          "coverage": 0.0135
+        }
+      ],
+      "detail": {
+        "energy": 28.46
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "breaker",
+      "kind": "control",
+      "note": "BOT AUTOMATION breaker: bordered box, green ENABLED state + toggle switch, mono hint line",
+      "grid": null,
+      "box": {
+        "x": 0.039,
+        "y": 0.1641,
+        "w": 0.2021,
+        "h": 0.0781
+      },
+      "px": {
+        "x": 40,
+        "y": 105,
+        "w": 207,
+        "h": 50
+      },
+      "aspect": 4.14,
+      "palette": [
+        {
+          "hex": "#0b121a",
+          "coverage": 0.8714
+        },
+        {
+          "hex": "#112c28",
+          "coverage": 0.0652
+        },
+        {
+          "hex": "#40474f",
+          "coverage": 0.0223
+        },
+        {
+          "hex": "#19644c",
+          "coverage": 0.0214
+        },
+        {
+          "hex": "#39df8d",
+          "coverage": 0.0196
+        }
+      ],
+      "detail": {
+        "energy": 12.0658
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "lamps",
+      "kind": "text",
+      "note": "Three status lamp rows: dot + key + mono value (DISCORD API 12ms, LAST RESYNC 21:14, VIEW AUDIT LOG PERM CHECK)",
+      "grid": null,
+      "box": {
+        "x": 0.039,
+        "y": 0.2969,
+        "w": 0.2021,
+        "h": 0.0781
+      },
+      "px": {
+        "x": 40,
+        "y": 190,
+        "w": 207,
+        "h": 50
+      },
+      "aspect": 4.14,
+      "palette": [
+        {
+          "hex": "#0a151a",
+          "coverage": 0.8873
+        },
+        {
+          "hex": "#313544",
+          "coverage": 0.062
+        },
+        {
+          "hex": "#495662",
+          "coverage": 0.0218
+        },
+        {
+          "hex": "#092818",
+          "coverage": 0.0166
+        },
+        {
+          "hex": "#160929",
+          "coverage": 0.0122
+        }
+      ],
+      "detail": {
+        "energy": 15.9978
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "latches",
+      "kind": "control",
+      "note": "PROTECTED ROLES — SEALED heading + dashed amber latch rows with SEALED stamps + ghost add row",
+      "grid": null,
+      "box": {
+        "x": 0.039,
+        "y": 0.3938,
+        "w": 0.2021,
+        "h": 0.1609
+      },
+      "px": {
+        "x": 40,
+        "y": 252,
+        "w": 207,
+        "h": 103
+      },
+      "aspect": 2.0097,
+      "palette": [
+        {
+          "hex": "#151618",
+          "coverage": 0.7862
+        },
+        {
+          "hex": "#19102d",
+          "coverage": 0.0686
+        },
+        {
+          "hex": "#302911",
+          "coverage": 0.0581
+        },
+        {
+          "hex": "#424237",
+          "coverage": 0.0466
+        },
+        {
+          "hex": "#696346",
+          "coverage": 0.0405
+        }
+      ],
+      "detail": {
+        "energy": 22.1316
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "mutex",
+      "kind": "text",
+      "note": "MUTUALLY EXCLUSIVE mono note: officer ⊕ trial raider ⊕ pug, top tier wins",
+      "grid": null,
+      "box": {
+        "x": 0.039,
+        "y": 0.575,
+        "w": 0.2021,
+        "h": 0.0688
+      },
+      "px": {
+        "x": 40,
+        "y": 368,
+        "w": 207,
+        "h": 44
+      },
+      "aspect": 4.7045,
+      "palette": [
+        {
+          "hex": "#0b131b",
+          "coverage": 0.915
+        },
+        {
+          "hex": "#404754",
+          "coverage": 0.0734
+        },
+        {
+          "hex": "#6a6f7f",
+          "coverage": 0.0087
+        },
+        {
+          "hex": "#0d0d2d",
+          "coverage": 0.0029
+        }
+      ],
+      "detail": {
+        "energy": 16.5894
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "rule-chips",
+      "kind": "control",
+      "note": "Four rule chips in a strip: R1 hot phosphor border, R2, R3, dashed + new rule",
+      "grid": null,
+      "box": {
+        "x": 0.2598,
+        "y": 0.1031,
+        "w": 0.7275,
+        "h": 0.0531
+      },
+      "px": {
+        "x": 266,
+        "y": 66,
+        "w": 745,
+        "h": 34
+      },
+      "aspect": 21.9118,
+      "palette": [
+        {
+          "hex": "#0b1019",
+          "coverage": 0.9509
+        },
+        {
+          "hex": "#323a44",
+          "coverage": 0.0242
+        },
+        {
+          "hex": "#5f6774",
+          "coverage": 0.0148
+        },
+        {
+          "hex": "#9396a2",
+          "coverage": 0.0091
+        },
+        {
+          "hex": "#080828",
+          "coverage": 0.001
+        }
+      ],
+      "detail": {
+        "energy": 16.635
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "detail-panel",
+      "kind": "chrome",
+      "note": "hairline border box the code renders over the separate glow ground region",
+      "grid": null,
+      "codeDrawn": true,
+      "container": true,
+      "box": {
+        "x": 0.2559,
+        "y": 0.175,
+        "w": 0.7266,
+        "h": 0.5469
+      },
+      "px": {
+        "x": 262,
+        "y": 112,
+        "w": 744,
+        "h": 350
+      },
+      "aspect": 2.1257,
+      "palette": [
+        {
+          "hex": "#0b0e19",
+          "coverage": 0.9788
+        },
+        {
+          "hex": "#646979",
+          "coverage": 0.0083
+        },
+        {
+          "hex": "#323a48",
+          "coverage": 0.0055
+        },
+        {
+          "hex": "#122823",
+          "coverage": 0.0051
+        },
+        {
+          "hex": "#0d7353",
+          "coverage": 0.0024
+        }
+      ],
+      "detail": {
+        "energy": 5.4468
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "detail-label",
+      "kind": "text",
+      "note": "caption R1 · INITIATE — SCHEMATIC DETAIL, small tracked caps in DOM text",
+      "grid": null,
+      "codeDrawn": true,
+      "box": {
+        "x": 0.293,
+        "y": 0.1781,
+        "w": 0.1855,
+        "h": 0.0156
+      },
+      "px": {
+        "x": 300,
+        "y": 114,
+        "w": 190,
+        "h": 10
+      },
+      "aspect": 19,
+      "palette": [
+        {
+          "hex": "#0b0d17",
+          "coverage": 0.8125
+        },
+        {
+          "hex": "#5d616c",
+          "coverage": 0.1055
+        },
+        {
+          "hex": "#272a38",
+          "coverage": 0.0547
+        },
+        {
+          "hex": "#8b929b",
+          "coverage": 0.0195
+        },
+        {
+          "hex": "#384850",
+          "coverage": 0.0078
+        }
+      ],
+      "detail": {
+        "energy": 37.4914
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "cond-node",
+      "kind": "control",
+      "note": "Condition node: CONDITION kicker + RANK = Initiate editable value",
+      "grid": null,
+      "box": {
+        "x": 0.3105,
+        "y": 0.2891,
+        "w": 0.1113,
+        "h": 0.0547
+      },
+      "px": {
+        "x": 318,
+        "y": 185,
+        "w": 114,
+        "h": 35
+      },
+      "aspect": 3.2571,
+      "palette": [
+        {
+          "hex": "#0c101a",
+          "coverage": 0.8311
+        },
+        {
+          "hex": "#767888",
+          "coverage": 0.0899
+        },
+        {
+          "hex": "#3d424d",
+          "coverage": 0.0329
+        },
+        {
+          "hex": "#a1a4b2",
+          "coverage": 0.0285
+        },
+        {
+          "hex": "#c0cad0",
+          "coverage": 0.0175
+        }
+      ],
+      "detail": {
+        "energy": 22.7582
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "wire-main",
+      "kind": "control",
+      "note": "Phosphor wire condition → junction with travelling sync pulse",
+      "grid": null,
+      "box": {
+        "x": 0.4224,
+        "y": 0.3188,
+        "w": 0.1855,
+        "h": 0.0156
+      },
+      "px": {
+        "x": 433,
+        "y": 204,
+        "w": 190,
+        "h": 10
+      },
+      "aspect": 19,
+      "palette": [
+        {
+          "hex": "#0d121b",
+          "coverage": 0.9373
+        },
+        {
+          "hex": "#213d4a",
+          "coverage": 0.0275
+        },
+        {
+          "hex": "#90a0a8",
+          "coverage": 0.0157
+        },
+        {
+          "hex": "#a0d8f4",
+          "coverage": 0.0157
+        },
+        {
+          "hex": "#585868",
+          "coverage": 0.0039
+        }
+      ],
+      "detail": {
+        "energy": 9.1764
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "junction-node",
+      "kind": "control",
+      "note": "Junction node: JUNCTION kicker + grant all",
+      "grid": null,
+      "box": {
+        "x": 0.5898,
+        "y": 0.2891,
+        "w": 0.0703,
+        "h": 0.0563
+      },
+      "px": {
+        "x": 604,
+        "y": 185,
+        "w": 72,
+        "h": 36
+      },
+      "aspect": 2,
+      "palette": [
+        {
+          "hex": "#0c131d",
+          "coverage": 0.7587
+        },
+        {
+          "hex": "#333643",
+          "coverage": 0.1853
+        },
+        {
+          "hex": "#606070",
+          "coverage": 0.021
+        },
+        {
+          "hex": "#a8a8b8",
+          "coverage": 0.0175
+        },
+        {
+          "hex": "#7b858b",
+          "coverage": 0.0175
+        }
+      ],
+      "detail": {
+        "energy": 11.738
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "wire-grant",
+      "kind": "control",
+      "note": "Green phosphor wire junction → role socket",
+      "grid": null,
+      "box": {
+        "x": 0.6602,
+        "y": 0.325,
+        "w": 0.2266,
+        "h": 0.0125
+      },
+      "px": {
+        "x": 676,
+        "y": 208,
+        "w": 232,
+        "h": 8
+      },
+      "aspect": 29,
+      "palette": [
+        {
+          "hex": "#0f171b",
+          "coverage": 1
+        }
+      ],
+      "detail": {
+        "energy": 4.1626
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "role-grant",
+      "kind": "control",
+      "note": "Green role socket node: ROLE kicker + @guildie",
+      "grid": null,
+      "box": {
+        "x": 0.8867,
+        "y": 0.2844,
+        "w": 0.0797,
+        "h": 0.0547
+      },
+      "px": {
+        "x": 908,
+        "y": 182,
+        "w": 82,
+        "h": 35
+      },
+      "aspect": 2.3429,
+      "palette": [
+        {
+          "hex": "#10191c",
+          "coverage": 0.7006
+        },
+        {
+          "hex": "#0a2818",
+          "coverage": 0.1274
+        },
+        {
+          "hex": "#567469",
+          "coverage": 0.0924
+        },
+        {
+          "hex": "#124f39",
+          "coverage": 0.0446
+        },
+        {
+          "hex": "#94a1a9",
+          "coverage": 0.035
+        }
+      ],
+      "detail": {
+        "energy": 15.8853
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "wire-branch",
+      "kind": "control",
+      "note": "Dim phosphor branch wire dropping from junction to channel grants",
+      "grid": null,
+      "box": {
+        "x": 0.6357,
+        "y": 0.3453,
+        "w": 0.251,
+        "h": 0.1469
+      },
+      "px": {
+        "x": 651,
+        "y": 221,
+        "w": 257,
+        "h": 94
+      },
+      "aspect": 2.734,
+      "palette": [
+        {
+          "hex": "#11171b",
+          "coverage": 0.9985
+        },
+        {
+          "hex": "#280820",
+          "coverage": 0.0015
+        }
+      ],
+      "detail": {
+        "energy": 1.815
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "channel-grants",
+      "kind": "control",
+      "note": "CHANNEL #bot-logs chip + dashed add channel grant chip",
+      "grid": null,
+      "box": {
+        "x": 0.8867,
+        "y": 0.4563,
+        "w": 0.0898,
+        "h": 0.0984
+      },
+      "px": {
+        "x": 908,
+        "y": 292,
+        "w": 92,
+        "h": 63
+      },
+      "aspect": 1.4603,
+      "palette": [
+        {
+          "hex": "#0a111a",
+          "coverage": 0.8326
+        },
+        {
+          "hex": "#313544",
+          "coverage": 0.126
+        },
+        {
+          "hex": "#4e5a67",
+          "coverage": 0.0307
+        },
+        {
+          "hex": "#738b9b",
+          "coverage": 0.0092
+        },
+        {
+          "hex": "#080828",
+          "coverage": 0.0015
+        }
+      ],
+      "detail": {
+        "energy": 11.0775
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "r2-preview",
+      "kind": "control",
+      "note": "Dim preview node: CONDITION R2 + LEVEL ≥ 60 (any char)",
+      "grid": null,
+      "box": {
+        "x": 0.3105,
+        "y": 0.575,
+        "w": 0.1338,
+        "h": 0.05
+      },
+      "px": {
+        "x": 318,
+        "y": 368,
+        "w": 137,
+        "h": 32
+      },
+      "aspect": 4.2813,
+      "palette": [
+        {
+          "hex": "#0b0d19",
+          "coverage": 0.913
+        },
+        {
+          "hex": "#7b7d88",
+          "coverage": 0.0316
+        },
+        {
+          "hex": "#444454",
+          "coverage": 0.0237
+        },
+        {
+          "hex": "#586363",
+          "coverage": 0.0178
+        },
+        {
+          "hex": "#262f2f",
+          "coverage": 0.0138
+        }
+      ],
+      "detail": {
+        "energy": 15.2065
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "matrix-panel",
+      "kind": "chrome",
+      "note": "Bottom rail left: members × roles staged matrix panel, amber apply chip right",
+      "grid": null,
+      "box": {
+        "x": 0.0195,
+        "y": 0.8125,
+        "w": 0.3955,
+        "h": 0.1563
+      },
+      "px": {
+        "x": 20,
+        "y": 520,
+        "w": 405,
+        "h": 100
+      },
+      "aspect": 4.05,
+      "palette": [
+        {
+          "hex": "#091219",
+          "coverage": 0.9376
+        },
+        {
+          "hex": "#475c6d",
+          "coverage": 0.0282
+        },
+        {
+          "hex": "#7d8d9f",
+          "coverage": 0.0125
+        },
+        {
+          "hex": "#323a43",
+          "coverage": 0.0116
+        },
+        {
+          "hex": "#120b29",
+          "coverage": 0.0101
+        }
+      ],
+      "detail": {
+        "energy": 11.7557
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "matrix-heading",
+      "kind": "text",
+      "note": "caption MEMBERS × ROLES — STAGED (2), small tracked caps in DOM text",
+      "grid": null,
+      "codeDrawn": true,
+      "box": {
+        "x": 0.039,
+        "y": 0.8359,
+        "w": 0.1904,
+        "h": 0.0219
+      },
+      "px": {
+        "x": 40,
+        "y": 535,
+        "w": 195,
+        "h": 14
+      },
+      "aspect": 13.9286,
+      "palette": [
+        {
+          "hex": "#0c131c",
+          "coverage": 0.9071
+        },
+        {
+          "hex": "#454d5e",
+          "coverage": 0.0557
+        },
+        {
+          "hex": "#787f93",
+          "coverage": 0.0217
+        },
+        {
+          "hex": "#637878",
+          "coverage": 0.0093
+        },
+        {
+          "hex": "#180828",
+          "coverage": 0.0062
+        }
+      ],
+      "detail": {
+        "energy": 25.8462
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "matrix-rows",
+      "kind": "control",
+      "note": "Three member rows: name + five toggle cells, amber staged cells glowing",
+      "grid": null,
+      "box": {
+        "x": 0.039,
+        "y": 0.8625,
+        "w": 0.1719,
+        "h": 0.075
+      },
+      "px": {
+        "x": 40,
+        "y": 552,
+        "w": 176,
+        "h": 48
+      },
+      "aspect": 3.6667,
+      "palette": [
+        {
+          "hex": "#0c121b",
+          "coverage": 0.7154
+        },
+        {
+          "hex": "#3c4c5f",
+          "coverage": 0.1394
+        },
+        {
+          "hex": "#7d8f9e",
+          "coverage": 0.0691
+        },
+        {
+          "hex": "#0c0a2a",
+          "coverage": 0.0403
+        },
+        {
+          "hex": "#533e14",
+          "coverage": 0.0357
+        }
+      ],
+      "detail": {
+        "energy": 22.7201
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "audit-panel",
+      "kind": "chrome",
+      "note": "Bottom rail right: audit tape panel ground",
+      "grid": null,
+      "box": {
+        "x": 0.4219,
+        "y": 0.8125,
+        "w": 0.5596,
+        "h": 0.1563
+      },
+      "px": {
+        "x": 432,
+        "y": 520,
+        "w": 573,
+        "h": 100
+      },
+      "aspect": 5.73,
+      "palette": [
+        {
+          "hex": "#091219",
+          "coverage": 0.9843
+        },
+        {
+          "hex": "#454959",
+          "coverage": 0.0119
+        },
+        {
+          "hex": "#787e88",
+          "coverage": 0.0016
+        },
+        {
+          "hex": "#082010",
+          "coverage": 0.0016
+        },
+        {
+          "hex": "#98a8a8",
+          "coverage": 0.0006
+        }
+      ],
+      "detail": {
+        "energy": 6.8255
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "audit-heading",
+      "kind": "text",
+      "note": "caption AUDIT TAPE, small tracked caps in DOM text",
+      "grid": null,
+      "codeDrawn": true,
+      "box": {
+        "x": 0.4316,
+        "y": 0.8375,
+        "w": 0.0859,
+        "h": 0.0219
+      },
+      "px": {
+        "x": 442,
+        "y": 536,
+        "w": 88,
+        "h": 14
+      },
+      "aspect": 6.2857,
+      "palette": [
+        {
+          "hex": "#0b111b",
+          "coverage": 0.8667
+        },
+        {
+          "hex": "#656e7b",
+          "coverage": 0.0733
+        },
+        {
+          "hex": "#3a3d4d",
+          "coverage": 0.06
+        }
+      ],
+      "detail": {
+        "energy": 12.2234
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "audit-lines",
+      "kind": "text",
+      "note": "Three mono event lines: timestamp, +trial raider/rank 1→2/−pug what, executor who",
+      "grid": null,
+      "box": {
+        "x": 0.4316,
+        "y": 0.8625,
+        "w": 0.252,
+        "h": 0.075
+      },
+      "px": {
+        "x": 442,
+        "y": 552,
+        "w": 258,
+        "h": 48
+      },
+      "aspect": 5.375,
+      "palette": [
+        {
+          "hex": "#0d121c",
+          "coverage": 0.9007
+        },
+        {
+          "hex": "#3e4753",
+          "coverage": 0.0659
+        },
+        {
+          "hex": "#727c86",
+          "coverage": 0.023
+        },
+        {
+          "hex": "#28584c",
+          "coverage": 0.0059
+        },
+        {
+          "hex": "#6b4d5b",
+          "coverage": 0.0044
+        }
+      ],
+      "detail": {
+        "energy": 27.8152
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "scanlines",
+      "kind": "texture",
+      "note": "Clean void ground with horizontal scanline pattern, no ink — tiles whole page",
+      "grid": null,
+      "box": {
+        "x": 0.7,
+        "y": 0.7,
+        "w": 0.2,
+        "h": 0.1
+      },
+      "px": {
+        "x": 717,
+        "y": 448,
+        "w": 205,
+        "h": 64
+      },
+      "aspect": 3.2031,
+      "palette": [
+        {
+          "hex": "#080817",
+          "coverage": 1
+        }
+      ],
+      "detail": {
+        "energy": 1.7895
+      },
+      "medium": "raster",
+      "plate": "assets/plates/scanlines.png",
+      "text": null
+    },
+    {
+      "id": "phosphor-glow",
+      "kind": "texture",
+      "note": "Soft blue-white phosphor radial glow on void, no ink — the bay's ambient light",
+      "grid": null,
+      "box": {
+        "x": 0.45,
+        "y": 0.3,
+        "w": 0.25,
+        "h": 0.25
+      },
+      "px": {
+        "x": 461,
+        "y": 192,
+        "w": 256,
+        "h": 160
+      },
+      "aspect": 1.6,
+      "palette": [
+        {
+          "hex": "#0f151a",
+          "coverage": 0.9803
+        },
+        {
+          "hex": "#303645",
+          "coverage": 0.0095
+        },
+        {
+          "hex": "#acc7d1",
+          "coverage": 0.008
+        },
+        {
+          "hex": "#081838",
+          "coverage": 0.0011
+        },
+        {
+          "hex": "#888898",
+          "coverage": 0.0011
+        }
+      ],
+      "detail": {
+        "energy": 6.1508
+      },
+      "medium": "raster",
+      "plate": "assets/plates/phosphor-glow.png",
+      "text": null
+    }
+  ]
+}

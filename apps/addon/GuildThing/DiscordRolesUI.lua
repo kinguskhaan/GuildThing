@@ -31,6 +31,7 @@ local rowPool = {}
 local searchText = ""
 local rankFilter = nil -- nil = all ranks
 local roleFilter = nil -- nil = all roles
+local mismatchOnly = false
 local sortColumn = "name" -- "name" | "rank" | "nick" | "account"
 local sortDesc = false
 
@@ -92,19 +93,26 @@ local function AcquireRow(parent, index)
     return row
 end
 
--- Joins the in-game roster scan against GuildThingDiscordRolesDB by name
--- into one flat list of plain tables — the shape everything below
--- (search/filter/sort) operates on, independent of either source's own
--- structure.
+-- Joins the in-game roster scan against GuildThingDiscordRolesDB and
+-- GuildThingRoleMismatchesDB by name into one flat list of plain tables —
+-- the shape everything below (search/filter/sort) operates on, independent
+-- of either source's own structure. Mismatch data comes from the bot's
+-- diffGuildRoles pass (apps/bot/src/roleSync.ts), written down by
+-- role-mismatches/route.ts — read-only, always at most an hour stale (or
+-- fresher right after a sync); "Request sync" below is the fix.
 local function GetCombinedRows()
     local roster = GT.GetRoster()
     local membersData = (GuildThingDiscordRolesDB and GuildThingDiscordRolesDB.members) or {}
+    local mismatchData = (GuildThingRoleMismatchesDB and GuildThingRoleMismatchesDB.members) or {}
 
     local rows = {}
     for _, m in ipairs(roster) do
         local entry = membersData[m.name]
         local hasSyncData = entry ~= nil
             and (entry.tag ~= nil or (entry.roleNames and #entry.roleNames > 0))
+        local mismatch = mismatchData[m.name]
+        local hasMismatch = mismatch ~= nil
+            and ((mismatch.toAdd and #mismatch.toAdd > 0) or (mismatch.toRemove and #mismatch.toRemove > 0))
         table.insert(rows, {
             name = m.name,
             rank = m.rank,
@@ -112,6 +120,9 @@ local function GetCombinedRows()
             account = hasSyncData and entry.tag or nil,
             roles = hasSyncData and entry.roleNames or {},
             hasSyncData = hasSyncData,
+            hasMismatch = hasMismatch,
+            mismatchAdd = hasMismatch and mismatch.toAdd or {},
+            mismatchRemove = hasMismatch and mismatch.toRemove or {},
         })
     end
     return rows
@@ -138,6 +149,7 @@ local function ApplyFiltersAndSort(rows)
     for _, row in ipairs(rows) do
         if (not rankFilter or row.rank == rankFilter)
             and (not roleFilter or RowHasRole(row, roleFilter))
+            and (not mismatchOnly or row.hasMismatch)
             and RowMatchesSearch(row, query)
         then
             table.insert(filtered, row)
@@ -184,9 +196,18 @@ local function BuildRows(scrollChild)
         if row.hasSyncData then
             frame.nick:SetText(row.nick or "—")
             frame.account:SetText(row.account or "—")
-            frame.roles:SetText(
-                (#row.roles > 0) and table.concat(row.roles, ", ") or "—"
-            )
+            local rolesText = (#row.roles > 0) and table.concat(row.roles, ", ") or "—"
+            if row.hasMismatch then
+                local parts = {}
+                if #row.mismatchAdd > 0 then
+                    table.insert(parts, "+" .. table.concat(row.mismatchAdd, ",+"))
+                end
+                if #row.mismatchRemove > 0 then
+                    table.insert(parts, "-" .. table.concat(row.mismatchRemove, ",-"))
+                end
+                rolesText = rolesText .. " |cffff8800[" .. table.concat(parts, " ") .. "]|r"
+            end
+            frame.roles:SetText(rolesText)
         else
             frame.nick:SetText("")
             frame.account:SetText("")
@@ -344,13 +365,30 @@ function GT.CreateDiscordRolesPage(parent)
         searchBox:SetText("")
         rankFilter = nil
         roleFilter = nil
+        mismatchOnly = false
         UIDropDownMenu_SetText(rankDropDown, "All ranks")
         UIDropDownMenu_SetText(roleDropDown, "All roles")
         if Refresh then Refresh() end
     end)
 
+    -- Quick filter for the drift diffGuildRoles found (see GetCombinedRows)
+    -- — jumps an admin straight to the rows "Request sync" below would fix.
+    local mismatchCheck = CreateFrame(
+        "CheckButton", nil, toolbar, "UICheckButtonTemplate"
+    )
+    mismatchCheck:SetSize(20, 20)
+    mismatchCheck:SetPoint("LEFT", clearBtn, "RIGHT", 4, 2)
+    mismatchCheck:SetScript("OnClick", function(self)
+        mismatchOnly = self:GetChecked() and true or false
+        if Refresh then Refresh() end
+    end)
+
+    local mismatchCheckLabel = toolbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    mismatchCheckLabel:SetPoint("LEFT", mismatchCheck, "RIGHT", 0, 1)
+    mismatchCheckLabel:SetText("Mismatches only")
+
     local countText = toolbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    countText:SetPoint("LEFT", clearBtn, "RIGHT", 8, 0)
+    countText:SetPoint("LEFT", mismatchCheckLabel, "RIGHT", 8, -1)
     countText:SetPoint("RIGHT", 0, 0)
     countText:SetJustifyH("RIGHT")
 
@@ -438,8 +476,17 @@ function GT.CreateDiscordRolesPage(parent)
 
     Refresh = function()
         local shown = BuildRows(scrollChild)
-        local total = #GetCombinedRows()
-        countText:SetText(shown .. " of " .. total)
+        local allRows = GetCombinedRows()
+        local mismatchCount = 0
+        for _, row in ipairs(allRows) do
+            if row.hasMismatch then mismatchCount = mismatchCount + 1 end
+        end
+        local countLine = shown .. " of " .. #allRows
+        if mismatchCount > 0 then
+            countLine = countLine .. " |cffff8800(" .. mismatchCount .. " mismatch"
+                .. (mismatchCount == 1 and "" or "es") .. ")|r"
+        end
+        countText:SetText(countLine)
         RefreshHeaderLabels()
     end
 

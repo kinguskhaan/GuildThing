@@ -91,7 +91,7 @@ export function GuildAuditLog({ guildId }: { guildId: string }) {
             <tbody>
               {filtered.map((entry) => (
                 <tr key={entry.id} className="border-b border-black/10 last:border-0">
-                  <td className="px-3 py-2 whitespace-nowrap text-discord-text-muted">
+                  <td className="font-[family-name:var(--font-arcade-mono)] px-3 py-2 text-xs whitespace-nowrap text-discord-text-muted">
                     {absoluteTime(new Date(entry.detectedAt))}
                   </td>
                   <td className="px-3 py-2 font-semibold whitespace-nowrap">
@@ -100,7 +100,7 @@ export function GuildAuditLog({ guildId }: { guildId: string }) {
                   <td className="px-3 py-2 whitespace-nowrap text-discord-text-muted">
                     {entry.discordNick ?? "—"}
                   </td>
-                  <td className="px-3 py-2 whitespace-nowrap text-discord-text-muted">
+                  <td className="font-[family-name:var(--font-arcade-mono)] px-3 py-2 text-xs whitespace-nowrap text-discord-text-muted">
                     {entry.discordTag ?? "—"}
                   </td>
                   <td className="px-3 py-2 text-discord-text-muted">{eventText(entry)}</td>

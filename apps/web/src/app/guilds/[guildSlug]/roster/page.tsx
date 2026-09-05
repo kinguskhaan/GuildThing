@@ -1,14 +1,27 @@
-import { GuildClaimCharacter } from "~/app/_components/guild-claim-character";
-import { GuildExportPanel } from "~/app/_components/guild-export-panel";
+import Link from "next/link";
+
 import { GuildExternalCharacters } from "~/app/_components/guild-external-characters";
-import { GuildMemberNicknames } from "~/app/_components/guild-member-nicknames";
 import { GuildPendingMatches } from "~/app/_components/guild-pending-matches";
-import { GuildRosterImportForm } from "~/app/_components/guild-roster-import-form";
+import { GuildRosterSyncPanel } from "~/app/_components/guild-roster-sync-panel";
 import { GuildRosterTable } from "~/app/_components/guild-roster-table";
-import { GuildUnclaimedMembers } from "~/app/_components/guild-unclaimed-members";
-import { ImportPanel } from "~/app/_components/import-panel";
-import { NicknameEditor } from "~/app/_components/nickname-editor";
 import { api } from "~/trpc/server";
+
+function ToolGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="px-1 text-[11px] font-semibold tracking-wide text-discord-text-muted uppercase">
+        {label}
+      </span>
+      <div className="grid gap-2">{children}</div>
+    </div>
+  );
+}
 
 export default async function RosterPage({
   params,
@@ -37,39 +50,49 @@ export default async function RosterPage({
       <h2 className="text-center text-2xl font-bold">Members</h2>
 
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
-        <NicknameEditor initialNickname={me.nickname} fallback={me.name} />
-        <ImportPanel guildId={guildId} guildSlug={guildSlug} />
-        <GuildExportPanel guildId={guildId} />
+        <Link
+          href={`/guilds/${guildSlug}/characters`}
+          className="self-start text-sm text-discord-text-muted hover:text-discord-text hover:underline"
+        >
+          Editing as{" "}
+          <span className="font-semibold text-discord-text">
+            {me.nickname ?? me.name}
+          </span>{" "}
+          — characters & nickname →
+        </Link>
 
-        {guild.isAdmin && guild.rosterSource === "onboarding" && (
-          <div className="bg-discord-elevated text-discord-text-muted w-full rounded-xl p-4 text-sm">
-            This guild builds its roster from Discord onboarding —
-            there&apos;s nothing to import here. Switch back to &quot;Addon
-            export&quot; on the Discord Server Controls admin page if that
-            changes.
-          </div>
+        {guild.isAdmin && pendingMatches.length > 0 && (
+          <ToolGroup label="Needs your attention">
+            <GuildPendingMatches guildId={guildId} entries={pendingMatches} />
+          </ToolGroup>
         )}
+
         {guild.isAdmin && guild.rosterSource !== "onboarding" && (
-          <GuildRosterImportForm guildId={guildId} />
+          <ToolGroup label="Roster tools">
+            <GuildRosterSyncPanel
+              guildId={guildId}
+              existingMemberNames={members.map((m) => m.name)}
+            />
+          </ToolGroup>
         )}
-        {guild.isAdmin && (
-          <GuildPendingMatches guildId={guildId} entries={pendingMatches} />
+        {guild.isAdmin && guild.rosterSource === "onboarding" && (
+          <ToolGroup label="Roster tools">
+            <div className="w-full rounded-xl bg-discord-elevated p-4 text-sm text-discord-text-muted">
+              This guild builds its roster from Discord onboarding —
+              there&apos;s nothing to import here. Switch back to &quot;Addon
+              export&quot; on the Discord Server Controls admin page if that
+              changes.
+            </div>
+          </ToolGroup>
         )}
-        {guild.isAdmin && (
-          <GuildUnclaimedMembers guildId={guildId} members={unclaimedMembers} />
-        )}
-        {guild.isAdmin && <GuildClaimCharacter guildId={guildId} />}
       </div>
 
-      {guild.isAdmin && (
-        <GuildMemberNicknames guildId={guildId} rows={memberNicknames} />
-      )}
       {guild.isAdmin && (
         <GuildExternalCharacters guildId={guildId} rows={externalCharacters} />
       )}
 
-      {members.length === 0 ? (
-        <div className="bg-discord-elevated text-discord-text-muted w-full rounded-xl p-6 text-center">
+      {members.length === 0 && unclaimedMembers.length === 0 ? (
+        <div className="w-full rounded-xl bg-discord-elevated p-6 text-center text-discord-text-muted">
           {guild.rosterSource === "onboarding"
             ? "Nobody has onboarded yet."
             : "No roster imported yet."}
@@ -80,6 +103,8 @@ export default async function RosterPage({
           members={members}
           isAdmin={guild.isAdmin}
           lastRosterImportedAt={guild.lastRosterImportedAt}
+          nicknameRows={memberNicknames}
+          unclaimedMembers={unclaimedMembers}
         />
       )}
     </div>

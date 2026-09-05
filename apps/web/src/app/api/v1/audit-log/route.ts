@@ -17,7 +17,13 @@ const ENTRY_LIMIT = 200;
 // member NAME — the only identifier the addon itself has — rather than
 // Discord user id. Carries discordNick/discordTag too (resolved the same
 // way discord-roles/route.ts does) so the addon's Audit Log tab can show
-// and filter on them, not just the in-game name.
+// and filter on them, not just the in-game name. Also carries
+// guildId/guildName on every entry — a player with characters in multiple
+// guilds on the same WoW install has apps/sync merge several guilds'
+// entries into one SyncData.lua (see the wtfDir-grouping comment in
+// apps/sync/src/index.ts), and without a guild tag the addon can't avoid
+// showing one guild's officer-only audit history to a character in
+// another guild entirely.
 export async function GET(request: NextRequest) {
   const auth = await resolveApiKey(request);
   if (!auth) return unauthorizedResponse();
@@ -25,6 +31,7 @@ export async function GET(request: NextRequest) {
   const guild = await db.guild.findUnique({
     where: { id: auth.guildId },
     select: {
+      name: true,
       discordGuildId: true,
       rosterMembers: {
         where: { claimedByDiscordUserId: { not: null } },
@@ -100,7 +107,7 @@ export async function GET(request: NextRequest) {
       detectedAt: Math.floor(c.claimedAt!.getTime() / 1000),
       ...identity(c.claimedByDiscordUserId),
     })),
-  ];
+  ].map((e) => ({ ...e, guildId: auth.guildId, guildName: guild.name }));
   entries.sort((a, b) => b.detectedAt - a.detectedAt);
 
   return Response.json({ entries: entries.slice(0, ENTRY_LIMIT) });

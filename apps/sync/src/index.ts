@@ -2,7 +2,7 @@ import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { getAuditLog, getDiscordRoles, getGuild, postCharacters, postRoster, requestSync } from "./api";
+import { getAuditLog, getDiscordRoles, getGuild, getRoleMismatches, postCharacters, postRoster, requestSync } from "./api";
 import { serializeSavedVariables } from "./luaWriter";
 import {
   defaultWowWtfDir,
@@ -303,9 +303,15 @@ async function syncTarget(target: SyncTarget, data: RosterData): Promise<void> {
 // existing content worth preserving between runs — unlike the old
 // merge-into-GuildThing.lua approach, there's no roster data living
 // alongside these two, so a plain full overwrite is correct and simpler.
-// Targets sharing a wtfDir just merge/concatenate — different guilds'
-// members/entries don't collide in practice, and duplicate audit rows
-// across two guild-keys on the same install are harmless.
+// Targets sharing a wtfDir just merge/concatenate. members (Discord roles)
+// is harmless because DiscordRolesUI.lua's GetCombinedRows joins it against
+// the *current* guild's own roster scan by character name — a name from a
+// guild you're not in never surfaces there. entries (audit log) has no such
+// join, so each entry carries guildId/guildName from the server (see
+// audit-log/route.ts) precisely so AuditLogUI.lua can filter to the
+// player's current guild — without that tag, a player in multiple guilds
+// on this install would see every one of those guilds' officer-only audit
+// history merged together.
 //
 // Best-effort as a whole: a failure here never affects the roster/
 // character push in syncTarget, which already succeeded independently —
@@ -336,16 +342,29 @@ async function syncAddonDataFile(wtfDir: string, targets: SyncTarget[]): Promise
   }
   entries.sort((a, b) => b.detectedAt - a.detectedAt);
 
+  const mismatchMembers: Record<string, { toAdd: string[]; toRemove: string[] }> = {};
+  for (const target of targets) {
+    try {
+      const result = await getRoleMismatches(target.apiUrl, target.apiKey);
+      Object.assign(mismatchMembers, result.members);
+    } catch (err) {
+      console.error(`[sync:${target.name}] failed to fetch role mismatches:`, err);
+    }
+  }
+
   try {
     const addonDir = resolveAddonInstallDir(wtfDir);
     const writePath = join(addonDir, "SyncData.lua");
     writeFileSync(
       writePath,
       serializeSavedVariables("GuildThingDiscordRolesDB", { members }) +
-        serializeSavedVariables("GuildThingAuditLogDB", { entries }),
+        serializeSavedVariables("GuildThingAuditLogDB", { entries }) +
+        serializeSavedVariables("GuildThingRoleMismatchesDB", {
+          members: mismatchMembers,
+        }),
     );
     console.log(
-      `[sync] wrote Discord roles for ${Object.keys(members).length} member(s) and ${entries.length} audit log entrie(s) into ${writePath}`,
+      `[sync] wrote Discord roles for ${Object.keys(members).length} member(s), ${entries.length} audit log entrie(s), and ${Object.keys(mismatchMembers).length} role mismatch(es) into ${writePath}`,
     );
   } catch (err) {
     console.error(`[sync] failed to write SyncData.lua for ${wtfDir}:`, err);

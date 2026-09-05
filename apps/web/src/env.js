@@ -21,6 +21,13 @@ export const env = createEnv({
     // Used to fetch a guild's full Discord role list (name + id) for admin
     // role-picker dropdowns — the same bot apps/bot logs in with.
     DISCORD_BOT_TOKEN: z.string(),
+    // Battle.net Game Data API client-credentials app (develop.battle.net)
+    // — powers the raid comp tool's spec sync (apps/web/src/server/
+    // battlenet.ts). Optional: a deployment with neither set just never
+    // auto-syncs specs (officers still set them manually), same "config
+    // absent = feature quietly off" pattern as Guild.wowRegion.
+    BNET_CLIENT_ID: z.string().optional(),
+    BNET_CLIENT_SECRET: z.string().optional(),
     DATABASE_URL: z.string().url(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
@@ -48,6 +55,8 @@ export const env = createEnv({
       process.env.BETTER_AUTH_DISCORD_CLIENT_SECRET,
     GUILD_CREATOR_EMAIL: process.env.GUILD_CREATOR_EMAIL,
     DISCORD_BOT_TOKEN: process.env.DISCORD_BOT_TOKEN,
+    BNET_CLIENT_ID: process.env.BNET_CLIENT_ID,
+    BNET_CLIENT_SECRET: process.env.BNET_CLIENT_SECRET,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
   },

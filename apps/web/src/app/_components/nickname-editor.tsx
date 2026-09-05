@@ -63,7 +63,7 @@ export function NicknameEditor({
         disabled={updateNickname.isPending}
         className="text-xs text-discord-link hover:underline"
       >
-        Save
+        {updateNickname.isPending ? "Saving..." : "Save"}
       </button>
       <button
         type="button"

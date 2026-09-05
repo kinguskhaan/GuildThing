@@ -19,3 +19,8 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
 export { PrismaClient } from "../generated/prisma";
 export { slugify, uniqueGuildSlug } from "./slug";
 export { generateApiKey, hashApiKey } from "./apiKey";
+export {
+  ensureOnboardingFlowMigrated,
+  ensurePugActionStepsMigrated,
+} from "./onboardingMigration";
+export { WOW_CLASS_TOKENS } from "./wowClasses";

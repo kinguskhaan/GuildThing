@@ -73,6 +73,19 @@ pub struct AuditLogResponse {
     pub entries: Vec<AuditEntry>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RoleMismatchMember {
+    #[serde(rename = "toAdd")]
+    pub to_add: Vec<String>,
+    #[serde(rename = "toRemove")]
+    pub to_remove: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RoleMismatchesResponse {
+    pub members: BTreeMap<String, RoleMismatchMember>,
+}
+
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)] // contract mirror — the site sends { ok: true }
 pub struct RequestSyncResponse {
@@ -163,6 +176,17 @@ pub async fn get_discord_roles(
 /// guild. See audit-log/route.ts.
 pub async fn get_audit_log(api_url: &str, api_key: &str) -> Result<AuditLogResponse, String> {
     get(api_url, api_key, "/api/v1/audit-log").await
+}
+
+/// Rule-managed Discord roles the bot's periodic diff pass has flagged as
+/// out of sync, keyed by roster member name (only identifier the addon
+/// has) — for writing into SyncData.lua so the addon's Discord Roles tab
+/// can flag drift. See role-mismatches/route.ts.
+pub async fn get_role_mismatches(
+    api_url: &str,
+    api_key: &str,
+) -> Result<RoleMismatchesResponse, String> {
+    get(api_url, api_key, "/api/v1/role-mismatches").await
 }
 
 /// API-key-authenticated equivalent of the website's "Sync now" button —

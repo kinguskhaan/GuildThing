@@ -1,0 +1,105 @@
+{
+  "title": "Ny visuell värld — Discord Server Controls",
+  "question": "Rullen landade på Cabinet Schematic. Behåll den, ta en utmanare, eller rulla om.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Cabinet Schematic",
+      "kicker": "THE ROLL",
+      "lineage": "Vektor-CRT-arkader (Asteroids, Tempest, Battlezone) + kopplingsschemat som sits fast på skåpets insida",
+      "thesis": "Botens logik ritad som ett levande kopplingsschema: villkor spårar banor till rollsocketar, synkpulsen syns springa, och skyddade roller är lödda lås.",
+      "palette": ["#0a0a12", "#9fd4f5", "#ffb000", "#ff5a52"],
+      "materials": ["vektorfosfor", "streckgrafik", "scanline-glas"],
+      "viewport": "Skåpets baksida: botstatus och interlocks överst, reglerna som spårade banor från villkorsnoder till rollsocketar i mitten, audit-spåret som fosforband längst ner.",
+      "risk": "Glödande linjer på svart är en halka in i gamer-neon-klyschan om inte vart streck bär information.",
+      "raised": [
+        { "from": "cloud-quarry", "raise": "Djupa tomrum mellan staplade sektioner — täthet får aldrig smeta ihop sig." },
+        { "from": "miura-fold", "raise": "En regeländring spårar om alla berörda banor synligt innan något sparas." },
+        { "from": "ticket-wallet", "raise": "Makulerad/skyddad konfig stämplas explicit, aldrig tas bort tyst." }
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "Service Mode",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Myntåtens servicemeny: DIP-brytare, self-test, räknare bakom skåpets dörr",
+      "thesis": "Officeren som operatör: boten är skåpet, konfigurationen är serviceläget, kill switch är den röda huvudströmbrytaren.",
+      "palette": ["#15151a", "#e9e7e2", "#ffb000", "#d92b2b"],
+      "materials": ["svart stålplåt", "silkscreen-text", "indikatorlampor"],
+      "viewport": "Servicedörren öppen: self-test-lampa överst, en DIP-bank per regelgrupp, röd huvudbrytare till höger.",
+      "risk": "Den mest bokstavliga läsningen av arcade-seedet — risken är att det blir maskerad, inte system."
+    },
+    {
+      "id": "challenger-wayfinding",
+      "label": "Terminal Wayfinding",
+      "verdict": "competitive",
+      "lineage": "Schiphol-gula skyltband i flygplatsterminaler",
+      "thesis": "Konfiguration som en kedja av beslutspunkter: ett budskap per band, följda vägar highlightade, inget annat.",
+      "palette": ["#f5b400", "#111111", "#ffffff"],
+      "case": "Fuserar starkt på regelkonfig-som-beslutskedja och en-budskap-per-band; tappar på publikidentifiering — flygplatsgrammatik är inte officerens värld.",
+      "risk": "Lätt att bli dekorerad gul i stället för funktionell wayfinding.",
+      "hero": "https://impeccable.style/worlds/cards/wayfinding-cartography-signage-terminal-yellow-wayfinding-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/wayfinding-cartography-signage-terminal-yellow-wayfinding.webp"
+    },
+    {
+      "id": "challenger-darkroom",
+      "label": "Safelight Darkroom",
+      "verdict": "competitive",
+      "lineage": "Svartvit-darkroom under amber-safelight",
+      "thesis": "Konfiguration framkallas i bad: förhandsvisning på provremsan först, oåterkalleligt först när kopieringen fastnat.",
+      "palette": ["#100c08", "#ffb347", "#c8c8c8"],
+      "case": "Fuserar starkt på den batchade Apply-modellen — inget når Discord förrän badet är klart; tappar på publikidentifiering.",
+      "risk": "Amber-dunkel slår mot scanbarhet i täta admin-ytor.",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-darkroom-safelight-bay-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/signals-instruments-darkroom-safelight-bay.webp"
+    },
+    {
+      "id": "challenger-hypercard",
+      "label": "HyperCard Stack",
+      "verdict": "competitive",
+      "lineage": "HyperCard-staplar med handmålade knappar",
+      "thesis": "Varje konfigurationsyta är ett kort i en stapel — läsare och författare ett nyckeltryck ifrån varandra.",
+      "palette": ["#f4f2ec", "#111111", "#8f8a7a"],
+      "case": "Fuserar rent på adresserbara kort och stack-navigation; tappar smalt — klassfärger är funktionell data som en-bit-grammatiken inte vill bära.",
+      "risk": "En-bit-grammatik kan kännas för spartansk mot appens rika data.",
+      "hero": "https://impeccable.style/worlds/cards/medium-native-hypercard-stack-shoebox-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/medium-native-hypercard-stack-shoebox.webp"
+    },
+    {
+      "id": "challenger-miura",
+      "label": "Miura-fold Sheet",
+      "verdict": "declined",
+      "lineage": "Miura-vikta deploybara fält",
+      "kept": "Propagering: en ändring låter alla länkade konsekvenser synas innan de fastnar.",
+      "hero": "https://impeccable.style/worlds/cards/paper-folds-pleats-deployable-miura-orbit-sheet-hero.webp"
+    },
+    {
+      "id": "challenger-cloud-quarry",
+      "label": "Cloud Quarry",
+      "verdict": "declined",
+      "lineage": "Surrealistiskt moln-brott",
+      "kept": "Djupa tomrum mellan staplade sektioner.",
+      "hero": "https://impeccable.style/worlds/cards/dream-surreal-impossible-worlds-cloud-quarry-hero.webp"
+    },
+    {
+      "id": "challenger-ticket-wallet",
+      "label": "Jet-age Ticket Wallet",
+      "verdict": "declined",
+      "lineage": "Jetålderns kupongplånbok",
+      "kept": "Inget försvinner — makulerat stämplas explicit.",
+      "hero": "https://impeccable.style/worlds/cards/vernacular-ephemera-jet-age-ticket-wallet-hero.webp"
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "canon": true,
+  "canonCard": {
+    "label": "Kategoristandarden",
+    "thesis": "Det den här kategorin alltid levererar — ren admin-konsol i Discord-look — utfört felfritt.",
+    "palette": ["#313338", "#f2f3f5", "#5865f2"],
+    "materials": ["ren grid", "Discord-native"],
+    "viewport": "Layouten besökaren väntar sig, med full hantverksskicklighet.",
+    "risk": "Oskiljbar från konkurrenterna — med avsikt."
+  },
+  "steer": true,
+  "buildPath": { "value": "comp", "toggle": true }
+}

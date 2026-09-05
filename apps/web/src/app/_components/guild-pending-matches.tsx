@@ -1,13 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
+import { CollapsibleCard } from "~/app/_components/collapsible-card";
 import { api } from "~/trpc/react";
 import type { RouterOutputs } from "~/trpc/react";
 
 // Mirrors PENDING_MATCH_RETENTION_MS in apps/bot/src/pendingMatches.ts —
 // keep these in sync if that ever changes.
 const RETENTION_HOURS = 42;
+
+// Past this many entries, show the count but stop rendering every row until
+// the admin explicitly asks — a busy guild's "no action needed" queue
+// shouldn't out-scroll the panels that actually do need attention.
+const VISIBLE_CAP = 10;
 
 type PendingMatch = RouterOutputs["guild"]["pendingRosterMatches"][number];
 
@@ -23,24 +30,30 @@ export function GuildPendingMatches({
   entries: PendingMatch[];
 }) {
   const router = useRouter();
+  const [collapsed, setCollapsed] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const dismiss = api.guild.dismissPendingRosterMatch.useMutation({
     onSuccess: () => router.refresh(),
   });
 
   if (entries.length === 0) return null;
 
+  const visible = showAll ? entries : entries.slice(0, VISIBLE_CAP);
+
   return (
-    <div className="flex w-full flex-col gap-2 rounded-xl bg-discord-elevated p-4">
-      <h3 className="font-bold">
-        Waiting on roster ({entries.length})
-      </h3>
+    <CollapsibleCard
+      title="Waiting on roster"
+      count={entries.length}
+      collapsed={collapsed}
+      onToggle={() => setCollapsed((c) => !c)}
+    >
       <p className="text-sm text-discord-text-muted">
         These people onboarded with a name the bot couldn&apos;t find in the
         roster yet — it keeps retrying automatically for {RETENTION_HOURS}h,
         no action needed unless a name will never show up.
       </p>
       <ul className="flex flex-col gap-2">
-        {entries.map((entry) => {
+        {visible.map((entry) => {
           const age = hoursAgo(entry.createdAt);
           const remaining = Math.max(0, RETENTION_HOURS - age);
           return (
@@ -72,6 +85,15 @@ export function GuildPendingMatches({
           );
         })}
       </ul>
-    </div>
+      {!showAll && entries.length > VISIBLE_CAP && (
+        <button
+          type="button"
+          onClick={() => setShowAll(true)}
+          className="self-start text-xs text-discord-text-muted underline hover:text-discord-text"
+        >
+          Show all {entries.length}
+        </button>
+      )}
+    </CollapsibleCard>
   );
 }

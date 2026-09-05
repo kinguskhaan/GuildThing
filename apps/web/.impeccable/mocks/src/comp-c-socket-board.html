@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#0a0a12; --panel:#0d0f1a; --line:#9fd4f5; --line-dim:#3d5a75;
+    --text:#dceeff; --muted:#6d84a0; --amber:#ffb000; --red:#ff5a52; --green:#35e08a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{width:1440px;height:900px;overflow:hidden;background:var(--void);color:var(--text);
+    font-family:'Chakra Petch',sans-serif;position:relative}
+  body::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg,rgba(159,212,245,.028) 0 1px,transparent 1px 3px)}
+  .mono{font-family:'Share Tech Mono',monospace}
+  .title{font-family:'Michroma',sans-serif}
+
+  header{display:flex;align-items:center;justify-content:space-between;
+    padding:20px 40px 16px;border-bottom:1px solid rgba(159,212,245,.25)}
+  header h1{font-size:19px;letter-spacing:.14em}
+  .hdr-right{display:flex;align-items:center;gap:22px}
+  .breaker{display:flex;align-items:center;gap:10px}
+  .breaker .lbl{font-size:10px;letter-spacing:.18em;color:var(--muted)}
+  .switch{width:44px;height:22px;border:1px solid var(--green);border-radius:3px;position:relative;
+    box-shadow:0 0 8px rgba(53,224,138,.35), inset 0 0 6px rgba(53,224,138,.2)}
+  .switch::after{content:"";position:absolute;right:2px;top:2px;width:16px;height:16px;
+    background:var(--green);border-radius:2px;box-shadow:0 0 10px rgba(53,224,138,.8)}
+
+  .board{position:relative;height:600px;margin:26px 40px 0;border:1px solid rgba(159,212,245,.22);
+    background:radial-gradient(ellipse 75% 65% at 55% 45%, rgba(159,212,245,.05), transparent 72%)}
+  .board-label{position:absolute;top:-9px;left:24px;background:var(--void);padding:0 12px;
+    font-size:10px;letter-spacing:.26em;color:var(--line)}
+  .staged-note{position:absolute;top:-9px;right:24px;background:var(--void);padding:0 12px;
+    font-size:10px;letter-spacing:.2em;color:var(--amber)}
+
+  .mini-rules{position:absolute;left:32px;top:44px;width:250px;display:flex;flex-direction:column;gap:12px}
+  .mr{border:1px solid var(--line-dim);background:rgba(13,15,26,.9);padding:10px 14px}
+  .mr .rt{font-size:9px;letter-spacing:.22em;color:var(--muted)}
+  .mr .rs{font-size:12px;color:var(--text);margin-top:3px}
+  .mr.hot{border-color:var(--line)}
+  svg.feed{position:absolute;inset:0;width:100%;height:100%}
+
+  /* socket board matrix */
+  .board-matrix{position:absolute;left:420px;right:60px;top:48px}
+  .m-head{display:flex;align-items:flex-end;gap:0;margin-bottom:14px}
+  .m-head .role{width:138px;text-align:center}
+  .m-head .role .sock{width:46px;height:46px;border:1px solid var(--line-dim);margin:0 auto 8px;position:relative}
+  .m-head .role .sock.lit{border-color:var(--line);box-shadow:0 0 12px rgba(159,212,245,.3)}
+  .m-head .role .sock::after{content:"";position:absolute;inset:14px;border:1px solid var(--line-dim);border-radius:50%}
+  .m-head .role .sock.lit::after{border-color:var(--line)}
+  .m-head .role .rn{font-size:10.5px;color:var(--muted)}
+  .m-head .role .rn.prot{color:var(--amber)}
+  .mrow{display:flex;align-items:center;height:52px;border-top:1px solid rgba(159,212,245,.12)}
+  .mrow .who{width:180px}
+  .mrow .who .nm{font-size:14px}
+  .mrow .who .gr{font-size:10px;color:var(--muted);letter-spacing:.08em}
+  .mcell{width:138px;display:flex;justify-content:center}
+  .tog{width:56px;height:24px;border:1px solid var(--line-dim);border-radius:3px;position:relative}
+  .tog::after{content:"";position:absolute;top:2px;width:18px;height:18px;border-radius:2px}
+  .tog.on{border-color:var(--line)}
+  .tog.on::after{right:2px;background:var(--line);box-shadow:0 0 8px rgba(159,212,245,.5)}
+  .tog.stg-add{border-color:var(--green);box-shadow:0 0 8px rgba(53,224,138,.35)}
+  .tog.stg-add::after{right:2px;background:var(--green);box-shadow:0 0 8px rgba(53,224,138,.7)}
+  .tog.stg-rem{border-color:var(--red);border-style:dashed}
+  .tog.stg-rem::after{left:2px;background:var(--red)}
+  .tog.sealed{border-style:dashed;opacity:.6}
+  .apply{position:absolute;right:60px;bottom:28px;border:1px solid var(--amber);color:var(--amber);
+    padding:10px 22px;font-size:12px;letter-spacing:.2em;background:rgba(255,176,0,.07);
+    box-shadow:0 0 14px rgba(255,176,0,.25)}
+
+  .rail{position:absolute;left:40px;right:40px;bottom:26px;height:104px;
+    border:1px solid rgba(159,212,245,.22);display:flex;background:var(--panel)}
+  .audit{flex:1;padding:12px 18px}
+  .audit .k{font-size:10px;letter-spacing:.26em;color:var(--line);margin-bottom:8px}
+  .ev{display:flex;gap:14px;font-size:11.5px;color:var(--muted);padding:3px 0}
+  .ev .t{color:var(--line-dim);width:40px}
+  .ev .what{color:var(--text)}
+  .add{color:var(--green)} .rem{color:var(--red)}
+  .rail-tabs{width:300px;border-left:1px solid rgba(159,212,245,.14);padding:12px 18px}
+  .rail-tabs .k{font-size:10px;letter-spacing:.26em;color:var(--line);margin-bottom:8px}
+  .inact{font-size:11.5px;color:var(--muted);line-height:1.8}
+  .inact b{color:var(--text);font-weight:400}
+</style>
+</head>
+<body>
+  <header>
+    <h1 class="title">DISCORD SERVER CONTROLS</h1>
+    <div class="hdr-right">
+      <span class="mono" style="font-size:11px;color:var(--muted)">GUILD test</span>
+      <div class="breaker"><span class="mono" style="font-size:10px;color:var(--muted)">BOT AUTOMATION</span><div class="switch"></div></div>
+    </div>
+  </header>
+
+  <div class="board">
+    <div class="board-label">SOCKET BOARD — WHO HOLDS WHAT</div>
+    <div class="staged-note mono">▲ 2 STAGED — NOTHING REACHED DISCORD YET</div>
+
+    <div class="mini-rules">
+      <div class="mr hot"><div class="rt mono">R1 · FIRING</div><div class="rs">Initiate → <span class="mono">@guildie</span></div></div>
+      <div class="mr"><div class="rt mono">R2</div><div class="rs">Level ≥ 60 → <span class="mono">@trial raider</span></div></div>
+      <div class="mr"><div class="rt mono">R3</div><div class="rs">Warrior, Paladin → <span class="mono">@officer</span></div></div>
+      <div class="mr" style="border-style:dashed"><div class="rs" style="color:var(--muted)">+ new rule</div></div>
+    </div>
+
+    <svg class="feed" viewBox="0 0 1440 600" fill="none">
+      <path d="M282 98 H620" stroke="#9fd4f5" stroke-width="1.5" opacity=".85"/>
+      <path d="M282 182 H400 V188 H620" stroke="#3d5a75" stroke-width="1"/>
+      <path d="M282 266 H380 V278 H620" stroke="#3d5a75" stroke-width="1"/>
+      <circle cx="660" cy="98" r="5" fill="#9fd4f5" opacity=".9"/>
+      <circle cx="645" cy="98" r="3" fill="#9fd4f5" opacity=".4"/>
+    </svg>
+
+    <div class="board-matrix">
+    <div class="m-head">
+      <div style="width:180px"></div>
+      <div class="role"><div class="sock lit"></div><div class="rn mono">@guildie</div></div>
+      <div class="role"><div class="sock lit"></div><div class="rn mono">@trial raider</div></div>
+      <div class="role"><div class="sock lit"></div><div class="rn mono">@pug</div></div>
+      <div class="role"><div class="sock lit"></div><div class="rn mono">@officer</div></div>
+      <div class="role"><div class="sock"></div><div class="rn prot mono">@Guild Master</div></div>
+    </div>
+    <div class="mrow">
+      <div class="who"><div class="nm mono">Khingus</div><div class="gr mono">GM · Tankkingen</div></div>
+      <div class="mcell"><div class="tog on"></div></div>
+      <div class="mcell"><div class="tog"></div></div>
+      <div class="mcell"><div class="tog"></div></div>
+      <div class="mcell"><div class="tog on"></div></div>
+      <div class="mcell"><div class="tog sealed"></div></div>
+    </div>
+    <div class="mrow">
+      <div class="who"><div class="nm mono">Symah</div><div class="gr mono">Initiate · Bubblekinqen</div></div>
+      <div class="mcell"><div class="tog on"></div></div>
+      <div class="mcell"><div class="tog stg-add"></div></div>
+      <div class="mcell"><div class="tog stg-rem"></div></div>
+      <div class="mcell"><div class="tog"></div></div>
+      <div class="mcell"><div class="tog sealed"></div></div>
+    </div>
+    <div class="mrow">
+      <div class="who"><div class="nm mono">Transan</div><div class="gr mono">Initiate · Tankkingen</div></div>
+      <div class="mcell"><div class="tog on"></div></div>
+      <div class="mcell"><div class="tog"></div></div>
+      <div class="mcell"><div class="tog on"></div></div>
+      <div class="mcell"><div class="tog on"></div></div>
+      <div class="mcell"><div class="tog sealed"></div></div>
+    </div>
+
+    </div>
+
+    <div class="legend mono" style="position:absolute;left:420px;top:290px;font-size:10.5px;color:var(--muted);line-height:2">
+      <span style="display:inline-block;width:26px;border-top:1px solid var(--line-dim);margin-right:8px;vertical-align:middle"></span>held now
+      <span style="display:inline-block;width:26px;border-top:1px solid var(--green);margin:0 8px 0 22px;vertical-align:middle"></span>staged add
+      <span style="display:inline-block;width:26px;border-top:1px dashed var(--red);margin:0 8px 0 22px;vertical-align:middle"></span>staged remove
+      <span style="display:inline-block;width:26px;border-top:1px dashed var(--line-dim);margin:0 8px 0 22px;vertical-align:middle"></span>sealed — rule keeps it
+    </div>
+    <div class="mono" style="position:absolute;left:420px;top:380px;font-size:11px;color:var(--muted)">showing 3 of 3 roster members · last sync 21:14</div>
+
+    <div class="apply mono">APPLY 2 STAGED CHANGES →</div>
+  </div>
+
+  <div class="rail">
+    <div class="audit">
+      <div class="k">AUDIT TAPE</div>
+      <div class="ev mono"><span class="t">21:12</span><span class="what"><span class="add">+trial raider</span> → Symah</span><span>— the bot · rule R2</span></div>
+      <div class="ev mono"><span class="t">20:58</span><span class="what">rank 1 → 2 → Transan</span><span>— roster import</span></div>
+    </div>
+    <div class="rail-tabs">
+      <div class="k">INACTIVITY FILTER</div>
+      <div class="inact mono"><b>30 days</b> without a message → <b>+inactive</b><br>self-removal with /reactivate</div>
+    </div>
+  </div>
+</body>
+</html>

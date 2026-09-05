@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { GuildSwitcher } from "~/app/_components/guild-switcher";
+import { SpaceInvaderGlyph } from "~/app/_components/space-invader";
 import { authClient } from "~/server/better-auth/client";
 import { api } from "~/trpc/react";
 
@@ -20,7 +21,7 @@ function navLinkClass(active: boolean) {
 // sidebar reads as distinct groups instead of one long flat list.
 function SidebarHeading({ children }: { children: ReactNode }) {
   return (
-    <span className="text-discord-text px-2 pb-1 text-xs font-bold tracking-wider uppercase">
+    <span className="font-[family-name:var(--font-arcade-ui)] text-discord-text px-2 pb-1 text-xs font-semibold tracking-wider uppercase">
       {children}
     </span>
   );
@@ -67,11 +68,16 @@ export function Sidebar() {
   // name for what it shows now.
   const membersHref = guild ? `/guilds/${guild.slug}/roster` : "";
   const eventsHref = guild ? `/guilds/${guild.slug}/events` : "";
+  const myCharactersHref = guild ? `/guilds/${guild.slug}/characters` : "";
   const adminLinks = guild
     ? [
         {
           href: `/guilds/${guild.slug}/admin/settings`,
           label: "Guild settings",
+        },
+        {
+          href: `/guilds/${guild.slug}/admin/raid-comp`,
+          label: "Raid comp",
         },
         {
           href: `/guilds/${guild.slug}/admin/api-keys`,
@@ -94,6 +100,15 @@ export function Sidebar() {
 
   return (
     <nav className="bg-discord-sidebar flex h-screen w-56 shrink-0 flex-col gap-1 overflow-y-auto border-r border-black/20 p-3">
+      <Link
+        href="/"
+        className="mb-1 flex items-center justify-center gap-2 rounded-lg py-1 text-discord-text-muted transition hover:text-discord-text"
+      >
+        <SpaceInvaderGlyph className="h-4 w-4 text-discord-brand" />
+        <span className="font-[family-name:var(--font-arcade-display)] text-sm">
+          guildthing
+        </span>
+      </Link>
       <GuildSwitcher currentGuild={guild} />
 
       {hasAccess && (
@@ -111,6 +126,12 @@ export function Sidebar() {
             className={navLinkClass(pathname === eventsHref)}
           >
             Events
+          </Link>
+          <Link
+            href={myCharactersHref}
+            className={navLinkClass(pathname === myCharactersHref)}
+          >
+            My characters
           </Link>
 
           <SidebarDivider />
@@ -187,7 +208,7 @@ export function Sidebar() {
             href={`/guilds/${guild.slug}/sync`}
             className={navLinkClass(pathname === `/guilds/${guild.slug}/sync`)}
           >
-            Sync script
+            Sync
           </Link>
         </>
       )}

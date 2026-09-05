@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { EditGuildForm } from "~/app/_components/edit-guild-form";
@@ -84,6 +85,21 @@ export default async function GuildLayout({
   return (
     <div className="flex flex-1 flex-col items-center gap-6 px-6 py-8">
       <h1 className="text-2xl font-extrabold tracking-tight">{guild.name}</h1>
+
+      {guild.isAdmin && guild.requiredRoleIds.length === 0 && (
+        <div className="flex w-full max-w-2xl items-center gap-3 rounded-lg border border-dashed border-discord-red/60 bg-discord-elevated px-4 py-3">
+          <span className="schem-mono text-xs text-discord-text-muted">
+            Only you can open this guild page right now — no Discord roles
+            are set yet, so nobody else can get in.
+          </span>
+          <Link
+            href={`/guilds/${guildSlug}/admin/settings`}
+            className="ml-auto shrink-0 rounded-full bg-discord-elevated-hover px-3 py-1 text-xs font-semibold whitespace-nowrap hover:bg-discord-brand"
+          >
+            Finish setup
+          </Link>
+        </div>
+      )}
 
       {children}
     </div>

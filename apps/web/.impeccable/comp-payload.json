@@ -1,0 +1,35 @@
+{
+  "title": "Comp-runda — Cabinet Schematic",
+  "question": "Tre kompositioner av Discord Server Controls i Cabinet Schematic-världen. Vilken ska bära ytan framåt — godkänn, kombinera, eller skriv justeringar i steer-fältet?",
+  "options": [
+    {
+      "id": "comp-a-back-panel",
+      "label": "A — Back Panel",
+      "kicker": "FULLT SCHEMA",
+      "thesis": "Ett sammanhängande kopplingsschema: interlocks överst, tre regelbanor i mitten, audit-spår som fast band nertill — sidan är skåpets baksida, hela vägen.",
+      "viewport": "Interlock-band · regelschema med synkpuls · audit-tåg",
+      "hero": ".impeccable/mocks/comp-a-back-panel.png",
+      "risk": "Mest 'helhet' — minst detaljdjup per regel; reglerna måste trivas tätt."
+    },
+    {
+      "id": "comp-b-operator-bench",
+      "label": "B — Operator Bench",
+      "kicker": "MASTER-DETAIL",
+      "thesis": "Kraftkolumn till vänster (brytare, lampor, förseglade skyddsroller), regellista över ett utvecklat schemadetalj — det är en operatörsbänk, inte en sida.",
+      "viewport": "Interlock-kolumn · utvecklad R1-det · staged-matris + audit nertill",
+      "hero": ".impeccable/mocks/comp-b-operator-bench.png",
+      "risk": "Vänsterkolumnen tar plats permanent — tätast på smala skärmar."
+    },
+    {
+      "id": "comp-c-socket-board",
+      "label": "C — Socket Board",
+      "kicker": "MATRIS-HERO",
+      "thesis": "Medlemmar × roller som ett uttagsbord: socklar uppåt, staged-lägen synliga per cell — 'säkrare konfiguration' som fysisk anslutning.",
+      "viewport": "Socket-matris som hero · kompakta regler vänster · audit + inactivity nertill",
+      "hero": ".impeccable/mocks/comp-c-socket-board.png",
+      "risk": "Ger Members by role huvudrollen — regelkonfig blir sekundär."
+    }
+  ],
+  "steer": true,
+  "buildPath": { "value": "comp", "toggle": true }
+}

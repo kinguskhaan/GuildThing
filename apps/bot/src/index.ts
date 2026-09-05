@@ -8,7 +8,11 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 
-import { db } from "@guildthing/db";
+import {
+  db,
+  ensureOnboardingFlowMigrated,
+  ensurePugActionStepsMigrated,
+} from "@guildthing/db";
 
 import {
   handleReactivate,
@@ -46,7 +50,12 @@ import {
 import { handleRoleDiffCommand, handleSyncRosterCommand } from "./bossman.js";
 import { syncExternalCharacters } from "./externalCharacters.js";
 import { syncPendingRosterMatches } from "./pendingMatches.js";
-import { ROLE_SYNC_INTERVAL_MS, runFullRoleSync } from "./roleSync.js";
+import {
+  ROLE_MISMATCH_REFRESH_INTERVAL_MS,
+  ROLE_SYNC_INTERVAL_MS,
+  refreshRoleMismatchCache,
+  runFullRoleSync,
+} from "./roleSync.js";
 
 // How often to check whether any guild's onboarding-button channel changed
 // (new one set, old one cleared) and needs its message posted/reposted.
@@ -184,12 +193,38 @@ async function registerCommands(guild: Guild) {
 }
 
 client.once(Events.ClientReady, (readyClient) => {
-  console.log(
-    `[bot] logged in as ${readyClient.user.tag}, registering commands...`,
-  );
-  void Promise.all(
-    readyClient.guilds.cache.map((g) => registerCommands(g)),
-  ).then(() => console.log("[bot] ready — commands registered"));
+  void (async () => {
+    console.log(`[bot] logged in as ${readyClient.user.tag}, migrating onboarding flows...`);
+    // Builds/repairs every registered guild's onboarding-flow graph from
+    // its legacy question graph (idempotent, safe to re-run) before
+    // anything else touches the flow tables — registerCommands below
+    // doesn't depend on it, but an onboarding interaction landing before
+    // this finishes would otherwise see an empty, "not configured" flow.
+    // ensureOnboardingFlowMigrated already serializes guild-by-guild
+    // internally; a failure here is logged but never stops the bot —
+    // whatever guild it failed on just retries on the next restart (or
+    // the web app's own onboardingFlow query, which calls the same
+    // function for its one guild).
+    try {
+      await ensureOnboardingFlowMigrated(db);
+    } catch (err) {
+      console.error("[bot] onboarding flow migration failed:", err);
+    }
+    // Backfills any leftover actionType:"pug" step from before the
+    // pug->grant rename (see ensurePugActionStepsMigrated) — separate
+    // from the migration above since it also needs to catch guilds that
+    // migrated long before this rename shipped.
+    try {
+      await ensurePugActionStepsMigrated(db);
+    } catch (err) {
+      console.error("[bot] pug action-step migration failed:", err);
+    }
+
+    console.log("[bot] registering commands...");
+    void Promise.all(
+      readyClient.guilds.cache.map((g) => registerCommands(g)),
+    ).then(() => console.log("[bot] ready — commands registered"));
+  })();
 
   // Best-effort mitigation for this host's slow/flaky primary DNS server
   // (a cold discord.com lookup alone can take several seconds — see the
@@ -249,6 +284,14 @@ client.once(Events.ClientReady, (readyClient) => {
   };
   checkForceSync();
   setInterval(checkForceSync, FORCE_SYNC_CHECK_INTERVAL_MS);
+
+  const checkRoleMismatches = () => {
+    refreshRoleMismatchCache(readyClient).catch((err: unknown) => {
+      console.error("[bot] role-mismatch cache refresh failed:", err);
+    });
+  };
+  checkRoleMismatches();
+  setInterval(checkRoleMismatches, ROLE_MISMATCH_REFRESH_INTERVAL_MS);
 
   const checkEvents = () => {
     syncPendingWebEvents(readyClient).catch((err: unknown) => {

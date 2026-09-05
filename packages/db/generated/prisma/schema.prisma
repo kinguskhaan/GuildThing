@@ -49,6 +49,8 @@ model User {
   addedGuildCreators       AllowedGuildCreator[]
   createdApiKeys           GuildApiKey[]
 
+  createdRaidComps GuildRaidComp[] @relation("RaidCompCreatedBy")
+
   @@unique([email])
   @@map("user")
 }
@@ -126,46 +128,55 @@ model AllowedGuildCreator {
 }
 
 model Guild {
-  id                    String                      @id @default(cuid())
-  name                  String
+  id                       String                      @id @default(cuid())
+  name                     String
   // URL-safe identifier derived from `name` at creation time (e.g. "My
   // Guild" -> "my-guild") — used in routes instead of `id` so links are
   // readable. Doesn't change if the guild is later renamed, so existing
   // links keep working.
-  slug                  String                      @unique
-  discordGuildId        String                      @unique
+  slug                     String                      @unique
+  discordGuildId           String                      @unique
   // Admin kill switch — false pauses every automated background job for
   // this guild (role sync, channel grants, pending-match retries, external
   // character sync, inactivity filter) without touching any data. Live
   // slash commands (/onboarding, /ourrecipes, /bossman, etc.) still work —
   // this is for "the automation is misbehaving, stop touching my server",
   // not a full outage switch. See botEnabled checks in apps/bot/src.
-  botEnabled            Boolean                     @default(true)
-  createdById           String
-  createdBy             User                        @relation(fields: [createdById], references: [id])
-  characters            GuildCharacter[]
-  requiredRoles         GuildRequiredRole[]
-  adminRoles            GuildAdminRole[]
-  rosterMembers         GuildRosterMember[]
-  roleRules             GuildRoleRule[]
-  rolePriorities        GuildRolePriority[]
-  claimConflicts        GuildRosterClaimConflict[]
-  roleChangeEvents      GuildRoleChangeEvent[]
-  rankChangeEvents      GuildRankChangeEvent[]
-  pendingRosterMatches  GuildPendingRosterMatch[]
-  memberActivity        GuildMemberActivity[]
-  inactivityTargetRoles GuildInactivityTargetRole[]
-  protectedRoles        GuildProtectedRole[]
-  pugMembers            GuildPugMember[]
-  externalCharacters    GuildExternalCharacter[]
-  memberNicknames       GuildMemberNickname[]
-  events                Event[]
-  eventChannelPresets   EventChannelPreset[]
-  apiKeys               GuildApiKey[]
-  onboardingQuestions   GuildOnboardingQuestion[]
-  onboardingEdges       GuildOnboardingEdge[]
-  onboardingAnswers     GuildOnboardingAnswer[]
-  createdAt             DateTime                    @default(now())
+  botEnabled               Boolean                     @default(true)
+  createdById              String
+  createdBy                User                        @relation(fields: [createdById], references: [id])
+  characters               GuildCharacter[]
+  requiredRoles            GuildRequiredRole[]
+  adminRoles               GuildAdminRole[]
+  rosterMembers            GuildRosterMember[]
+  roleRules                GuildRoleRule[]
+  rolePriorities           GuildRolePriority[]
+  claimConflicts           GuildRosterClaimConflict[]
+  roleChangeEvents         GuildRoleChangeEvent[]
+  rankChangeEvents         GuildRankChangeEvent[]
+  pendingRosterMatches     GuildPendingRosterMatch[]
+  raidComps                GuildRaidComp[]
+  memberActivity           GuildMemberActivity[]
+  inactivityTargetRoles    GuildInactivityTargetRole[]
+  protectedRoles           GuildProtectedRole[]
+  nonClaimableRoles        GuildNonClaimableRole[]
+  externalCharacters       GuildExternalCharacter[]
+  memberNicknames          GuildMemberNickname[]
+  events                   Event[]
+  eventChannelPresets      EventChannelPreset[]
+  apiKeys                  GuildApiKey[]
+  onboardingQuestions      GuildOnboardingQuestion[]
+  onboardingEdges          GuildOnboardingEdge[]
+  onboardingAnswers        GuildOnboardingAnswer[]
+  onboardingSteps          GuildOnboardingStep[]
+  onboardingStepEdges      GuildOnboardingStepEdge[]
+  onboardingStepAnswers    GuildOnboardingStepAnswer[]
+  // Set by onboardingMigration.ts (packages/db) the first time this
+  // guild's onboarding has been copied into the GuildOnboardingStep*
+  // tables — the bot (at startup) and the web app (in the
+  // onboardingFlow query) both call it; null means "not migrated yet".
+  onboardingFlowMigratedAt DateTime?
+  createdAt                DateTime                    @default(now())
 
   // "addon" (default) — the roster comes from pasting the GuildThing
   // Roster addon's export; onboarding only matches/claims characters that
@@ -179,16 +190,14 @@ model Guild {
   // real guild hierarchy backing them.
   rosterSource String @default("addon")
 
-  // Whether onboarding even asks "guild member or PUG?" at all. Off by
-  // default is wrong for existing guilds mid-use, so this defaults to on;
-  // a guild that doesn't want PUGs can turn it off and onboarding skips
-  // straight to the guild-member flow for everyone.
-  pugEnabled Boolean @default(true)
   // Discord role given to someone who says they're here for a PUG, not as
-  // a guild member — set by an admin, bot assigns it directly with no rule
-  // evaluation (see GuildRoleRule) when the bot's onboarding DM gets that
-  // answer. Irrelevant while pugEnabled is false.
-  pugRoleId  String?
+  // a guild member — set by an admin, granted via the onboarding flow's
+  // "Set role/channel" action (onboardingFlowEngine.ts), and folded into
+  // getManagedRoleIds' scope so role sync treats it as bot-managed even if
+  // the affiliation/PUG branch that grants it ever gets edited out of the
+  // flow. Also seeded onto that branch's grant step by the legacy-flow
+  // migration (onboardingMigration.ts) if set at migration time.
+  pugRoleId String?
 
   // Who last generated the addon export string, and when — shown on the
   // guild page so admins can tell if the pasted-in-game data is stale.
@@ -254,6 +263,12 @@ model Guild {
   // already changed once (classic1x -> classicann) and may again, or may
   // need to differ for a guild on a different game version.
   wowNamespaceFlavor String? @default("classicann")
+  // Which game expansion this guild currently plays — drives the raid
+  // comp tool (raid size, class/spec list, buff checklist) and the
+  // onboarding class question (no Death Knight in TBC). Defaults to TBC
+  // since that's what the existing recipe/roster features are built
+  // around. Valid values come from ExpansionId in @guildthing/wowhead-data.
+  expansion          String  @default("tbc")
 
   @@index([discordGuildId])
 }
@@ -290,6 +305,20 @@ model GuildApiKey {
 // rather than a scalar list for the same reason GuildRoleRuleGrantedRole
 // is: SQLite/Prisma has no native array column.
 model GuildInactivityTargetRole {
+  id            String @id @default(cuid())
+  guildId       String
+  guild         Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  discordRoleId String
+
+  @@unique([guildId, discordRoleId])
+}
+
+// One role that excludes a member from the "unclaimed members" admin view —
+// OR'd together, same table shape as GuildInactivityTargetRole above and for
+// the same reason (no native array column). Membership is checked live
+// against Discord (see unclaimedMembers), not tracked here, so a role stops
+// excluding someone the moment it's removed — nothing to keep in sync.
+model GuildNonClaimableRole {
   id            String @id @default(cuid())
   guildId       String
   guild         Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
@@ -340,6 +369,19 @@ model GuildRosterMember {
   class         String?
   note          String?
   officerNote   String?
+
+  // The character's talent specialization as a WowSpec token from
+  // @guildthing/wowhead-data (e.g. "FERAL_DRUID"), set by the raid comp
+  // tool's syncSpec (Battle.net lookup) or an officer's manual override in
+  // the comp builder. Null = unknown/not synced — the comp UI renders the
+  // block class-only until a sync lands. Classic-era guilds never have
+  // specs (EXPANSIONS.classic.hasSpecs is false).
+  spec         String?
+  // When spec was last synced from Battle.net — the UI re-syncs when this
+  // is older than ~24h (specs change on respecs, not constantly).
+  specSyncedAt DateTime?
+
+  raidCompSlots GuildRaidCompSlot[]
 
   // Set on first onboarding match: which Discord account claimed this
   // character. A later claim by a DIFFERENT Discord account still sets
@@ -461,24 +503,6 @@ model GuildPendingRosterMatch {
   @@unique([guildId, discordUserId])
 }
 
-// Marks a Discord account as having completed onboarding claiming "PUG",
-// independent of whether a PUG role is even configured (Guild.pugRoleId
-// can be unset, or role assignment can silently fail on permissions) —
-// this is the authoritative record of "chose PUG", used to exclude PUGs
-// from the "hasn't claimed a character" admin view without relying on
-// role state. Removed if the same account later re-onboards as a guild
-// member instead.
-model GuildPugMember {
-  id             String   @id @default(cuid())
-  guildId        String
-  guild          Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
-  discordUserId  String
-  discordUserTag String
-  markedAt       DateTime @default(now())
-
-  @@unique([guildId, discordUserId])
-}
-
 // Tracks each Discord member's assembled Discord nickname across onboarding
 // runs, and an optional admin/self-set override. computedName is refreshed
 // by matchRosterAndApply every time it runs (main + included alts, "/"-
@@ -590,14 +614,20 @@ model GuildRoleRuleGrantedChannel {
 // by a different character (e.g. rank condition met by the main, level
 // condition met by an alt).
 model GuildRoleRuleCondition {
-  id        String        @id @default(cuid())
-  ruleId    String
-  rule      GuildRoleRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
-  field     String // "rank" | "level" | "class"
-  operator  String // "equals" (rank/class) | "between" (level)
-  textValue String? // used when operator == "equals"
-  minNumber Int? // used when operator == "between"
-  maxNumber Int? // used when operator == "between"
+  id               String                         @id @default(cuid())
+  ruleId           String
+  rule             GuildRoleRule                  @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  field            String // "rank" | "level" | "class" | "answer"
+  operator         String // "equals" (rank/class) | "between" (level) | "includes" (answer)
+  textValue        String? // used when operator == "equals"
+  minNumber        Int? // used when operator == "between"
+  maxNumber        Int? // used when operator == "between"
+  // Required when field == "answer": which question step's persisted
+  // answer this condition checks. The person's GuildOnboardingStepAnswer
+  // for this step must include at least one of the answerOptions below.
+  onboardingStepId String?
+  onboardingStep   GuildOnboardingStep?           @relation(fields: [onboardingStepId], references: [id], onDelete: Cascade)
+  answerOptions    GuildRoleRuleConditionOption[]
 }
 
 // One node in a guild's admin-built onboarding question graph (built via a
@@ -605,6 +635,7 @@ model GuildRoleRuleCondition {
 // between nodes). canvasX/canvasY persist the builder's layout across
 // sessions; they're display-only, not used by the bot when walking the
 // graph. type drives which Discord component the bot uses to ask it.
+// LEGACY — read-only efter onboarding-steg-migrering; tas bort i ett senare skede.
 model GuildOnboardingQuestion {
   id        String   @id @default(cuid())
   guildId   String
@@ -628,6 +659,7 @@ model GuildOnboardingQuestion {
 // One selectable option for a single_select/multi_select question — unused
 // for free_text. sortOrder is explicit since child rows (same reasoning as
 // GuildRoleRuleGrantedRole) have no inherent order of their own.
+// LEGACY — read-only; data migreras av onboardingMigration.ts, tabellerna tas bort i ett senare skede.
 model GuildOnboardingQuestionOption {
   id         String                  @id @default(cuid())
   questionId String
@@ -649,6 +681,7 @@ model GuildOnboardingQuestionOption {
 // isn't supported — draw two edges in series for that, or two edges into
 // the same target for an OR across types, which the graph shape already
 // gives for free.
+// LEGACY — read-only; data migreras av onboardingMigration.ts, tabellerna tas bort i ett senare skede.
 model GuildOnboardingEdge {
   id                String                   @id @default(cuid())
   guildId           String
@@ -675,6 +708,7 @@ model GuildOnboardingEdge {
 // conditionType == "answer_equals" edge — fires if fromQuestion's given
 // answer includes ANY of these. Only valid when fromQuestionId is set
 // (Start has no prior answer to compare).
+// LEGACY — read-only; data migreras av onboardingMigration.ts, tabellerna tas bort i ett senare skede.
 model GuildOnboardingEdgeConditionOption {
   id       String                        @id @default(cuid())
   edgeId   String
@@ -688,6 +722,7 @@ model GuildOnboardingEdgeConditionOption {
 // CLASS_COLORS on the site for the 9 valid tokens. Valid from Start (picks
 // the first question by class) or from a question (gates a follow-up by
 // class regardless of prior answers).
+// LEGACY — read-only; data migreras av onboardingMigration.ts, tabellerna tas bort i ett senare skede.
 model GuildOnboardingEdgeConditionClass {
   id     String              @id @default(cuid())
   edgeId String
@@ -698,10 +733,11 @@ model GuildOnboardingEdgeConditionClass {
 // One person's answer to one custom onboarding question, in one guild.
 // Keyed by discordUserId rather than a roster row — a PUG or not-yet-
 // claimed member can answer before any GuildRosterMember row exists for
-// them, same reasoning as GuildMemberNickname/GuildPugMember below.
+// them, same reasoning as GuildMemberNickname below.
 // free_text answers use textValue; single/multi_select answers use
 // selectedOptions instead (one row for single_select, one or more for
 // multi_select) and leave textValue null.
+// LEGACY — read-only; data migreras av onboardingMigration.ts, tabellerna tas bort i ett senare skede.
 model GuildOnboardingAnswer {
   id              String                        @id @default(cuid())
   guildId         String
@@ -718,6 +754,7 @@ model GuildOnboardingAnswer {
 }
 
 // One selected option within a select-type GuildOnboardingAnswer.
+// LEGACY — read-only; data migreras av onboardingMigration.ts, tabellerna tas bort i ett senare skede.
 model GuildOnboardingAnswerOption {
   id       String                        @id @default(cuid())
   answerId String
@@ -726,6 +763,209 @@ model GuildOnboardingAnswerOption {
   option   GuildOnboardingQuestionOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
 
   @@unique([answerId, optionId])
+}
+
+// One node in a guild's onboarding flow graph — the successor of the
+// LEGACY GuildOnboardingQuestion/Edge tables above, extended with
+// condition, action, and loop node types so the whole onboarding (not
+// just the custom questions) becomes one admin-editable canvas graph.
+// type drives what the bot does when the walk reaches the node; the
+// per-type config fields below are null unless type needs them.
+model GuildOnboardingStep {
+  id        String   @id @default(cuid())
+  guildId   String
+  guild     Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  // "question" | "condition" | "action" | "loop"
+  type      String
+  // Display name on the canvas for non-question steps (questions show
+  // their prompt instead).
+  label     String?
+  canvasX   Float    @default(0)
+  canvasY   Float    @default(0)
+  createdAt DateTime @default(now())
+
+  // --- question ---
+  prompt       String? // required for type "question"
+  questionType String? // "single_select" | "multi_select" | "free_text"
+  // Variable name the answer is stored under (e.g. "main", "alts").
+  // Declaration form: [a-z][a-z0-9_]*, unique per guild.
+  varName      String?
+  // "text" | "choice" | "class" | "number" | "character"
+  varType      String?
+  required     Boolean @default(true)
+  // true: each answered value appends onto the list variable varName
+  // (used inside a loop body).
+  appendList   Boolean @default(false)
+
+  // --- action ---
+  // "claim_characters" | "set_nickname" | "grant" | "dm"
+  actionType       String?
+  // set_nickname: "{main}/{alts}"-style template (see the {var} syntax
+  // in the bot's flow interpreter).
+  nicknameTemplate String?
+  // dm: template text.
+  textTemplate     String?
+  grants           GuildOnboardingActionGrant[]
+
+  // claim_characters: variable holding the names (single value or list;
+  // for a list the first element is the main).
+  namesVariable   String?
+  // claim_characters: optional parallel list of classes, index-aligned
+  // with the names variable (rosterSource "onboarding" guilds ask the
+  // class per character); a length mismatch or missing entry means that
+  // character gets no class.
+  classesVariable String?
+  // The list variable the loop fills/iterates.
+  listVariable    String?
+
+  options        GuildOnboardingStepOption[]
+  outEdges       GuildOnboardingStepEdge[]   @relation("EdgeFrom")
+  inEdges        GuildOnboardingStepEdge[]   @relation("EdgeTo")
+  answers        GuildOnboardingStepAnswer[]
+  ruleConditions GuildRoleRuleCondition[]
+
+  @@index([guildId])
+}
+
+// One selectable option for a single_select/multi_select question step —
+// unused for free_text. Migrated legacy options keep their old row ids so
+// persisted answers and edge/rule conditions keep pointing at them.
+model GuildOnboardingStepOption {
+  id        String              @id @default(cuid())
+  stepId    String
+  step      GuildOnboardingStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  label     String
+  sortOrder Int
+
+  answerSelections     GuildOnboardingStepAnswerOption[]
+  edgeConditionOptions GuildOnboardingStepEdgeConditionOption[]
+  ruleConditionOptions GuildRoleRuleConditionOption[]
+
+  @@index([stepId])
+}
+
+// Role and/or channel granted by an action step (exactly one of role/
+// channel set — a grant row is either a role grant or a channel grant).
+model GuildOnboardingActionGrant {
+  id               String              @id @default(cuid())
+  stepId           String
+  step             GuildOnboardingStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  discordRoleId    String?
+  discordChannelId String?
+  // "text" | "voice" — required when discordChannelId is set (decides
+  // which permission overwrites get applied).
+  channelType      String?
+}
+
+// One connection between flow steps. fromStepId null means the edge
+// originates from the synthetic "Start" node (not a DB row, always the
+// flow's entry point). One condition type per edge; answer_equals and
+// class_equals can each match a whole OR-set (multiple child rows), same
+// composition rules as the LEGACY GuildOnboardingEdge.
+model GuildOnboardingStepEdge {
+  id                String               @id @default(cuid())
+  guildId           String
+  guild             Guild                @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  fromStepId        String?
+  fromStep          GuildOnboardingStep? @relation("EdgeFrom", fields: [fromStepId], references: [id], onDelete: Cascade)
+  toStepId          String
+  toStep            GuildOnboardingStep  @relation("EdgeTo", fields: [toStepId], references: [id], onDelete: Cascade)
+  // "always" | "answer_equals" | "var_equals" | "class_equals" | "level_between"
+  conditionType     String
+  // Used when conditionType == "level_between" — same min/max-range idea
+  // as GuildRoleRuleCondition's "between" operator.
+  conditionMinLevel Int?
+  conditionMaxLevel Int?
+
+  conditionOptions GuildOnboardingStepEdgeConditionOption[]
+  conditionValues  GuildOnboardingEdgeConditionValue[]
+  conditionClasses GuildOnboardingStepEdgeConditionClass[]
+
+  @@index([guildId])
+}
+
+// One option (of possibly several, OR'd) that satisfies an
+// conditionType == "answer_equals" edge — fires if fromStep's given
+// answer includes ANY of these. Only valid when fromStepId is set (Start
+// has no prior answer to compare).
+model GuildOnboardingStepEdgeConditionOption {
+  id       String                    @id @default(cuid())
+  edgeId   String
+  edge     GuildOnboardingStepEdge   @relation(fields: [edgeId], references: [id], onDelete: Cascade)
+  optionId String
+  option   GuildOnboardingStepOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@unique([edgeId, optionId])
+}
+
+// One literal value (of possibly several, OR'd) that satisfies an
+// conditionType == "var_equals" edge — fires if the from-step's collected
+// variable value (for a list variable: ANY element) equals ANY of these,
+// compared case-insensitively by the bot (values are lowercased on save).
+model GuildOnboardingEdgeConditionValue {
+  id     String                  @id @default(cuid())
+  edgeId String
+  edge   GuildOnboardingStepEdge @relation(fields: [edgeId], references: [id], onDelete: Cascade)
+  value  String
+
+  @@index([edgeId])
+}
+
+// One WoW class token (of possibly several, OR'd) that satisfies an
+// conditionType == "class_equals" edge — see WOW_CLASS_TOKENS in
+// packages/db/src/wowClasses.ts for the 9 valid tokens.
+model GuildOnboardingStepEdgeConditionClass {
+  id     String                  @id @default(cuid())
+  edgeId String
+  edge   GuildOnboardingStepEdge @relation(fields: [edgeId], references: [id], onDelete: Cascade)
+  class  String
+
+  @@unique([edgeId, class])
+}
+
+// One person's answer to one onboarding flow question step, in one guild
+// — the GuildOnboardingStep* successor of the LEGACY GuildOnboardingAnswer.
+// Keyed by discordUserId rather than a roster row — a PUG or not-yet-
+// claimed member can answer before any GuildRosterMember row exists for
+// them. free_text answers use textValue; single/multi_select answers use
+// selectedOptions instead and leave textValue null.
+model GuildOnboardingStepAnswer {
+  id              String                            @id @default(cuid())
+  guildId         String
+  guild           Guild                             @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  discordUserId   String
+  discordUserTag  String
+  stepId          String
+  step            GuildOnboardingStep               @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  textValue       String?
+  selectedOptions GuildOnboardingStepAnswerOption[]
+  updatedAt       DateTime                          @updatedAt
+
+  @@unique([guildId, discordUserId, stepId])
+}
+
+// One selected option within a select-type GuildOnboardingStepAnswer.
+model GuildOnboardingStepAnswerOption {
+  id       String                    @id @default(cuid())
+  answerId String
+  answer   GuildOnboardingStepAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  optionId String
+  option   GuildOnboardingStepOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@unique([answerId, optionId])
+}
+
+// One option (of possibly several, OR'd) that satisfies an "answer"-
+// field GuildRoleRuleCondition — fires if the person's persisted answer
+// to the condition's onboardingStep includes ANY of these.
+model GuildRoleRuleConditionOption {
+  id          String                    @id @default(cuid())
+  conditionId String
+  condition   GuildRoleRuleCondition    @relation(fields: [conditionId], references: [id], onDelete: Cascade)
+  optionId    String
+  option      GuildOnboardingStepOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@unique([conditionId, optionId])
 }
 
 // A custom event signup — e.g. a 5-man dungeon group — created either via
@@ -1049,4 +1289,61 @@ model DiscordRolesSnapshotCache {
   discordGuildId String   @id
   data           String
   fetchedAt      DateTime @default(now())
+}
+
+// Cached result of the bot's diffGuildRoles pass (apps/bot/src/roleSync.ts)
+// — who currently doesn't have the Discord roles the rules say they should,
+// refreshed hourly and right after every sync run. Backs the addon-facing
+// /api/v1/role-mismatches endpoint so the addon can show current drift
+// without the request touching Discord itself. Keyed by Guild.id (not
+// discordGuildId) since it's written by the bot, which already has the
+// Guild row loaded. data is JSON: RoleMismatch[] (discordUserId,
+// discordUserTag, toAdd, toRemove — see roleSync.ts).
+model GuildRoleMismatchCache {
+  guildId    String   @id
+  data       String
+  computedAt DateTime @default(now())
+}
+
+// One officer-built raid composition for a guild — a name plus a grid of
+// groupCount x 5 slots. Built in the raid comp tool (guilds/[guildSlug]/
+// admin/raid-comp); slots are fully replaced on every save (see the
+// raidComp router), so this row is really just "a named snapshot".
+model GuildRaidComp {
+  id          String              @id @default(cuid())
+  guildId     String
+  guild       Guild               @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  name        String
+  // How many 5-man groups the comp grid has — raidSize/5 for the guild's
+  // expansion (5 for classic, 25-player raids get 5 groups, etc).
+  groupCount  Int
+  slots       GuildRaidCompSlot[]
+  createdById String
+  createdBy   User                @relation("RaidCompCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([guildId])
+}
+
+// One cell in a raid comp grid. rosterMemberId links the block to a live
+// roster row, but the characterName/classToken/specToken snapshot below is
+// what the UI renders — so a roster member who's been re-imported away (or
+// had their name case-corrected) still shows up, stale-marked, instead of
+// vanishing from a saved comp. The snapshot fields also win over the
+// roster row for display, letting an officer pin an override spec on a
+// block without touching the roster.
+model GuildRaidCompSlot {
+  id             String             @id @default(cuid())
+  compId         String
+  comp           GuildRaidComp      @relation(fields: [compId], references: [id], onDelete: Cascade)
+  groupIndex     Int
+  slotIndex      Int
+  rosterMemberId String?
+  rosterMember   GuildRosterMember? @relation(fields: [rosterMemberId], references: [id], onDelete: SetNull)
+  characterName  String?
+  classToken     String?
+  specToken      String?
+
+  @@unique([compId, groupIndex, slotIndex])
 }

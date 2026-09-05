@@ -70,9 +70,23 @@ export function getDiscordRoles(apiUrl: string, apiKey: string) {
   }>(apiUrl, apiKey, "/api/v1/discord-roles");
 }
 
+// Rule-managed Discord roles the bot's periodic diff pass has flagged as
+// out of sync, keyed by roster member name (only identifier the addon has)
+// — for writing into a SavedVariables file the addon's Discord Roles tab
+// reads to flag drift. See role-mismatches/route.ts.
+export function getRoleMismatches(apiUrl: string, apiKey: string) {
+  return get<{
+    members: Record<string, { toAdd: string[]; toRemove: string[] }>;
+    computedAt: string | null;
+  }>(apiUrl, apiKey, "/api/v1/role-mismatches");
+}
+
 // Unified rank-change + manual-Discord-role-change history, keyed by
 // character name, for writing into a SavedVariables file the addon's Audit
-// Log tab reads. See audit-log/route.ts.
+// Log tab reads. See audit-log/route.ts. Entries carry guildId/guildName so
+// index.ts's per-wtfDir merge (several guilds' targets sharing one WoW
+// install) stays distinguishable once written into SyncData.lua — the
+// addon filters rows to the player's current guild using this field.
 export function getAuditLog(apiUrl: string, apiKey: string) {
   return get<{
     entries: {
@@ -81,6 +95,8 @@ export function getAuditLog(apiUrl: string, apiKey: string) {
       detectedAt: number;
       discordNick: string | null;
       discordTag: string | null;
+      guildId: string;
+      guildName: string;
     }[];
   }>(apiUrl, apiKey, "/api/v1/audit-log");
 }

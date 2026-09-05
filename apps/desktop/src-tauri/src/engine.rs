@@ -1,7 +1,8 @@
 //! The sync engine — port of the core of apps/sync/src/index.ts: read a WoW
 //! install's SavedVariables, push roster/characters to the site, pull
-//! Discord roles + audit log back down into SyncData.lua, relay in-game
-//! sync requests. Runs on a background thread with mtime polling (same
+//! Discord roles + audit log + role mismatches back down into
+//! SyncData.lua, relay in-game sync requests. Runs on a background thread
+//! with mtime polling (same
 //! approach as the Node script's watch mode — fs watchers are unreliable on
 //! network/proton mounts and WoW writes several files on logout).
 
@@ -173,9 +174,10 @@ async fn sync_target(
     Ok(())
 }
 
-/// Pulls current Discord role names AND the unified audit log down for
-/// every target sharing this wtfDir, and writes them together into ONE
-/// plain addon-code file (SyncData.lua) in the addon's own install folder —
+/// Pulls current Discord role names, the unified audit log, AND the bot's
+/// role-mismatch drift report down for every target sharing this wtfDir,
+/// and writes them together into ONE plain addon-code file (SyncData.lua)
+/// in the addon's own install folder —
 /// deliberately NOT a SavedVariables file. WoW only ever "owns" (loads once,
 /// then saves the current in-memory state back over on every reload/logout)
 /// files declared under an addon's `## SavedVariables:` — every other file
@@ -184,9 +186,10 @@ async fn sync_target(
 /// while the client is running is never at risk of being clobbered by the
 /// client's own save-on-teardown, and even a plain /reload picks it up.
 ///
-/// Targets sharing a wtfDir merge/concatenate. members (Discord roles) is
-/// harmless because DiscordRolesUI.lua's GetCombinedRows joins it against
-/// the *current* guild's own roster scan by character name. entries (audit
+/// Targets sharing a wtfDir merge/concatenate. members (Discord roles) and
+/// mismatch_members (role-mismatch drift) are both harmless to merge this
+/// way because DiscordRolesUI.lua's GetCombinedRows joins each against the
+/// *current* guild's own roster scan by character name. entries (audit
 /// log) has no such join, so each entry carries guildId/guildName from the
 /// server precisely so AuditLogUI.lua can filter to the player's current
 /// guild.
@@ -221,6 +224,19 @@ async fn sync_addon_data_file(app: &AppHandle, wtf_dir: &str, targets: &[Target]
     }
     entries.sort_by(|a, b| b.detected_at.total_cmp(&a.detected_at));
 
+    let mut mismatch_members: HashMap<String, api::RoleMismatchMember> = HashMap::new();
+    for target in targets {
+        match api::get_role_mismatches(&target.api_url, &target.api_key).await {
+            Ok(result) => mismatch_members.extend(result.members),
+            Err(err) => emit_event(
+                app,
+                "error",
+                Some(&target.name),
+                format!("failed to fetch role mismatches: {err}"),
+            ),
+        }
+    }
+
     let members_json: serde_json::Map<String, serde_json::Value> = members
         .iter()
         .map(|(name, member)| {
@@ -249,13 +265,28 @@ async fn sync_addon_data_file(app: &AppHandle, wtf_dir: &str, targets: &[Target]
         })
         .collect();
 
+    let mismatch_members_json: serde_json::Map<String, serde_json::Value> = mismatch_members
+        .iter()
+        .map(|(name, m)| {
+            (
+                name.clone(),
+                serde_json::json!({
+                    "toAdd": m.to_add,
+                    "toRemove": m.to_remove,
+                }),
+            )
+        })
+        .collect();
+
     let payload = serde_json::json!({ "members": members_json });
     let audit = serde_json::json!({ "entries": entries_json });
+    let mismatches = serde_json::json!({ "members": mismatch_members_json });
 
     let result = paths::resolve_addon_install_dir(Path::new(wtf_dir)).and_then(|addon_dir| {
         let write_path = addon_dir.join("SyncData.lua");
         let content = serialize_saved_variables("GuildThingDiscordRolesDB", &payload)
-            + &serialize_saved_variables("GuildThingAuditLogDB", &audit);
+            + &serialize_saved_variables("GuildThingAuditLogDB", &audit)
+            + &serialize_saved_variables("GuildThingRoleMismatchesDB", &mismatches);
         std::fs::write(&write_path, content)
             .map_err(|e| format!("kunde skriva {}: {e}", write_path.display()))?;
         Ok(write_path)
@@ -267,9 +298,10 @@ async fn sync_addon_data_file(app: &AppHandle, wtf_dir: &str, targets: &[Target]
             "info",
             None,
             format!(
-                "wrote Discord roles for {} members and {} audit entries to {}",
+                "wrote Discord roles for {} members, {} audit entries, and {} role mismatches to {}",
                 members.len(),
                 entries.len(),
+                mismatch_members.len(),
                 write_path.display()
             ),
         ),

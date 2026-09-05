@@ -77,7 +77,7 @@ export async function applyRosterImport(
   actorUserId: string | null,
   parsed: RosterExport,
 ) {
-  const { members } = parsed;
+  const { members, guild: inGameGuildName } = parsed;
   const importedNames = members.map((m) => m.name);
 
   // Read current ranks up front so each upsert below can tell whether its
@@ -153,6 +153,12 @@ export async function applyRosterImport(
       data: {
         lastRosterImportedAt: new Date(),
         lastRosterImportedById: actorUserId,
+        // The addon already knows the in-game guild's name at scan time —
+        // no reason to also make an admin type it into the armory-lookup
+        // config by hand. Only overwrites when the export actually carries
+        // one, so an armory config set before any roster import is ever
+        // done isn't clobbered with an empty value.
+        ...(inGameGuildName ? { wowGuildName: inGameGuildName } : {}),
       },
     }),
   ]);

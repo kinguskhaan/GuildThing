@@ -11,6 +11,7 @@ import {
 import {
   applyChannelGrants,
   evaluateRules,
+  getFlowGrantRoleIds,
   notifyAdmins,
   type MatchedCharacter,
 } from "./roleLogic.js";
@@ -24,10 +25,17 @@ export const ROLE_SYNC_INTERVAL_MS = 24 * 60 * 60_000;
 
 const GUILD_RULES_INCLUDE = {
   roleRules: {
-    include: { conditions: true, grantedRoles: true, grantedChannels: true },
+    include: {
+      conditions: { include: { answerOptions: true } },
+      grantedRoles: true,
+      grantedChannels: true,
+    },
   },
   rolePriorities: true,
   protectedRoles: true,
+  // Flow "grant" action roles (onboardingFlowEngine.ts) — see
+  // managedRoleIdsFor below for why these count as "managed" too.
+  onboardingSteps: { select: { grants: { select: { discordRoleId: true } } } },
 } as const;
 
 async function loadGuildsWithRules() {
@@ -50,19 +58,48 @@ export async function loadGuildWithRules(
   });
 }
 
-// grantedRoles minus anything an admin's marked hands-off (GuildProtectedRole)
-// — the exact set of roles this guild's rules are allowed to add/remove.
-// Shared by syncGuildRoles (applies it) and diffGuildRoles (reports it)
-// below so "which roles are ours to manage" can never drift between the two.
+// grantedRoles (rule-based) plus every flow "grant" action's role
+// (onboardingFlowEngine.ts), minus anything an admin's marked hands-off
+// (GuildProtectedRole) — the exact set of roles this guild's rules/flow
+// are allowed to add/remove. Shared by syncGuildRoles (applies it) and
+// diffGuildRoles (reports it) below so "which roles are ours to manage"
+// can never drift between the two.
 export function managedRoleIdsFor(guildRow: GuildWithRules): Set<string> {
   const managedRoleIds = new Set(
     guildRow.roleRules.flatMap((r) =>
       r.grantedRoles.map((g) => g.discordRoleId),
     ),
   );
+  for (const step of guildRow.onboardingSteps) {
+    for (const grant of step.grants) {
+      if (grant.discordRoleId) managedRoleIds.add(grant.discordRoleId);
+    }
+  }
   for (const p of guildRow.protectedRoles)
     managedRoleIds.delete(p.discordRoleId);
   return managedRoleIds;
+}
+
+// One query for the whole guild's persisted onboarding-flow answers,
+// grouped by discordUserId then stepId -> selected option ids — same
+// shape evaluateRules' `answers` param expects. Shared by
+// desiredRolesByMember/syncGuildRoles so the daily sync only pays for
+// this once per guild, not once per member (see evaluateRules' own doc
+// comment on why this matters for any rule with field "answer").
+async function loadAnswersByMember(
+  guildId: string,
+): Promise<Map<string, Map<string, string[]>>> {
+  const rows = await db.guildOnboardingStepAnswer.findMany({
+    where: { guildId },
+    include: { selectedOptions: true },
+  });
+  const byMember = new Map<string, Map<string, string[]>>();
+  for (const row of rows) {
+    const perStep = byMember.get(row.discordUserId) ?? new Map<string, string[]>();
+    perStep.set(row.stepId, row.selectedOptions.map((o) => o.optionId));
+    byMember.set(row.discordUserId, perStep);
+  }
+  return byMember;
 }
 
 // Groups the guild's claimed roster by the Discord account it's claimed
@@ -72,6 +109,7 @@ export function managedRoleIdsFor(guildRow: GuildWithRules): Set<string> {
 // applies the difference) and diffGuildRoles (which only reports it).
 async function desiredRolesByMember(
   guildRow: GuildWithRules,
+  answersByMember: Map<string, Map<string, string[]>>,
 ): Promise<Map<string, Set<string>>> {
   const rosterRows = await db.guildRosterMember.findMany({
     where: { guildId: guildRow.id, claimedByDiscordUserId: { not: null } },
@@ -98,6 +136,7 @@ async function desiredRolesByMember(
       guildRow.roleRules,
       matched,
       guildRow.rolePriorities,
+      answersByMember.get(discordUserId) ?? new Map<string, string[]>(),
     );
     desired.set(discordUserId, roleIds);
   }
@@ -109,9 +148,53 @@ async function desiredRolesByMember(
 // would close the gap, whether or not anything's actually been done about
 // it (syncGuildRoles applies them; diffGuildRoles below just reports them).
 export interface RoleMismatch {
+  discordUserId: string;
   discordUserTag: string;
   toAdd: string[];
   toRemove: string[];
+}
+
+// Keeps GuildRoleMismatchCache fresh for the addon-facing
+// /api/v1/role-mismatches endpoint. Written by refreshRoleMismatchCache's
+// periodic sweep and by runFullRoleSync right after it applies a fix, so
+// the addon's view of "who's out of sync" never has to wait longer than
+// ROLE_MISMATCH_REFRESH_INTERVAL_MS for a change made outside the bot
+// (e.g. an admin editing roles by hand in Discord) to show up.
+async function cacheRoleMismatches(
+  guildId: string,
+  mismatches: RoleMismatch[],
+): Promise<void> {
+  await db.guildRoleMismatchCache.upsert({
+    where: { guildId },
+    create: { guildId, data: JSON.stringify(mismatches) },
+    update: { data: JSON.stringify(mismatches), computedAt: new Date() },
+  });
+}
+
+// How often the read-only mismatch sweep below runs. Independent of
+// ROLE_SYNC_INTERVAL_MS (which actually fixes things once a day) — this is
+// just for keeping the addon's display current in between, so it's fine
+// for this to be much more frequent without costing a real sync.
+export const ROLE_MISMATCH_REFRESH_INTERVAL_MS = 60 * 60_000;
+
+// Read-only counterpart to runFullRoleSync — walks every guild's roster
+// with diffGuildRoles (never applies anything) and caches the result, so
+// an admin can see current drift from the addon without waiting for the
+// next daily/on-demand sync to silently fix it.
+export async function refreshRoleMismatchCache(
+  client: Client<true>,
+): Promise<void> {
+  const guilds = await loadGuildsWithRules();
+  for (const guildRow of guilds) {
+    if (!guildRow.botEnabled) continue;
+    if (guildRow.roleRules.length === 0) continue;
+
+    const discordGuild = client.guilds.cache.get(guildRow.discordGuildId);
+    if (!discordGuild) continue;
+
+    const mismatches = await diffGuildRoles(discordGuild, guildRow);
+    await cacheRoleMismatches(guildRow.id, mismatches);
+  }
 }
 
 // Read-only counterpart to syncGuildRoles — same "what should they have"
@@ -126,7 +209,9 @@ export async function diffGuildRoles(
   const managedRoleIds = managedRoleIdsFor(guildRow);
   if (managedRoleIds.size === 0) return [];
 
-  const desired = await desiredRolesByMember(guildRow);
+  const answersByMember = await loadAnswersByMember(guildRow.id);
+  const desired = await desiredRolesByMember(guildRow, answersByMember);
+  const flowGrantRoleIds = await getFlowGrantRoleIds(guildRow.id);
   const roleName = (id: string) => discordGuild.roles.cache.get(id)?.name ?? id;
 
   const mismatches: RoleMismatch[] = [];
@@ -138,6 +223,14 @@ export async function diffGuildRoles(
       continue; // no longer in the server
     }
 
+    // Flow "grant" action roles are one-time, never-re-evaluated
+    // assignments — preserve any the member already holds so a rules-only
+    // diff never reports them as "should be removed" (see
+    // managedRoleIdsFor's own doc comment).
+    for (const roleId of member.roles.cache.keys()) {
+      if (flowGrantRoleIds.has(roleId)) desiredRoleIds.add(roleId);
+    }
+
     const currentManaged = member.roles.cache.filter((r) =>
       managedRoleIds.has(r.id),
     );
@@ -146,6 +239,7 @@ export async function diffGuildRoles(
     if (toAdd.length === 0 && toRemove.size === 0) continue;
 
     mismatches.push({
+      discordUserId,
       discordUserTag: member.user.tag,
       toAdd: toAdd.map(roleName),
       toRemove: toRemove.map((r) => r.name),
@@ -173,6 +267,11 @@ export async function runFullRoleSync(client: Client<true>): Promise<void> {
     if (!discordGuild) continue; // bot isn't (or is no longer) in this server
 
     await syncGuildRoles(discordGuild, guildRow);
+    // Re-read the (now hopefully clean) state rather than assuming success —
+    // a per-member role.add/remove failure above leaves a real mismatch
+    // behind, and the addon's cache should reflect that instead of lying.
+    const mismatches = await diffGuildRoles(discordGuild, guildRow);
+    await cacheRoleMismatches(guildRow.id, mismatches);
   }
 }
 
@@ -205,6 +304,8 @@ export async function syncGuildRoles(
   // fetchRecentHumanRoleChanges is a REST call and this loop can run over
   // hundreds of members.
   const humanChanges = await fetchRecentHumanRoleChanges(discordGuild);
+  const answersByMember = await loadAnswersByMember(guildRow.id);
+  const flowGrantRoleIds = await getFlowGrantRoleIds(guildRow.id);
 
   for (const [discordUserId, rows] of rowsByDiscordUser) {
     const matched: MatchedCharacter[] = rows.map((r) => ({
@@ -217,6 +318,7 @@ export async function syncGuildRoles(
       guildRow.roleRules,
       matched,
       guildRow.rolePriorities,
+      answersByMember.get(discordUserId) ?? new Map<string, string[]>(),
     );
 
     let member;
@@ -224,6 +326,14 @@ export async function syncGuildRoles(
       member = await discordGuild.members.fetch(discordUserId);
     } catch {
       continue; // no longer in the server — nothing to sync
+    }
+
+    // Flow "grant" action roles are one-time, never-re-evaluated
+    // assignments — preserve any the member already holds so this
+    // rules-only desired-set never gets treated as authoritative and
+    // strips them right back off (see managedRoleIdsFor's own comment).
+    for (const roleId of member.roles.cache.keys()) {
+      if (flowGrantRoleIds.has(roleId)) desiredRoleIds.add(roleId);
     }
 
     // "Senaste ändringen vinner" — a human's manual role edit only blocks
@@ -282,6 +392,7 @@ export async function syncGuildRoles(
           removedRoleIds: toRemove,
         });
         changes.push({
+          discordUserId,
           discordUserTag: member.user.tag,
           toAdd: addedNames,
           toRemove: removedNames,

@@ -1,0 +1,8 @@
+{
+  "prompt": "Cabinet Schematic comp A — 'Back Panel': one continuous rule-schematic canvas. Top: phosphor header + bot-automation breaker; interlock band (bot status/resync, admin notices channel, View Audit Log permission, protected-role count, next daily pass). Center bay: three role-rule traces — condition nodes left (RANK = Initiate; LEVEL >= 60; CLASS = Warrior, Paladin) wired to grant sockets right (@guildie; @trial raider; @officer), sync pulse mid-trace on R1; sealed @Guild Master socket with PROTECTED stamp; custom-questions onboarding flow fragment bottom-left. Bottom: audit tape rail with ROLES/AUDIT tabs. World: vector-phosphor line-work on arcade void #0a0a12, amber/red/green as functional states only, scanline material, deep void gaps.",
+  "createdAt": "2026-09-05T11:14:00Z",
+  "tool": "hand-authored HTML comp rendered in chromium (no image-gen available), captured via tab.screenshot",
+  "viewport": "1440x900 desktop landscape",
+  "variant": "back-panel",
+  "source": ".impeccable/mocks/src/comp-a-back-panel.html"
+}

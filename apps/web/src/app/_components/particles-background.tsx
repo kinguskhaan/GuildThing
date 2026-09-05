@@ -198,8 +198,21 @@ function FloatingSpaceInvaders() {
   );
 }
 
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(query.matches);
+    const onChange = (event: MediaQueryListEvent) => setReduced(event.matches);
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
+  return reduced;
+}
+
 export function ParticlesBackground() {
   const [ready, setReady] = useState(false);
+  const reducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
     enginePromise ??= initParticlesEngine(async (engine) => {
@@ -207,6 +220,15 @@ export function ParticlesBackground() {
     });
     void enginePromise.then(() => setReady(true));
   }, []);
+
+  if (reducedMotion) {
+    return (
+      <div
+        className="pointer-events-none fixed inset-0 -z-10 bg-arcade-void"
+        aria-hidden="true"
+      />
+    );
+  }
 
   if (!ready) return null;
 
