@@ -433,7 +433,7 @@ export function RaidCompBuilder({
     );
   }
 
-  if (comps.data && comps.data.length === 0) {
+  if (comps.data?.length === 0) {
     return (
       <div className="bg-discord-elevated flex flex-col items-center gap-3 rounded-xl p-10 text-center">
         <h3 className="text-lg font-bold">No raid comps yet</h3>

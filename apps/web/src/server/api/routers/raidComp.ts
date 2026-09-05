@@ -215,7 +215,7 @@ export const raidCompRouter = createTRPCRouter({
 
       return {
         rosterMemberId: member.id,
-        specToken: spec.token as string | null,
+        specToken: spec.token,
         status: "ok" as const,
       };
     }),

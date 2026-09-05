@@ -49,7 +49,11 @@ export function RaidCompRoles({
     slot,
     expansion,
     dragging: false,
+    // Blocks in this view don't drag (see the file-level comment above) —
+    // CompBlock still requires these handlers, so wire them to no-ops.
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     onDragStart: () => {},
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     onDragEnd: () => {},
     onRemove: () =>
       onRemoveAt({
