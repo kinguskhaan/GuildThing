@@ -68,3 +68,7 @@ apps/addon/GuildThing/SyncData.lua
 # has run in, not just the repo root (e.g. addon/GuildThing/.claude/).
 .claude/
 **/.claude/
+# desktop app build output
+apps/desktop/dist
+apps/desktop/src-tauri/target
+apps/desktop/src-tauri/gen

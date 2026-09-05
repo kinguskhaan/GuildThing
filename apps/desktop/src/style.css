@@ -1,0 +1,224 @@
+:root {
+  color-scheme: dark;
+  --bg: #16171d;
+  --elevated: #1f2029;
+  --border: #30323f;
+  --text: #e3e5ef;
+  --muted: #9a9db1;
+  --primary: #5865f2;
+  --ok: #43b581;
+  --error: #ed4245;
+}
+/* Author `display` rules (.row etc.) must never resurrect hidden elements
+   — the UA's [hidden] rule loses to any author display declaration. */
+[hidden] {
+  display: none !important;
+}
+
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  user-select: none;
+}
+
+code {
+  background: var(--elevated);
+  padding: 0 4px;
+  border-radius: 4px;
+}
+
+.view {
+  padding: 24px 28px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 20px;
+  margin: 0 0 12px;
+}
+
+h2 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 20px 0 8px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.row.spread {
+  justify-content: space-between;
+  margin-top: 24px;
+}
+
+button {
+  background: var(--elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--primary);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+button.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+button.ghost {
+  background: transparent;
+}
+
+input[type="text"],
+select {
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 8px 12px;
+  font-size: 14px;
+  flex: 1;
+}
+
+input[type="text"]:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+label {
+  display: block;
+  margin: 14px 0 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.wizard-step {
+  animation: fade 0.15s ease-out;
+}
+
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.status {
+  margin: 12px 0;
+  font-size: 14px;
+  min-height: 20px;
+}
+
+.status.ok { color: var(--ok); }
+.status.error { color: var(--error); }
+
+.detect {
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 12px 0;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.detect .bad { color: var(--error); }
+.detect .good { color: var(--ok); }
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot.on { background: var(--ok); }
+.dot.off { background: var(--muted); }
+
+.targets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.target-card {
+  position: relative;
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 16px;
+}
+
+.target-card .name {
+  font-weight: 600;
+}
+
+.target-card .url {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.target-card .remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 10px;
+  font-size: 16px;
+  line-height: 1.2;
+}
+.log {
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  height: 260px;
+  overflow-y: auto;
+  font-family: ui-monospace, "Cascadia Mono", monospace;
+  font-size: 12.5px;
+  line-height: 1.8;
+  user-select: text;
+}
+
+.log .entry {
+  white-space: pre-wrap;
+}
+
+.log .entry.error { color: var(--error); }
+.log .entry.info { color: var(--text); }
+.log .entry.started, .log .entry.done { color: var(--ok); }
+.log .entry.watching { color: var(--muted); }
+
+.log .entry .time {
+  color: var(--muted);
+  margin-right: 8px;
+}

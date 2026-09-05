@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GuildThing Sync</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- First-run wizard -->
+      <section id="view-wizard" class="view" hidden>
+        <div id="wizard-step-1" class="wizard-step">
+          <h1>Welcome to GuildThing Sync</h1>
+          <p>
+            This app syncs your guild's roster cache from World of
+            Warcraft to your guild's GuildThing site — automatically, for
+            as long as this window is open.
+          </p>
+          <p class="muted">
+            You'll need: your WoW installation (the folder the game lives
+            in) and an API key from the site (<b>Admin → API keys</b> on
+            your guild's page).
+          </p>
+          <button id="btn-wizard-start" class="primary">Get started</button>
+        </div>
+
+        <div id="wizard-step-2" class="wizard-step" hidden>
+          <h1>Where is WoW installed?</h1>
+          <p class="muted">The folder that contains the version folders, e.g. <code>_classic_era_</code>.</p>
+          <div class="row">
+            <input id="wow-dir" type="text" placeholder="C:\Program Files (x86)\World of Warcraft" />
+            <button id="btn-browse">Browse…</button>
+          </div>
+          <div id="version-pick" class="row" hidden>
+            <label for="version">Version</label>
+            <select id="version"></select>
+          </div>
+          <div id="step2-status" class="status"></div>
+          <div class="row spread">
+            <button id="btn-w2-back">Back</button>
+            <button id="btn-w2-next" class="primary" disabled>Continue</button>
+          </div>
+        </div>
+
+        <div id="wizard-step-3" class="wizard-step" hidden>
+          <h1>Connect to your site</h1>
+          <div id="detect-result" class="detect"></div>
+          <label for="api-url">Site address</label>
+          <input id="api-url" type="text" placeholder="https://your-site.example" />
+          <label for="api-key">API key</label>
+          <input id="api-key" type="text" placeholder="gt_…" autocomplete="off" />
+          <label for="target-name">Name (optional, shown in the log)</label>
+          <input id="target-name" type="text" placeholder="Main guild" />
+          <div id="step3-status" class="status"></div>
+          <div class="row spread">
+            <button id="btn-w3-back">Back</button>
+            <div class="row">
+              <button id="btn-test">Test connection</button>
+              <button id="btn-w3-save-another" class="ghost" disabled>Save and add another</button>
+              <button id="btn-w3-save" class="primary" disabled>Save and start</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dashboard -->
+      <section id="view-dashboard" class="view" hidden>
+        <header class="row spread">
+          <h1>GuildThing Sync</h1>
+          <div class="row">
+            <span id="watch-dot" class="dot off"></span>
+            <span id="watch-label">Stopped</span>
+          </div>
+        </header>
+        <div id="targets" class="targets"></div>
+        <div class="row">
+          <button id="btn-sync-now" class="primary">Sync now</button>
+          <button id="btn-toggle-watch">Start watching</button>
+          <button id="btn-edit-config" class="ghost">Settings</button>
+        </div>
+        <h2>Log</h2>
+        <div id="log" class="log" aria-live="polite"></div>
+      </section>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
