@@ -1,6 +1,13 @@
 import { readFileSync } from "node:fs";
 
-import { asArray, asNumber, asObject, asString, parseLuaGlobals } from "./luaTable";
+import {
+  asArray,
+  asNumber,
+  asObject,
+  asString,
+  parseLuaGlobals,
+  type LuaValue,
+} from "./luaTable";
 
 // Matches rosterExportSchema.members on the web side (see
 // apps/web/src/server/wow-import.ts) field-for-field.
@@ -13,14 +20,15 @@ export interface RosterMember {
   officernote: string | null;
 }
 
-// GuildThing.lua: `GuildThingRosterDB = { lastScan = ..., roster = { {...},
-// {...} } }` — see apps/addon/GuildThing/Core.lua's GT.ExportRoster, which
-// builds the same shape by hand for the in-game /gtr export this mirrors.
-export function parseRosterFile(filePath: string): RosterMember[] {
-  const globals = parseLuaGlobals(readFileSync(filePath, "utf8"));
-  const db = asObject(globals.GuildThingRosterDB);
-  const roster = asArray(db.roster);
+// One guild's roster scan as stored in GuildThing.lua. `guild` is null for
+// the legacy flat format, which never knew which guild it belonged to.
+export interface GuildRoster {
+  guild: string | null;
+  lastScan: number;
+  members: RosterMember[];
+}
 
+function mapMembers(roster: LuaValue[]): RosterMember[] {
   return roster.map((entry) => {
     const m = asObject(entry);
     return {
@@ -32,6 +40,40 @@ export function parseRosterFile(filePath: string): RosterMember[] {
       officernote: typeof m.officernote === "string" ? m.officernote : null,
     };
   });
+}
+
+// GuildThing.lua — since the addon began storing scans per guild (Core.lua's
+// GT.ExportRoster): `GuildThingRosterDB.rosterByGuild = { ["<guild name>"] =
+// { lastScan = ..., roster = {...} } }`, one entry per guild key. Older
+// addon versions only wrote the legacy flat fields (`roster`/`lastScan`, the
+// single most-recent-guild roster, with no guild identity) — when
+// rosterByGuild is missing or empty, that flat roster is returned as the one
+// entry with guild = null, which is what lets sync targets fall back to the
+// old single-roster behavior.
+export function parseGuildRosters(filePath: string): GuildRoster[] {
+  const globals = parseLuaGlobals(readFileSync(filePath, "utf8"));
+  const db = asObject(globals.GuildThingRosterDB);
+
+  const entries: GuildRoster[] = [];
+  if (db.rosterByGuild && !Array.isArray(db.rosterByGuild)) {
+    for (const [guild, scan] of Object.entries(asObject(db.rosterByGuild))) {
+      const s = asObject(scan);
+      entries.push({
+        guild,
+        lastScan: typeof s.lastScan === "number" ? s.lastScan : 0,
+        members: s.roster ? mapMembers(asArray(s.roster)) : [],
+      });
+    }
+  }
+  if (entries.length > 0) return entries;
+
+  return [
+    {
+      guild: null,
+      lastScan: typeof db.lastScan === "number" ? db.lastScan : 0,
+      members: db.roster ? mapMembers(asArray(db.roster)) : [],
+    },
+  ];
 }
 
 // GuildThingRosterDB.syncRequestedAt — set by the addon's "Request sync"

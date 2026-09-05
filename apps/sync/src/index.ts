@@ -2,19 +2,18 @@ import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { getAuditLog, getDiscordRoles, postCharacters, postRoster, requestSync } from "./api";
+import { getAuditLog, getDiscordRoles, getGuild, postCharacters, postRoster, requestSync } from "./api";
 import { serializeSavedVariables } from "./luaWriter";
 import {
   defaultWowWtfDir,
-  findSavedVariablesFile,
-  findSavedVariablesFileOptional,
+  listSavedVariablesFiles,
   resolveAddonInstallDir,
   resolveWtfDir,
 } from "./paths";
 import { parseRecipesFile } from "./parseRecipes";
 import type { ImportedCharacter } from "./parseRecipes";
-import { parseRosterFile, parseSyncRequestedAt } from "./parseRoster";
-import type { RosterMember } from "./parseRoster";
+import { parseGuildRosters, parseSyncRequestedAt } from "./parseRoster";
+import type { GuildRoster } from "./parseRoster";
 import { hasActedOnSyncRequest, markSyncRequestActedOn } from "./syncState";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -149,30 +148,131 @@ function groupByWtfDir(targets: SyncTarget[]): Map<string, SyncTarget[]> {
 }
 
 interface RosterData {
-  members: RosterMember[];
+  guildRosters: GuildRoster[];
   characters: ImportedCharacter[];
   // Set by the addon's "Request sync" button (DiscordRolesUI.lua) — see
   // relaySyncRequest below. Null means no request pending (the common
-  // case).
+  // case). Several accounts can share one install, and any of them may
+  // have pressed the button — the newest request across all of them is
+  // what gets acted on.
   syncRequestedAt: number | null;
 }
 
 function readWtfDir(wtfDir: string): RosterData {
-  const rosterFile = findSavedVariablesFile(wtfDir, "GuildThing.lua");
-  // OurRecipes is optional — only GuildThing (/gtr) is required, so a
-  // missing recipes file just means no character/profession data this run,
-  // not a failed sync.
-  const recipesFile = findSavedVariablesFileOptional(wtfDir, "OurRecipes.lua");
-  return {
-    members: parseRosterFile(rosterFile),
-    characters: recipesFile ? parseRecipesFile(recipesFile) : [],
-    syncRequestedAt: parseSyncRequestedAt(rosterFile),
-  };
+  // Every ACCOUNT's SavedVariables are read — one install can hold several
+  // Battle.net accounts, and each contributes its own guild scans (and
+  // characters) to every target sharing this install. GuildThing.lua is
+  // required, so none at all is still a hard error.
+  const rosterFiles = listSavedVariablesFiles(wtfDir, "GuildThing.lua");
+  if (rosterFiles.length === 0) {
+    throw new Error(
+      `Couldn't find GuildThing.lua under ${join(wtfDir, "Account")}/*/SavedVariables — make sure the addon is installed and you've logged in at least once since installing it.`,
+    );
+  }
+  // OurRecipes is optional — only GuildThing (/gtr) is required, so no
+  // recipes file under any account just means no character/profession
+  // data this run, not a failed sync.
+  const recipesFiles = listSavedVariablesFiles(wtfDir, "OurRecipes.lua");
+
+  const guildRosters = rosterFiles.flatMap((file) => parseGuildRosters(file));
+  const characters = mergeCharacters(
+    recipesFiles.flatMap((file) => parseRecipesFile(file)),
+  );
+
+  let syncRequestedAt: number | null = null;
+  for (const file of rosterFiles) {
+    const at = parseSyncRequestedAt(file);
+    if (at !== null && (syncRequestedAt === null || at > syncRequestedAt)) {
+      syncRequestedAt = at;
+    }
+  }
+  return { guildRosters, characters, syncRequestedAt };
+}
+
+// The same "<Name>-<Realm>" can appear in more than one account's
+// OurRecipes.lua (one person playing on two Battle.net accounts, or
+// entries relayed in through OurRecipes' own P2P mesh). Characters carry
+// no guild identity, so the install pushes one UNION of every account's
+// file: the first copy wins the identity fields, later copies only
+// contribute recipes not already present.
+function mergeCharacters(all: ImportedCharacter[]): ImportedCharacter[] {
+  const byKey: Record<string, ImportedCharacter> = {};
+  for (const c of all) {
+    const key = `${c.name}-${c.realm}`;
+    const existing = byKey[key];
+    if (!existing) {
+      byKey[key] = { ...c, professions: { ...c.professions } };
+      continue;
+    }
+    if (existing.class === undefined && c.class !== undefined) {
+      existing.class = c.class;
+    }
+    for (const [profession, recipes] of Object.entries(c.professions)) {
+      const merged = (existing.professions[profession] ??= []);
+      for (const recipe of recipes) {
+        if (
+          !merged.some(
+            (r) =>
+              r.name === recipe.name &&
+              r.spellID === recipe.spellID &&
+              r.itemID === recipe.itemID,
+          )
+        ) {
+          merged.push(recipe);
+        }
+      }
+    }
+  }
+  return Object.values(byKey);
 }
 
 async function syncTarget(target: SyncTarget, data: RosterData): Promise<void> {
-  const rosterResult = await postRoster(target.apiUrl, target.apiKey, data.members);
-  console.log(`[sync:${target.name}] roster: pushed ${rosterResult.count} member(s)`);
+  // The API key IS the guild identity on the site side — resolve it per
+  // target so each guild gets the roster of ITS guild. A failed lookup is
+  // treated as an unknown guild: roster picking then falls back to the
+  // legacy guild-less roster below, and characters push either way.
+  let guild: { name: string } | null = null;
+  try {
+    guild = await getGuild(target.apiUrl, target.apiKey);
+  } catch (err) {
+    console.error(
+      `[sync:${target.name}] guild lookup failed: ${(err as Error).message}`,
+    );
+  }
+
+  // Exact guild-name match, newest scan winning when several accounts have
+  // scanned the same guild. The ONLY fallback is a legacy guild-less
+  // roster — pushing another guild's scan would overwrite the site's
+  // membership with the wrong guild's members.
+  const matching = guild
+    ? data.guildRosters.filter((r) => r.guild === guild?.name)
+    : [];
+  const legacy = data.guildRosters.find((r) => r.guild === null);
+
+  if (matching.length > 0) {
+    const best = matching.reduce((a, b) => (b.lastScan > a.lastScan ? b : a));
+    const rosterResult = await postRoster(
+      target.apiUrl,
+      target.apiKey,
+      best.members,
+    );
+    console.log(
+      `[sync:${target.name}] roster: pushed ${rosterResult.count} member(s) for guild "${guild?.name}"`,
+    );
+  } else if (legacy) {
+    const rosterResult = await postRoster(
+      target.apiUrl,
+      target.apiKey,
+      legacy.members,
+    );
+    console.log(
+      `[sync:${target.name}] roster: pushed ${rosterResult.count} member(s) (legacy guild-less roster)`,
+    );
+  } else {
+    console.error(
+      `[sync:${target.name}] no roster scan for guild "${guild?.name ?? "<guild lookup failed>"}" under this install — skipping roster push (characters still sync)`,
+    );
+  }
 
   const charResult = await postCharacters(target.apiUrl, target.apiKey, data.characters);
   console.log(
@@ -323,16 +423,21 @@ function watch(targets: SyncTarget[]): void {
 
   const checkDir = (wtfDir: string, group: SyncTarget[]) => {
     let rosterMtime: number;
+    let recipesMtime: number;
     try {
-      rosterMtime = statSync(findSavedVariablesFile(wtfDir, "GuildThing.lua")).mtimeMs;
+      // Every account's SavedVariables copy is watched — any account's
+      // file changing means this install's data changed (readWtfDir
+      // unions them all). No files at all yields 0, the same
+      // "never seen an update" sentinel as before, which never matches
+      // a later mtime.
+      const newest = (files: string[]) =>
+        files.reduce((max, file) => Math.max(max, statSync(file).mtimeMs), 0);
+      rosterMtime = newest(listSavedVariablesFiles(wtfDir, "GuildThing.lua"));
+      recipesMtime = newest(listSavedVariablesFiles(wtfDir, "OurRecipes.lua"));
     } catch (err) {
       console.error(`[sync] couldn't check SavedVariables files in ${wtfDir}:`, err);
       return;
     }
-    // OurRecipes is optional (see readWtfDir) — 0 when absent just means
-    // "never seen a recipes update", which never matches a later mtime.
-    const recipesFile = findSavedVariablesFileOptional(wtfDir, "OurRecipes.lua");
-    const recipesMtime = recipesFile ? statSync(recipesFile).mtimeMs : 0;
 
     const last = lastMtimes.get(wtfDir);
     if (last?.roster === rosterMtime && last.recipes === recipesMtime) return;

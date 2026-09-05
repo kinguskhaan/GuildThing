@@ -48,6 +48,18 @@ export function postCharacters(
   }>(apiUrl, apiKey, "/api/v1/characters", { characters });
 }
 
+// The target's own guild identity, resolved from its API key — one WoW
+// install can serve several guilds, and this is what lets syncTarget pick
+// the roster of THIS target's guild instead of pushing every target the
+// same (possibly wrong) guild's scan. See guild/route.ts.
+export function getGuild(apiUrl: string, apiKey: string) {
+  return get<{ id: string; name: string; slug: string }>(
+    apiUrl,
+    apiKey,
+    "/api/v1/guild",
+  );
+}
+
 // Discord nick/account tag/role names per roster member (keyed by
 // character name — the only identifier the addon itself has), for writing
 // into a SavedVariables file the addon reads on its next login/reload. See

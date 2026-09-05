@@ -26,6 +26,14 @@ local function StripRealm(name)
     return (name or ""):match("^([^-]+)") or name
 end
 
+-- One SavedVariables file is shared by every character on the account, and
+-- each character only sees their OWN guild's roster — so the scan is stored
+-- per guild name (rosterByGuild) instead of overwriting one slot. That's
+-- what lets the desktop sync app push each guild's site the correct roster
+-- even when characters from several guilds (on this account or other
+-- accounts in the same install) take turns logging in. The legacy flat
+-- `roster`/`lastScan` fields are still written for the /gtr export and the
+-- UI tabs, and GetRoster() prefers the current character's guild entry.
 function GT.ScanRoster()
     local roster = {}
     for i = 1, GetNumGuildMembers() do
@@ -47,18 +55,34 @@ function GT.ScanRoster()
             })
         end
     end
+    local guildName = GetGuildInfo("player")
+    if guildName then
+        GuildThingRosterDB.rosterByGuild = GuildThingRosterDB.rosterByGuild or {}
+        GuildThingRosterDB.rosterByGuild[guildName] = { lastScan = time(), roster = roster }
+    end
     GuildThingRosterDB.roster = roster
     GuildThingRosterDB.lastScan = time()
     return roster
 end
 
 function GT.GetRoster()
+    -- The character's own guild's scan when we have one; the legacy flat
+    -- field otherwise (older DBs, or scans made before picking a guild).
+    local guildName = GetGuildInfo("player")
+    local byGuild = guildName and GuildThingRosterDB.rosterByGuild
+    if byGuild and byGuild[guildName] then
+        return byGuild[guildName].roster or {}
+    end
     return GuildThingRosterDB.roster or {}
 end
 
 function GT.GetLastScanText()
-    if not GuildThingRosterDB.lastScan then return nil end
-    return date("%Y-%m-%d %H:%M", GuildThingRosterDB.lastScan)
+    local guildName = GetGuildInfo("player")
+    local byGuild = guildName and GuildThingRosterDB.rosterByGuild
+    local lastScan = (byGuild and byGuild[guildName] and byGuild[guildName].lastScan)
+        or GuildThingRosterDB.lastScan
+    if not lastScan then return nil end
+    return date("%Y-%m-%d %H:%M", lastScan)
 end
 
 function GT.ExportRoster()

@@ -40,23 +40,29 @@ export function defaultWowWtfDir(): string | null {
 
 // Both addons write account-wide (not per-character) SavedVariables, under
 // WTF/Account/<ACCOUNT>/SavedVariables/<addon-file>.lua — the account
-// folder name isn't knowable in advance, so this checks every account
-// under WTF/Account for the file and returns the first match.
+// folder names aren't knowable in advance, so this checks every account
+// under WTF/Account. One install can hold several Battle.net accounts,
+// each with its own copy of the addon's data — sync consumers need them
+// ALL, so this lists every account's file (sorted, so run-to-run read
+// order is stable).
+export function listSavedVariablesFiles(wtfDir: string, filename: string): string[] {
+  const accountsDir = join(wtfDir, "Account");
+  if (!existsSync(accountsDir)) return [];
+
+  return readdirSync(accountsDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => join(accountsDir, entry.name, "SavedVariables", filename))
+    .filter((candidate) => existsSync(candidate))
+    .sort();
+}
+
+// The first account's file, for callers that only care whether one exists
+// at all (the legacy single-account read).
 export function findSavedVariablesFileOptional(
   wtfDir: string,
   filename: string,
 ): string | null {
-  const accountsDir = join(wtfDir, "Account");
-  if (!existsSync(accountsDir)) return null;
-
-  const accounts = readdirSync(accountsDir, { withFileTypes: true }).filter(
-    (entry) => entry.isDirectory(),
-  );
-  for (const account of accounts) {
-    const candidate = join(accountsDir, account.name, "SavedVariables", filename);
-    if (existsSync(candidate)) return candidate;
-  }
-  return null;
+  return listSavedVariablesFiles(wtfDir, filename)[0] ?? null;
 }
 
 // Only GuildThing.lua (the roster/`/gtr` addon) is required — OurRecipes is
