@@ -28,7 +28,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_ENV_VALIDATION=1
 
 RUN pnpm --filter @guildthing/db exec prisma generate
-RUN pnpm build
+# Scoped to web — apps/desktop (Tauri, built by its own GitHub Actions
+# workflow) isn't installed in the deps stage and has no place in either
+# runner image; an unscoped `turbo run build` would also try to build it
+# and fail on the missing vite devDependency. apps/bot has no build step
+# at all (see the bot-runner stage's own comment on why).
+RUN pnpm exec turbo run build --filter=@guildthing/web
 
 # ---- runner: minimal production image ----
 FROM base AS runner
