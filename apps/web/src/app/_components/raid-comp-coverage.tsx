@@ -1,9 +1,10 @@
 "use client";
 
-import { wowIconUrl, type ExpansionDef } from "@guildthing/wowhead-data";
+import { wowIconUrl, wowheadSpellUrl, type ExpansionDef } from "@guildthing/wowhead-data";
 
 import type { CompState } from "./raid-comp-state";
 import { raidCoverage } from "./raid-comp-state";
+import { WowheadTooltips } from "./wowhead-tooltips";
 
 // The raid-level coverage bands: every buff/debuff the expansion knows,
 // lit when the comp provides it, dimmed when missing. Order is the
@@ -19,18 +20,21 @@ export function RaidCompCoverage({
 
   return (
     <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-      <CoverageBand title="Buffs" rows={buffs} />
-      <CoverageBand title="Debuffs" rows={debuffs} />
+      <WowheadTooltips />
+      <CoverageBand title="Buffs" expansion={expansion} rows={buffs} />
+      <CoverageBand title="Debuffs" expansion={expansion} rows={debuffs} />
     </div>
   );
 }
 
 function CoverageBand({
   title,
+  expansion,
   rows,
 }: {
   title: string;
-  rows: { buff: { id: string; label: string; icon: string }; covered: boolean }[];
+  expansion: ExpansionDef;
+  rows: { buff: { id: string; label: string; icon: string; spellId?: number }; covered: boolean }[];
 }) {
   const coveredCount = rows.filter((r) => r.covered).length;
   return (
@@ -44,33 +48,54 @@ function CoverageBand({
         </span>
       </div>
       <ul className="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2">
-        {rows.map(({ buff, covered }) => (
-          <li
-            key={buff.id}
-            className={`flex items-center gap-2 rounded-lg px-2 py-1 ${
-              covered ? "bg-discord-elevated-hover" : ""
-            }`}
-            title={
-              covered ? undefined : `No one in this comp provides ${buff.label}`
-            }
-          >
-            <img
-              src={wowIconUrl(buff.icon)}
-              alt=""
-              className={`h-4 w-4 shrink-0 rounded-[3px] ${
-                covered ? "" : "opacity-40 grayscale"
-              }`}
-              draggable={false}
-            />
-            <span
-              className={`truncate text-sm ${
-                covered ? "text-discord-text" : "text-discord-text-muted"
-              }`}
-            >
-              {buff.label}
-            </span>
-          </li>
-        ))}
+        {rows.map(({ buff, covered }) => {
+          const content = (
+            <>
+              <img
+                src={wowIconUrl(buff.icon)}
+                alt=""
+                className={`h-4 w-4 shrink-0 rounded-[3px] ${
+                  covered ? "" : "opacity-40 grayscale"
+                }`}
+                draggable={false}
+              />
+              <span
+                className={`truncate text-sm ${
+                  covered ? "text-discord-text" : "text-discord-text-muted"
+                }`}
+              >
+                {buff.label}
+              </span>
+            </>
+          );
+          const rowClassName = `flex items-center gap-2 rounded-lg px-2 py-1 ${
+            covered ? "bg-discord-elevated-hover" : ""
+          }`;
+          return (
+            <li key={buff.id}>
+              {buff.spellId ? (
+                // Wowhead's tooltip script attaches to plain hrefs like this
+                // one automatically (see WowheadTooltips) — the real spell
+                // tooltip renders on hover, no extra data to maintain here.
+                <a
+                  href={wowheadSpellUrl(expansion.id, buff.spellId)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={rowClassName}
+                >
+                  {content}
+                </a>
+              ) : (
+                <div
+                  className={rowClassName}
+                  title={covered ? undefined : `No one in this comp provides ${buff.label}`}
+                >
+                  {content}
+                </div>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

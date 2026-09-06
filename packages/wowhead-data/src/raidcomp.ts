@@ -52,6 +52,146 @@ export interface BuffDef {
   specToken?: string;
   /** Multiple specs provide the same effect (e.g. TBC Battle Shout from Arms OR Fury). */
   specTokens?: string[];
+  /** Wowhead spell ID — same numeric ID across every Classic-progression
+   * domain, used to build a real Wowhead tooltip link. Undefined when not
+   * yet catalogued. */
+  spellId?: number;
+}
+
+// Wowhead spell IDs, keyed by BuffDef id — verified directly against each
+// id's actual Wowhead page. Mostly one evergreen ID reused across every
+// expansion array a buff appears in (see `withSpellIds` below), EXCEPT
+// where Cataclysm's 4.0.1 ability-pruning patch renumbered a baseline
+// ability (confirmed for Thunder Clap: the pre-Cata rank ID 404s on the
+// /cata/ domain) — those buffs get looked up separately for
+// CATA_MOP_BUFFS_BASE via `CATA_MOP_SPELL_ID_OVERRIDES` below rather than
+// trusting the shared map.
+const SPELL_IDS: Record<string, number> = {
+  "anti-magic-zone": 51052,
+  "arcane-brilliance": 27127,
+  "arcane-intellect": 27126,
+  "battle-shout": 6673,
+  "blessing-of-kings": 25898,
+  "blessing-of-might": 27141,
+  "blessing-of-salvation": 25895,
+  "blessing-of-sanctuary": 27169,
+  "blessing-of-wisdom": 27143,
+  "blood-frenzy": 29859,
+  "blood-pact": 27268,
+  bloodlust: 2825,
+  "commanding-shout": 469,
+  "curse-of-the-elements": 27228,
+  "demonic-pact": 47236,
+  "demoralizing-shout": 47437,
+  "devotion-aura": 27149,
+  "divine-spirit": 25312,
+  "earth-shield": 32594,
+  "ebon-plaguebringer": 51161,
+  "elemental-oath": 51470,
+  "expose-armor": 8647,
+  "expose-weakness": 34503,
+  "faerie-fire": 27011,
+  "ferocious-inspiration": 34460,
+  hemorrhage: 26864,
+  "horn-of-winter": 57623,
+  "improved-demoralizing-shout": 12879,
+  "improved-expose-armor": 14169,
+  "improved-faerie-fire": 33602,
+  "improved-healthstone": 18693,
+  "improved-icy-talons": 55610,
+  "improved-imp": 18696,
+  "improved-mark-of-the-wild": 17055,
+  "improved-scorch": 12873,
+  "improved-seal-of-the-crusader": 20337,
+  "improved-shadow-bolt": 17803,
+  "improved-thunder-clap": 12666,
+  innervate: 29166,
+  "insect-swarm": 27013,
+  "leader-of-the-pack": 17007,
+  malediction: 32484,
+  "mana-tide-totem": 16190,
+  mangle: 33987,
+  "mark-of-the-wild": 26990,
+  "master-poisoner": 31227,
+  "moonkin-form": 24907,
+  "pain-suppression": 33206,
+  "power-infusion": 10060,
+  "power-word-barrier": 55689,
+  "power-word-fortitude": 25389,
+  "rallying-cry": 97462,
+  "sanctity-aura": 20218,
+  "scorpid-sting": 3043,
+  "shadow-protection": 25433,
+  "shadow-weaving": 15334,
+  "spirit-link-totem": 98008,
+  "stoneskin-totem": 78222,
+  "strength-of-earth-totem": 25528,
+  "sunder-armor": 7386,
+  "thunder-clap": 47502,
+  "totem-of-wrath": 30706,
+  "tree-of-life": 33891,
+  "trueshot-aura": 19506,
+  "unleashed-rage": 30811,
+  "vampiric-embrace": 15286,
+  "windfury-totem": 8512,
+  "winters-chill": 28595,
+};
+
+// Cataclysm's 4.0.1 pre-expansion patch renumbered several baseline
+// abilities when it pruned ranks and made class buffs raid-wide — a buff's
+// SPELL_IDS entry (usually still correct for classic/tbc/wotlk) can be
+// stale specifically for CATA_MOP_BUFFS_BASE. Every id here was confirmed
+// broken on /cata/ (the SPELL_IDS value 404s or falls through to Wowhead's
+// generic search page there) and replaced with the id that actually
+// resolves on that domain. Ids not listed here checked out fine as-is.
+const CATA_MOP_SPELL_ID_OVERRIDES: Record<string, number> = {
+  "arcane-brilliance": 1459,
+  "blessing-of-kings": 20217,
+  "blessing-of-might": 19740,
+  "blood-pact": 6307,
+  "curse-of-the-elements": 1490,
+  "demoralizing-shout": 1160,
+  "devotion-aura": 465,
+  "ebon-plaguebringer": 51160,
+  "faerie-fire": 770,
+  hemorrhage: 16511,
+  "horn-of-winter": 57330,
+  mangle: 33878,
+  "mark-of-the-wild": 1126,
+  "master-poisoner": 58410,
+  "power-word-fortitude": 21562,
+  "strength-of-earth-totem": 8075,
+  "thunder-clap": 6343,
+  "unleashed-rage": 30802,
+};
+
+function withCataSpellIds(buffs: BuffDef[]): BuffDef[] {
+  return buffs.map((b) => ({
+    ...b,
+    spellId: CATA_MOP_SPELL_ID_OVERRIDES[b.id] ?? SPELL_IDS[b.id],
+  }));
+}
+
+function withSpellIds(buffs: BuffDef[]): BuffDef[] {
+  return buffs.map((b) => ({ ...b, spellId: SPELL_IDS[b.id] }));
+}
+
+// Wowhead's tooltip widget (wow.zamimg.com/js/tooltips.js) auto-detects the
+// game version from the domain segment of a spell link's URL.
+const WOWHEAD_DOMAIN: Record<ExpansionId, string> = {
+  classic: "classic",
+  tbc: "tbc",
+  wotlk: "wotlk",
+  cata: "cata",
+  mop: "mop-classic",
+};
+
+export function wowheadDomain(expansion: ExpansionId): string {
+  return WOWHEAD_DOMAIN[expansion];
+}
+
+export function wowheadSpellUrl(expansion: ExpansionId, spellId: number): string {
+  return `https://www.wowhead.com/${wowheadDomain(expansion)}/spell=${spellId}`;
 }
 
 export interface ExpansionDef {
@@ -384,7 +524,7 @@ export const EXPANSIONS: Record<ExpansionId, ExpansionDef> = {
     maxLevel: 60,
     classes: CLASSES_9,
     specs: SPECS_CLASSIC,
-    buffs: CLASSIC_BUFFS,
+    buffs: withSpellIds(CLASSIC_BUFFS),
   },
   tbc: {
     id: "tbc",
@@ -396,7 +536,7 @@ export const EXPANSIONS: Record<ExpansionId, ExpansionDef> = {
     maxLevel: 70,
     classes: CLASSES_9,
     specs: SPECS_TBC,
-    buffs: TBC_BUFFS,
+    buffs: withSpellIds(TBC_BUFFS),
   },
   wotlk: {
     id: "wotlk",
@@ -408,7 +548,7 @@ export const EXPANSIONS: Record<ExpansionId, ExpansionDef> = {
     maxLevel: 80,
     classes: CLASSES_10,
     specs: SPECS_WOTLK,
-    buffs: [...WOTLK_BUFFS, ...WOTLK_ONLY_BUFFS],
+    buffs: withSpellIds([...WOTLK_BUFFS, ...WOTLK_ONLY_BUFFS]),
   },
   cata: {
     id: "cata",
@@ -420,7 +560,7 @@ export const EXPANSIONS: Record<ExpansionId, ExpansionDef> = {
     maxLevel: 85,
     classes: CLASSES_10,
     specs: SPECS_CATA,
-    buffs: CATA_MOP_BUFFS_BASE,
+    buffs: withCataSpellIds(CATA_MOP_BUFFS_BASE),
   },
   mop: {
     id: "mop",
@@ -432,7 +572,7 @@ export const EXPANSIONS: Record<ExpansionId, ExpansionDef> = {
     maxLevel: 90,
     classes: CLASSES_11,
     specs: SPECS_MOP,
-    buffs: CATA_MOP_BUFFS_BASE,
+    buffs: withCataSpellIds(CATA_MOP_BUFFS_BASE),
   },
 };
 

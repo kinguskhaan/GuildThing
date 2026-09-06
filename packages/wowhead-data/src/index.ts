@@ -12,6 +12,8 @@ export {
   getSpec,
   specLabel,
   wowIconUrl,
+  wowheadDomain,
+  wowheadSpellUrl,
   type BuffDef,
   type BuffScope,
   type ExpansionDef,
