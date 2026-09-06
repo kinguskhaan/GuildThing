@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { wowIconUrl, type ExpansionDef } from "@guildthing/wowhead-data";
+import { wowIconUrl, wowheadSpellUrl, type ExpansionDef } from "@guildthing/wowhead-data";
 
 import { classColor } from "~/lib/format";
 
@@ -345,19 +345,35 @@ export function RaidCompCanvas({
         <div className="flex flex-col gap-1">{slotRows}</div>
         <div
           className="mt-1.5 flex min-h-6 items-center gap-1 rounded-lg px-1 py-0.5"
-          title={groupBuffs.map((b) => b.label).join(", ") || undefined}
+          title={groupBuffs.some((b) => !b.spellId) ? groupBuffs.map((b) => b.label).join(", ") : undefined}
         >
           {groupBuffs.length > 0 ? (
-            groupBuffs.map((b) => (
-              <img
-                key={b.id}
-                src={wowIconUrl(b.icon)}
-                alt={b.label}
-                title={b.label}
-                className="h-4 w-4 rounded-[3px]"
-                draggable={false}
-              />
-            ))
+            groupBuffs.map((b) =>
+              b.spellId ? (
+                <a
+                  key={b.id}
+                  href={wowheadSpellUrl(expansion.id, b.spellId)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <img
+                    src={wowIconUrl(b.icon)}
+                    alt={b.label}
+                    className="h-4 w-4 rounded-[3px]"
+                    draggable={false}
+                  />
+                </a>
+              ) : (
+                <img
+                  key={b.id}
+                  src={wowIconUrl(b.icon)}
+                  alt={b.label}
+                  title={b.label}
+                  className="h-4 w-4 rounded-[3px]"
+                  draggable={false}
+                />
+              ),
+            )
           ) : (
             <span className="text-discord-text-muted px-1 text-xs">
               No group buffs
