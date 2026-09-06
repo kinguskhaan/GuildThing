@@ -564,7 +564,7 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
         source: e.fromStepId ?? START_ID,
         target: e.toStepId,
         label: invalid
-          ? `↺ ${edgeSummary(e, steps) || "villkor krävs"}`
+          ? `↺ ${edgeSummary(e, steps) || "condition required"}`
           : edgeSummary(e, steps) || (back ? "↺" : ""),
         selected,
         style: {
@@ -744,18 +744,18 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
       (order.get(b.id) ?? Number.POSITIVE_INFINITY),
   );
   const statusChip = saveFlow.isPending
-    ? { text: "SPARAR ...", cls: "text-discord-text-muted" }
+    ? { text: "SAVING ...", cls: "text-discord-text-muted" }
     : saveFlow.error
-      ? { text: "FEL", cls: "text-discord-red" }
+      ? { text: "ERROR", cls: "text-discord-red" }
       : isDirty
-        ? { text: "OSPARAT", cls: "text-[color:var(--schem-amber)]" }
-        : { text: "SPARAT", cls: "text-[color:var(--schem-green)]" };
+        ? { text: "UNSAVED", cls: "text-[color:var(--schem-amber)]" }
+        : { text: "SAVED", cls: "text-[color:var(--schem-green)]" };
 
   return (
     <div className="flex h-[calc(100dvh-15rem)] min-h-[560px] flex-col">
       {/* ---- Toolbar: name, save state, palette, save ---- */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 pb-3">
-        <h3 className="font-bold">Onboarding-flöde</h3>
+        <h3 className="font-bold">Onboarding flow</h3>
         <span className={`schem-mono text-xs tracking-[0.14em] ${statusChip.cls}`}>
           ● {statusChip.text}
         </span>
@@ -770,7 +770,7 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
           onClick={() => setRailOpen((v) => !v)}
           className="bg-discord-elevated rounded-lg px-3 py-1.5 text-xs font-semibold lg:hidden"
         >
-          Flöde
+          Flow
         </button>
         {NEW_STEP_TYPES.map((t) => (
           <button
@@ -782,7 +782,7 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
               e.dataTransfer.effectAllowed = "copy";
             }}
             className="bg-discord-elevated hover:bg-discord-elevated-hover cursor-grab rounded-full px-3 py-1.5 text-xs font-semibold active:cursor-grabbing"
-            title="Dra ut på ytan — eller rakt på ett steg eller en koppling"
+            title="Drag onto the canvas — or straight onto a step or a connection"
           >
             + {t.label}
           </button>
@@ -793,7 +793,7 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
           disabled={saveFlow.isPending}
           className="bg-discord-brand rounded-full px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
         >
-          {saveFlow.isPending ? "Sparar..." : "Spara flöde"}
+          {saveFlow.isPending ? "Saving..." : "Save flow"}
         </button>
       </div>
 
@@ -805,7 +805,7 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
           <div className="min-h-0 flex-1 overflow-y-auto p-2">
             {railSteps.length === 0 && (
               <p className="text-discord-text-muted p-2 text-sm">
-                Tomt flöde. Dra en stegtyp från verktygsraden in på ytan.
+                Empty flow. Drag a step type from the toolbar onto the canvas.
               </p>
             )}
             {railSteps.map((s, i) => {
@@ -836,16 +836,16 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
                       </span>
                       <span className="schem-kicker text-[10px] text-discord-text-muted">
                         {s.type === "question"
-                          ? "FRÅGA"
+                          ? "QUESTION"
                           : s.type === "condition"
-                            ? "GREN"
+                            ? "BRANCH"
                             : s.type === "loop"
                               ? "LOOP"
-                              : "ÅTGÄRD"}
+                              : "ACTION"}
                       </span>
                       {!wired && (
                         <span className="text-[10px] font-semibold text-[color:var(--schem-amber)]">
-                          ej kopplad
+                          unwired
                         </span>
                       )}
                     </span>
@@ -876,7 +876,7 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
                       }`}
                     >
                       {isBackEdge(e, backEdges) ? "↺ " : "↳ "}
-                      {edgeSummary(e, steps) || "alltid"}
+                      {edgeSummary(e, steps) || "always"}
                     </button>
                   ))}
                 </div>
@@ -885,7 +885,7 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
           </div>
           <div className="border-black/20 border-t p-2">
             <p className="schem-kicker text-discord-text-muted px-1.5 pb-1.5 text-[10px]">
-              Lägg till
+              Add step
             </p>
             <div className="grid grid-cols-2 gap-1.5">
               {NEW_STEP_TYPES.map((t) => (
@@ -1001,8 +1001,8 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
                 {isBackEdge(selectedEdge, backEdges) &&
                   selectedEdge.conditionType === "always" && (
                     <p className="rounded-lg border border-dashed border-[color:var(--schem-amber)] bg-discord-elevated p-3 text-xs text-[color:var(--schem-amber)]">
-                      En bakåtkant (↺) behöver ett villkor — annars loopar
-                      flödet för evigt och sparningen nekas.
+                      A back-edge (↺) needs a condition — otherwise the flow
+                      loops forever and saving is refused.
                     </p>
                   )}
                 <GuildFlowEdgePanel
@@ -1017,13 +1017,13 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
             {selectedStub && (
               <div className="bg-discord-elevated w-full rounded-xl border border-dashed border-discord-text-muted/40 p-4 text-sm">
                 <p className="schem-kicker text-[10px] text-discord-text-muted">
-                  SLUT PÅ FLÖDET
+                  END OF FLOW
                 </p>
                 <p className="mt-1 font-semibold">
                   &quot;{selectedStub.label}&quot;
                 </p>
                 <p className="text-discord-text-muted mt-1 text-xs">
-                  Det här svaret leder ingenstans än. Gör det till nästa steg:
+                  This answer leads nowhere yet. Turn it into the next step:
                 </p>
                 <div className="mt-3 grid grid-cols-2 gap-1.5">
                   {NEW_STEP_TYPES.map((t) => (

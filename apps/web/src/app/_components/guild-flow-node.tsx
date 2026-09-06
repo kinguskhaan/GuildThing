@@ -14,27 +14,27 @@ import { useState } from "react";
 import type { StepDraft } from "./guild-flow-editor";
 
 const TYPE_KICKERS: Record<StepDraft["type"], string> = {
-  question: "FRÅGA",
-  condition: "GREN",
-  action: "ÅTGÄRD",
+  question: "QUESTION",
+  condition: "BRANCH",
+  action: "ACTION",
   loop: "LOOP",
 };
 
 // Canvas fallback titles for non-question steps — questions show their
 // prompt instead.
 const TYPE_TITLES: Record<StepDraft["type"], string> = {
-  question: "Fråga",
-  condition: "Gren",
-  action: "Åtgärd",
+  question: "Question",
+  condition: "Branch",
+  action: "Action",
   loop: "Loop",
 };
 
-// The step palette, shared by the toolbar chips, the rail's Lägg till
+// The step palette, shared by the toolbar chips, the rail's Add step
 // grid and the nodes' quick-add "+" menu — one list, one vocabulary.
 export const NEW_STEP_TYPES: { value: StepDraft["type"]; label: string }[] = [
-  { value: "question", label: "Fråga" },
-  { value: "condition", label: "Gren" },
-  { value: "action", label: "Åtgärd" },
+  { value: "question", label: "Question" },
+  { value: "condition", label: "Branch" },
+  { value: "action", label: "Action" },
   { value: "loop", label: "Loop" },
 ];
 
@@ -161,7 +161,7 @@ export function GuildFlowStepNode({
               type="button"
               onClick={() => setMenuOpen(true)}
               className="bg-discord-elevated text-discord-text-muted hover:text-discord-text hover:border-[color:var(--schem-line)] pointer-events-auto invisible flex h-6 w-6 items-center justify-center rounded-full border border-black/20 text-sm font-bold group-hover/node:visible hover:visible"
-              aria-label="Nästa steg"
+              aria-label="Next step"
             >
               +
             </button>
