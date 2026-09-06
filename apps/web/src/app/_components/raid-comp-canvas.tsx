@@ -38,6 +38,9 @@ interface CanvasProps {
   onRemoveGroup: (groupIndex: number) => void;
   onSetSpec: (slot: CompSlot, specToken: string | null) => void;
   onSetClass: (slot: CompSlot, classToken: string) => void;
+  /** Names of a placed roster member's OTHER claimed characters that are
+   * also placed in this comp — surfaces same-player alt collisions. */
+  getAltWarning?: (rosterMemberId: string | null) => string[];
 }
 
 // One filled snap-block: class icon first, class-colored name, spec label.
@@ -52,6 +55,7 @@ export function CompBlock({
   onDragStart,
   onDragEnd,
   dragging,
+  altWarningNames = [],
 }: {
   slot: CompSlot;
   expansion: ExpansionDef;
@@ -61,6 +65,8 @@ export function CompBlock({
   onDragStart: () => void;
   onDragEnd: () => void;
   dragging: boolean;
+  /** Names of this character's OTHER claimed characters also placed in the comp. */
+  altWarningNames?: string[];
 }) {
   const cls = expansion.classes.find((c) => c.token === slot.classToken);
   const spec = slot.specToken
@@ -91,13 +97,15 @@ export function CompBlock({
         dragging ? "opacity-40" : ""
       } ${stale ? "opacity-60" : ""} ${
         isPlaceholder ? "border border-dashed border-discord-text-muted/50" : ""
-      }`}
+      } ${altWarningNames.length > 0 ? "ring-discord-yellow/60 ring-1" : ""}`}
       title={
         stale
           ? `${label} is no longer on the roster — remove the block or replace it`
           : isPlaceholder
             ? "Placeholder — no roster member assigned. Drag a roster member onto it to fill the slot."
-            : undefined
+            : altWarningNames.length > 0
+              ? `Same player as ${altWarningNames.join(", ")}, also placed in this comp`
+              : undefined
       }
     >
       {icon ? (
@@ -116,6 +124,11 @@ export function CompBlock({
       >
         {label}
       </span>
+      {altWarningNames.length > 0 && (
+        <span className="text-discord-yellow shrink-0 text-xs" aria-hidden>
+          ⚠
+        </span>
+      )}
       {!stale && expansion.hasSpecs && (
         <button
           type="button"
@@ -264,6 +277,7 @@ export function RaidCompCanvas({
   onRemoveGroup,
   onSetSpec,
   onSetClass,
+  getAltWarning,
 }: CanvasProps) {
   const bench = benchSlots(comp);
   const dragActive = dragPayload != null;
@@ -275,6 +289,7 @@ export function RaidCompCanvas({
     expansion,
     onSetSpec,
     onSetClass,
+    altWarningNames: getAltWarning?.(slot.rosterMemberId) ?? [],
     dragging: draggingSlotKey === key,
     onDragStart: () => {
       setDraggingSlotKey(key);

@@ -24,12 +24,14 @@ export function RaidCompRoles({
   onRemoveAt,
   onSetSpec,
   onSetClass,
+  getAltWarning,
 }: {
   expansion: ExpansionDef;
   comp: CompState;
   onRemoveAt: (ref: SlotRef) => void;
   onSetSpec: (slot: CompSlot, specToken: string | null) => void;
   onSetClass: (slot: CompSlot, classToken: string) => void;
+  getAltWarning?: (rosterMemberId: string | null) => string[];
 }) {
   const placed = comp.slots.filter((s) => s.groupIndex >= 0);
   const bench = benchSlots(comp);
@@ -62,6 +64,7 @@ export function RaidCompRoles({
       }),
     onSetSpec,
     onSetClass,
+    altWarningNames: getAltWarning?.(slot.rosterMemberId) ?? [],
   });
 
   return (

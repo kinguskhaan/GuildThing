@@ -93,6 +93,10 @@ export function RaidCompBuilder({
   const [classFilter, setClassFilter] = useState<string[]>([]);
   const [rankFilter, setRankFilter] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"groups" | "roles">("groups");
+  // Raid comps only care about characters at the level cap — default the
+  // drawer to hiding everyone else, since a big roster otherwise buries the
+  // characters an officer actually wants to drag in.
+  const [showLowLevels, setShowLowLevels] = useState(false);
 
   const dirtyRef = useRef(false);
   dirtyRef.current = dirty;
@@ -426,6 +430,49 @@ export function RaidCompBuilder({
       ),
     [draft],
   );
+  // Same-player alt awareness: claimedByDiscordUserId ties every character
+  // a member has claimed together (see guild-roster-table's altsByDiscordId
+  // for the same pattern) — used below to warn when placing a character
+  // whose alt is already sitting elsewhere in this comp, so an officer
+  // doesn't accidentally draft one real player twice under two names.
+  const altsByDiscordId = useMemo(() => {
+    const map = new Map<string, { id: string; name: string }[]>();
+    for (const m of roster.data ?? []) {
+      if (!m.claimedByDiscordUserId) continue;
+      const list = map.get(m.claimedByDiscordUserId) ?? [];
+      list.push({ id: m.id, name: m.name });
+      map.set(m.claimedByDiscordUserId, list);
+    }
+    return map;
+  }, [roster.data]);
+  const discordUserIdByRosterId = useMemo(
+    () =>
+      new Map(
+        (roster.data ?? [])
+          .filter((m) => m.claimedByDiscordUserId != null)
+          .map((m) => [m.id, m.claimedByDiscordUserId!]),
+      ),
+    [roster.data],
+  );
+  // Names of a roster member's OTHER claimed characters that are already
+  // placed somewhere in this comp (empty when none, or when they themselves
+  // are the one placed). Used both by the drawer (about to place someone)
+  // and by placed blocks (already placed, showing who else shares a player).
+  const altWarningForRosterId = useCallback(
+    (rosterMemberId: string | null) => {
+      const discordUserId = rosterMemberId ? discordUserIdByRosterId.get(rosterMemberId) : undefined;
+      if (!discordUserId) return [];
+      const alts = altsByDiscordId.get(discordUserId) ?? [];
+      return alts
+        .filter((a) => a.id !== rosterMemberId && placedMemberIds.has(a.id))
+        .map((a) => a.name);
+    },
+    [altsByDiscordId, discordUserIdByRosterId, placedMemberIds],
+  );
+  const altWarningFor = useCallback(
+    (member: { id: string }) => altWarningForRosterId(member.id),
+    [altWarningForRosterId],
+  );
   // Guild ranks as they appear on the roster, most common first then
   // alphabetical — the filter chips mirror that order so officers see the
   // ranks their guild actually uses. (Hooks order: kept above the early
@@ -489,8 +536,12 @@ export function RaidCompBuilder({
       classFilter.length === 0 || (m.class != null && classFilter.includes(m.class));
     const matchesRank =
       rankFilter.length === 0 || (m.rank != null && rankFilter.includes(m.rank));
-    return matchesSearch && matchesClass && matchesRank;
+    const matchesLevel = showLowLevels || m.level == null || m.level >= expansion.maxLevel;
+    return matchesSearch && matchesClass && matchesRank && matchesLevel;
   });
+  const lowLevelCount = (roster.data ?? []).filter(
+    (m) => m.level != null && m.level < expansion.maxLevel,
+  ).length;
 
   return (
     <div className="flex w-full flex-col gap-3">
@@ -649,6 +700,16 @@ export function RaidCompBuilder({
               );
             })}
           </div>
+          {lowLevelCount > 0 && (
+            <label className="text-discord-text-muted flex items-center gap-1.5 text-xs">
+              <input
+                type="checkbox"
+                checked={showLowLevels}
+                onChange={(e) => setShowLowLevels(e.target.checked)}
+              />
+              Show below level {expansion.maxLevel} ({lowLevelCount})
+            </label>
+          )}
           {distinctRanks.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {distinctRanks.map((rank) => {
@@ -720,6 +781,7 @@ export function RaidCompBuilder({
             )}
             {members.map((m) => {
               const placed = placedMemberIds.has(m.id);
+              const altsInComp = placed ? [] : altWarningFor(m);
               return (
                 <div
                   key={m.id}
@@ -746,10 +808,17 @@ export function RaidCompBuilder({
                     e.preventDefault();
                     placeFromDrawer(m);
                   }}
+                  title={
+                    altsInComp.length > 0
+                      ? `Same player as ${altsInComp.join(", ")}, already in this comp`
+                      : undefined
+                  }
                   className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-left transition ${
                     placed
                       ? "cursor-default opacity-40"
-                      : "cursor-pointer hover:bg-discord-elevated-hover"
+                      : altsInComp.length > 0
+                        ? "bg-discord-yellow/10 ring-discord-yellow/60 cursor-pointer ring-1 hover:bg-discord-elevated-hover"
+                        : "cursor-pointer hover:bg-discord-elevated-hover"
                   }`}
                 >
                   <img
@@ -767,6 +836,11 @@ export function RaidCompBuilder({
                   >
                     {m.name}
                   </span>
+                  {altsInComp.length > 0 && (
+                    <span className="text-discord-yellow shrink-0 text-xs" aria-hidden>
+                      ⚠
+                    </span>
+                  )}
                   {placed && (
                     <span className="text-discord-text-muted text-xs">in comp</span>
                   )}
@@ -814,6 +888,7 @@ export function RaidCompBuilder({
               onRemoveGroup={removeGroup}
               onSetSpec={handleSetSpec}
               onSetClass={handleSetClass}
+              getAltWarning={altWarningForRosterId}
             />
           ) : (
             <RaidCompRoles
@@ -822,6 +897,7 @@ export function RaidCompBuilder({
               onRemoveAt={removeAt}
               onSetSpec={handleSetSpec}
               onSetClass={handleSetClass}
+              getAltWarning={altWarningForRosterId}
             />
           )}
           <RaidCompCoverage expansion={expansion} comp={comp} />

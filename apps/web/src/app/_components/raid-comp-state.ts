@@ -58,10 +58,13 @@ export function groupSlots(comp: CompState, groupIndex: number): CompSlot[] {
 
 
 // Does any placed slot provide this buff? A buff with specToken(s) is tied
-// to specific spec(s) (TBC Battle Shout: Arms OR Fury; Commanding Shout:
-// Protection only); a buff with only a classToken comes from any member of
-// the class (e.g. a mage's Arcane Intellect). Buffs with neither are
-// outside the auto-coverage model and render as uncovered.
+// to specific spec(s) that actually require a talent for it (e.g. TBC
+// Blessing of Sanctuary: Protection only); a buff with only a classToken
+// comes from any member of the class regardless of spec (e.g. a mage's
+// Arcane Intellect, or a warrior's Battle Shout/Commanding Shout — both are
+// base trainer abilities, not talent-locked to Arms/Fury or Protection).
+// Buffs with neither are outside the auto-coverage model and render as
+// uncovered.
 export function providedBySlots(
   buff: { specToken?: string; specTokens?: string[]; classToken?: string },
   slots: CompSlot[],

@@ -61,6 +61,8 @@ export interface ExpansionDef {
   raidSize: number;
   groupSize: 5;
   hasSpecs: boolean;
+  /** Level cap — raid comp planning only cares about characters at this level. */
+  maxLevel: number;
   classes: WowClass[];
   specs: WowSpec[];
   buffs: BuffDef[];
@@ -191,7 +193,10 @@ const SPECS_MOP: WowSpec[] = [
 
 const CLASSIC_BUFFS: BuffDef[] = [
   { id: "arcane-intellect", label: "Arcane Intellect", icon: "arcane-intellect", scope: "group", kind: "buff", classToken: "MAGE" },
-  { id: "battle-shout", label: "Battle Shout", icon: "battle-shout", scope: "group", kind: "buff", specTokens: ["ARMS", "FURY"] },
+  // Battle Shout is a trainer-taught base ability (any spec, no talent) —
+  // verified on Wowhead: "Requires Warrior", "Requires level 1", no talent
+  // prerequisite. Not spec-locked to Arms/Fury.
+  { id: "battle-shout", label: "Battle Shout", icon: "battle-shout", scope: "group", kind: "buff", classToken: "WARRIOR" },
   { id: "blessing-of-kings", label: "Blessing of Kings", icon: "blessing-of-kings", scope: "group", kind: "buff", specToken: "PROTECTION_PALADIN" },
   { id: "blessing-of-sanctuary", label: "Blessing of Sanctuary", icon: "blessing-of-sanctuary", scope: "group", kind: "buff", specToken: "PROTECTION_PALADIN" },
   { id: "devotion-aura", label: "Devotion Aura", icon: "devotion-aura", scope: "group", kind: "buff", classToken: "PALADIN" },
@@ -228,11 +233,23 @@ const CLASSIC_BUFFS: BuffDef[] = [
 
 const TBC_BUFFS: BuffDef[] = [
   { id: "arcane-intellect", label: "Arcane Intellect", icon: "arcane-intellect", scope: "group", kind: "buff", classToken: "MAGE" },
-  { id: "battle-shout", label: "Battle Shout", icon: "battle-shout", scope: "group", kind: "buff", specTokens: ["ARMS", "FURY"] },
+  // Battle Shout and Commanding Shout are both trainer-taught base warrior
+  // abilities (verified on Wowhead: "Requires Warrior", no talent
+  // prerequisite) — any spec can cast either, they're just mutually
+  // exclusive in-game (one shout active at a time), not spec-locked.
+  { id: "battle-shout", label: "Battle Shout", icon: "battle-shout", scope: "group", kind: "buff", classToken: "WARRIOR" },
   { id: "blessing-of-kings", label: "Blessing of Kings", icon: "blessing-of-kings", scope: "group", kind: "buff", classToken: "PALADIN" },
-  { id: "blessing-of-sanctuary", label: "Blessing of Sanctuary", icon: "blessing-of-sanctuary", scope: "group", kind: "buff", classToken: "PALADIN" },
+  { id: "blessing-of-might", label: "Blessing of Might", icon: "blessing-of-might", scope: "group", kind: "buff", classToken: "PALADIN" },
+  // wowtbc.gg's own icon set has no "Blessing of Light" asset (unlike every
+  // other Blessing) — it's the one Blessing raid-comp tools conventionally
+  // skip tracking, being rarely the optimal choice over the others.
+  { id: "blessing-of-salvation", label: "Blessing of Salvation", icon: "salvation", scope: "group", kind: "buff", classToken: "PALADIN" },
+  // Requires the Protection tree's "Sanctuary" talent — unlike the other
+  // Blessings, not castable by just any Paladin.
+  { id: "blessing-of-sanctuary", label: "Blessing of Sanctuary", icon: "blessing-of-sanctuary", scope: "group", kind: "buff", specToken: "PROTECTION_PALADIN" },
+  { id: "blessing-of-wisdom", label: "Blessing of Wisdom", icon: "blessing-of-wisdom", scope: "group", kind: "buff", classToken: "PALADIN" },
   { id: "bloodlust", label: "Bloodlust", icon: "bloodlust", scope: "raid", kind: "buff", classToken: "SHAMAN" },
-  { id: "commanding-shout", label: "Commanding Shout", icon: "commanding-shout", scope: "group", kind: "buff", specToken: "PROTECTION_WARRIOR" },
+  { id: "commanding-shout", label: "Commanding Shout", icon: "commanding-shout", scope: "group", kind: "buff", classToken: "WARRIOR" },
   { id: "devotion-aura", label: "Devotion Aura", icon: "devotion-aura", scope: "group", kind: "buff", classToken: "PALADIN" },
   { id: "divine-spirit", label: "Divine Spirit", icon: "divine-spirit", scope: "group", kind: "buff", classToken: "PRIEST" },
   { id: "earth-shield", label: "Earth Shield", icon: "earth-shield", scope: "group", kind: "buff", specToken: "RESTORATION_SHAMAN" },
@@ -364,6 +381,7 @@ export const EXPANSIONS: Record<ExpansionId, ExpansionDef> = {
     raidSize: 40,
     groupSize: 5,
     hasSpecs: true,
+    maxLevel: 60,
     classes: CLASSES_9,
     specs: SPECS_CLASSIC,
     buffs: CLASSIC_BUFFS,
@@ -375,6 +393,7 @@ export const EXPANSIONS: Record<ExpansionId, ExpansionDef> = {
     raidSize: 25,
     groupSize: 5,
     hasSpecs: true,
+    maxLevel: 70,
     classes: CLASSES_9,
     specs: SPECS_TBC,
     buffs: TBC_BUFFS,
@@ -386,6 +405,7 @@ export const EXPANSIONS: Record<ExpansionId, ExpansionDef> = {
     raidSize: 25,
     groupSize: 5,
     hasSpecs: true,
+    maxLevel: 80,
     classes: CLASSES_10,
     specs: SPECS_WOTLK,
     buffs: [...WOTLK_BUFFS, ...WOTLK_ONLY_BUFFS],
@@ -397,6 +417,7 @@ export const EXPANSIONS: Record<ExpansionId, ExpansionDef> = {
     raidSize: 25,
     groupSize: 5,
     hasSpecs: true,
+    maxLevel: 85,
     classes: CLASSES_10,
     specs: SPECS_CATA,
     buffs: CATA_MOP_BUFFS_BASE,
@@ -408,6 +429,7 @@ export const EXPANSIONS: Record<ExpansionId, ExpansionDef> = {
     raidSize: 25,
     groupSize: 5,
     hasSpecs: true,
+    maxLevel: 90,
     classes: CLASSES_11,
     specs: SPECS_MOP,
     buffs: CATA_MOP_BUFFS_BASE,
