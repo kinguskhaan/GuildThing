@@ -172,6 +172,21 @@ function withCataSpellIds(buffs: BuffDef[]): BuffDef[] {
   }));
 }
 
+// Blessing of Sanctuary got a new spell id in Wrath despite the ability
+// itself carrying over unchanged from TBC — confirmed via Wowhead's
+// "Modified by" list (Protection's Stoicism talent) on the Wrath spell
+// page. The shared SPELL_IDS value (27169) is TBC's id specifically.
+const WOTLK_SPELL_ID_OVERRIDES: Record<string, number> = {
+  "blessing-of-sanctuary": 20911,
+};
+
+function withWotlkSpellIds(buffs: BuffDef[]): BuffDef[] {
+  return buffs.map((b) => ({
+    ...b,
+    spellId: WOTLK_SPELL_ID_OVERRIDES[b.id] ?? SPELL_IDS[b.id],
+  }));
+}
+
 function withSpellIds(buffs: BuffDef[]): BuffDef[] {
   return buffs.map((b) => ({ ...b, spellId: SPELL_IDS[b.id] }));
 }
@@ -413,6 +428,11 @@ const TBC_BUFFS: BuffDef[] = [
 
   { id: "blood-frenzy", label: "Blood Frenzy", icon: "blood-frenzy", scope: "group", kind: "debuff", specToken: "ARMS" },
   { id: "expose-weakness", label: "Expose Weakness", icon: "expose-weakness", scope: "group", kind: "debuff", specToken: "SURVIVAL" },
+  // Both base abilities (no talent requirement) — omitted from the original
+  // TBC list even though present in every later expansion's; every raid
+  // brings a warrior tank regardless, but track them for completeness.
+  { id: "sunder-armor", label: "Sunder Armor", icon: "sunder-armor", scope: "group", kind: "debuff", classToken: "WARRIOR" },
+  { id: "expose-armor", label: "Expose Armor", icon: "expose-armor", scope: "group", kind: "debuff", classToken: "ROGUE" },
   { id: "faerie-fire", label: "Faerie Fire", icon: "faerie-fire", scope: "group", kind: "debuff", classToken: "DRUID" },
   { id: "hemorrhage", label: "Hemorrhage", icon: "hemorrhage", scope: "group", kind: "debuff", specToken: "SUBTLETY" },
   { id: "improved-demoralizing-shout", label: "Improved Demoralizing Shout", icon: "improved-demoralizing-shout", scope: "group", kind: "debuff", specToken: "PROTECTION_WARRIOR" },
@@ -434,7 +454,11 @@ const WOTLK_BUFFS: BuffDef[] = [
   { id: "arcane-intellect", label: "Arcane Intellect", icon: "arcane-intellect", scope: "group", kind: "buff", classToken: "MAGE" },
   { id: "battle-shout", label: "Battle Shout", icon: "battle-shout", scope: "group", kind: "buff", classToken: "WARRIOR" },
   { id: "blessing-of-kings", label: "Blessing of Kings", icon: "blessing-of-kings", scope: "group", kind: "buff", classToken: "PALADIN" },
-  { id: "blessing-of-sanctuary", label: "Blessing of Sanctuary", icon: "blessing-of-sanctuary", scope: "group", kind: "buff", classToken: "PALADIN" },
+  // Still requires the Protection "Sanctuary" talent in Wrath, same as TBC —
+  // confirmed via Wowhead's "Modified by" list (Stoicism, a Protection
+  // talent). Uses its own spellId (see WOTLK_SPELL_ID_OVERRIDES) since
+  // Wrath's version has a different id than TBC's.
+  { id: "blessing-of-sanctuary", label: "Blessing of Sanctuary", icon: "blessing-of-sanctuary", scope: "group", kind: "buff", specToken: "PROTECTION_PALADIN" },
   { id: "devotion-aura", label: "Devotion Aura", icon: "devotion-aura", scope: "group", kind: "buff", classToken: "PALADIN" },
   { id: "divine-spirit", label: "Divine Spirit", icon: "divine-spirit", scope: "group", kind: "buff", classToken: "PRIEST" },
   { id: "power-word-fortitude", label: "Power Word: Fortitude", icon: "power-word-fortitude", scope: "group", kind: "buff", classToken: "PRIEST" },
@@ -446,10 +470,15 @@ const WOTLK_BUFFS: BuffDef[] = [
   { id: "innervate", label: "Innervate", icon: "innervate", scope: "group", kind: "buff", classToken: "DRUID" },
   { id: "mana-tide-totem", label: "Mana Tide Totem", icon: "mana-tide-totem", scope: "group", kind: "buff", specToken: "RESTORATION_SHAMAN" },
   { id: "totem-of-wrath", label: "Totem of Wrath", icon: "totem-of-wrath", scope: "group", kind: "buff", specToken: "ELEMENTAL" },
-  { id: "trueshot-aura", label: "Trueshot Aura", icon: "trueshot-aura", scope: "group", kind: "buff", classToken: "HUNTER" },
+  // Marksmanship talent in Wrath, same tree as TBC — confirmed via
+  // Wowhead's talent-tree tag on the spell page.
+  { id: "trueshot-aura", label: "Trueshot Aura", icon: "trueshot-aura", scope: "group", kind: "buff", specToken: "MARKSMANSHIP" },
   { id: "unleashed-rage", label: "Unleashed Rage", icon: "unleashed-rage", scope: "group", kind: "buff", specToken: "ENHANCEMENT" },
   { id: "blood-pact", label: "Blood Pact", icon: "blood-pact", scope: "group", kind: "buff", classToken: "WARLOCK" },
   { id: "bloodlust", label: "Bloodlust", icon: "bloodlust", scope: "raid", kind: "buff", classToken: "SHAMAN" },
+  // Discipline talent, still present and unchanged in Wrath — was missing
+  // from this list entirely despite existing in TBC's.
+  { id: "pain-suppression", label: "Pain Suppression", icon: "pain-suppression", scope: "group", kind: "buff", specToken: "DISCIPLINE" },
   { id: "commanding-shout", label: "Commanding Shout", icon: "commanding-shout", scope: "group", kind: "buff", classToken: "WARRIOR" },
   { id: "vampiric-embrace", label: "Vampiric Embrace", icon: "vampiric-embrace", scope: "group", kind: "buff", specToken: "SHADOW" },
   { id: "sanctity-aura", label: "Sanctity Aura", icon: "sanctity-aura", scope: "group", kind: "buff", specToken: "RETRIBUTION" },
@@ -483,7 +512,9 @@ const CATA_MOP_BUFFS_BASE: BuffDef[] = [
   { id: "devotion-aura", label: "Devotion Aura", icon: "devotion-aura", scope: "raid", kind: "buff", classToken: "PALADIN" },
   { id: "horn-of-winter", label: "Horn of Winter", icon: "horn-of-winter", scope: "raid", kind: "buff", classToken: "DEATHKNIGHT" },
   { id: "strength-of-earth-totem", label: "Strength of Earth Totem", icon: "strength-of-earth-totem", scope: "raid", kind: "buff", classToken: "SHAMAN" },
-  { id: "windfury-totem", label: "Windfury Totem", icon: "windfury-totem", scope: "raid", kind: "buff", specToken: "ENHANCEMENT" },
+  // Cata Quick Facts: plain "Requires Shaman", trainer-taught — not
+  // Enhancement-locked (unlike unleashed-rage below, which genuinely is).
+  { id: "windfury-totem", label: "Windfury Totem", icon: "windfury-totem", scope: "raid", kind: "buff", classToken: "SHAMAN" },
   { id: "bloodlust", label: "Bloodlust", icon: "bloodlust", scope: "raid", kind: "buff", classToken: "SHAMAN" },
   { id: "unleashed-rage", label: "Unleashed Rage", icon: "unleashed-rage", scope: "raid", kind: "buff", specToken: "ENHANCEMENT" },
   { id: "trueshot-aura", label: "Trueshot Aura", icon: "trueshot-aura", scope: "raid", kind: "buff", classToken: "HUNTER" },
@@ -548,7 +579,7 @@ export const EXPANSIONS: Record<ExpansionId, ExpansionDef> = {
     maxLevel: 80,
     classes: CLASSES_10,
     specs: SPECS_WOTLK,
-    buffs: withSpellIds([...WOTLK_BUFFS, ...WOTLK_ONLY_BUFFS]),
+    buffs: withWotlkSpellIds([...WOTLK_BUFFS, ...WOTLK_ONLY_BUFFS]),
   },
   cata: {
     id: "cata",
