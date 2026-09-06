@@ -108,6 +108,18 @@ export function GuildFlowStepNode({ data, selected }: NodeProps) {
   );
 }
 
+// Cosmetic-only dead-end marker (see endStubs in guild-flow-editor.tsx) —
+// not a real step, never saved. Shows an intentional "flow stops here" for
+// a question option nothing wires up (e.g. a bare "No" answer).
+export function GuildFlowEndNode() {
+  return (
+    <div className="border-discord-text-muted/40 text-discord-text-muted bg-discord-base rounded-full border border-dashed px-3 py-1.5 text-xs font-semibold">
+      <Handle type="target" position={Position.Left} isConnectable={false} />
+      End flow
+    </div>
+  );
+}
+
 export function GuildFlowStartNode() {
   return (
     <div className="border-discord-green text-discord-green bg-discord-base rounded-full border px-4 py-2 text-sm font-semibold">

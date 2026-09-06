@@ -23,7 +23,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { api } from "~/trpc/react";
 import type { RouterOutputs } from "~/trpc/react";
-import { GuildFlowStartNode, GuildFlowStepNode } from "./guild-flow-node";
+import {
+  GuildFlowEndNode,
+  GuildFlowStartNode,
+  GuildFlowStepNode,
+} from "./guild-flow-node";
 import { GuildFlowQuestionPanel } from "./guild-flow-question-panel";
 import { GuildFlowConditionPanel } from "./guild-flow-condition-panel";
 import { GuildFlowActionPanel } from "./guild-flow-action-panel";
@@ -112,6 +116,7 @@ const START_ID = "start";
 const nodeTypes = {
   start: GuildFlowStartNode,
   step: GuildFlowStepNode,
+  end: GuildFlowEndNode,
 };
 
 // The label shown on an edge's wire — the same text a condition would
@@ -274,6 +279,39 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
     setSelectedEdgeId((cur) => (cur === id ? null : cur));
   }
 
+  // Purely cosmetic "dead end" markers: a single/multi-select question's
+  // options that no outgoing edge covers (and no catch-all "always" edge
+  // swallows) would otherwise just trail off into nothing on the canvas —
+  // indistinguishable from a step someone forgot to wire up. Stub these as
+  // a synthetic "End flow" node so a bare "No" branch reads as intentional.
+  // Client-side only: never touches steps/edgeDrafts, never saved.
+  const endStubs = useMemo(() => {
+    const stubs: { id: string; stepId: string; label: string; index: number }[] =
+      [];
+    for (const step of steps) {
+      if (step.type !== "question" || step.questionType === "free_text") {
+        continue;
+      }
+      const outgoing = edgeDrafts.filter((e) => e.fromStepId === step.id);
+      if (outgoing.some((e) => e.conditionType === "always")) continue;
+      const covered = new Set(
+        outgoing
+          .filter((e) => e.conditionType === "answer_equals")
+          .flatMap((e) => e.conditionOptionIds),
+      );
+      const uncovered = step.options.filter((o) => !covered.has(o.id));
+      uncovered.forEach((o, i) => {
+        stubs.push({
+          id: `end-${step.id}-${o.id}`,
+          stepId: step.id,
+          label: o.label.trim() || "(untitled)",
+          index: i,
+        });
+      });
+    }
+    return stubs;
+  }, [steps, edgeDrafts]);
+
   const nodes: Node[] = useMemo(() => {
     const startNode: Node = {
       id: START_ID,
@@ -289,12 +327,27 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
       data: { step: s },
       selected: s.id === selectedStepId,
     }));
-    return [startNode, ...stepNodes];
-  }, [steps, startPos, selectedStepId]);
+    const endNodes: Node[] = endStubs.map((stub) => {
+      const step = steps.find((s) => s.id === stub.stepId);
+      return {
+        id: stub.id,
+        type: "end",
+        position: {
+          x: (step?.canvasX ?? 0) + 280,
+          y: (step?.canvasY ?? 0) + stub.index * 56,
+        },
+        data: {},
+        selectable: false,
+        deletable: false,
+        draggable: false,
+      };
+    });
+    return [startNode, ...stepNodes, ...endNodes];
+  }, [steps, startPos, selectedStepId, endStubs]);
 
   const edges: Edge[] = useMemo(() => {
     const arrow = { type: MarkerType.ArrowClosed, color: "#8b90a0" };
-    return edgeDrafts.map((e) => ({
+    const wireEdges: Edge[] = edgeDrafts.map((e) => ({
       id: e.id,
       source: e.fromStepId ?? START_ID,
       target: e.toStepId,
@@ -308,7 +361,19 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
       labelBgStyle: { fill: "#2b2d31" },
       markerEnd: arrow,
     }));
-  }, [edgeDrafts, steps, selectedEdgeId]);
+    const endEdges: Edge[] = endStubs.map((stub) => ({
+      id: `edge-${stub.id}`,
+      source: stub.stepId,
+      target: stub.id,
+      label: `${stub.label} → End flow`,
+      selectable: false,
+      style: { stroke: "#6b7280", strokeWidth: 1, strokeDasharray: "4 3" },
+      labelStyle: { fill: "#8b90a0", fontSize: 10, fontStyle: "italic" },
+      labelBgStyle: { fill: "#2b2d31" },
+      markerEnd: { type: MarkerType.ArrowClosed, color: "#6b7280" },
+    }));
+    return [...wireEdges, ...endEdges];
+  }, [edgeDrafts, steps, selectedEdgeId, endStubs]);
 
   function posOf(id: string): { x: number; y: number } {
     if (id === START_ID) return startPos;
@@ -367,7 +432,7 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
   );
 
   const onNodeClick = useCallback((_: unknown, node: Node) => {
-    if (node.id === START_ID) return;
+    if (node.id === START_ID || node.type === "end") return;
     setSelectedEdgeId(null);
     setSelectedStepId(node.id);
   }, []);
