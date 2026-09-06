@@ -430,8 +430,6 @@ exports.Prisma.GuildOnboardingStepScalarFieldEnum = {
   guildId: 'guildId',
   type: 'type',
   label: 'label',
-  canvasX: 'canvasX',
-  canvasY: 'canvasY',
   createdAt: 'createdAt',
   prompt: 'prompt',
   questionType: 'questionType',

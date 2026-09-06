@@ -1,30 +1,42 @@
 "use client";
 
-// Canvas node components for the onboarding flow editor — one generic step
-// card (badged by step type) plus the fixed Start pill. The old builtin
-// waterfall nodes and the separate condition-box node are gone: the flow is
-// fully admin-built now, and a "condition" is a real step node whose
-// OUTGOING WIRES carry the conditions (see GuildFlowEdgePanel).
+// Canvas node components for the onboarding flow workspace — one generic
+// step card (badged by step type, quick-add "+" underneath) plus the fixed
+// Start pill and the selectable "End flow" dead-end marker. Positions come
+// from an auto-layout pass (see layout in guild-flow-editor.tsx), never
+// from stored coordinates or manual dragging — a "condition" is a real
+// step node whose OUTGOING connections carry the conditions (see
+// GuildFlowEdgePanel).
 
 import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { useState } from "react";
 
 import type { StepDraft } from "./guild-flow-editor";
 
 const TYPE_KICKERS: Record<StepDraft["type"], string> = {
-  question: "QUESTION",
-  condition: "CONDITION",
-  action: "ACTION",
+  question: "FRÅGA",
+  condition: "GREN",
+  action: "ÅTGÄRD",
   loop: "LOOP",
 };
 
 // Canvas fallback titles for non-question steps — questions show their
 // prompt instead.
 const TYPE_TITLES: Record<StepDraft["type"], string> = {
-  question: "Question",
-  condition: "Condition",
-  action: "Action",
+  question: "Fråga",
+  condition: "Gren",
+  action: "Åtgärd",
   loop: "Loop",
 };
+
+// The step palette, shared by the toolbar chips, the rail's Lägg till
+// grid and the nodes' quick-add "+" menu — one list, one vocabulary.
+export const NEW_STEP_TYPES: { value: StepDraft["type"]; label: string }[] = [
+  { value: "question", label: "Fråga" },
+  { value: "condition", label: "Gren" },
+  { value: "action", label: "Åtgärd" },
+  { value: "loop", label: "Loop" },
+];
 
 const QUESTION_TYPE_LABELS: Record<StepDraft["questionType"], string> = {
   single_select: "Single choice",
@@ -38,6 +50,13 @@ const ACTION_TYPE_LABELS: Record<StepDraft["actionType"], string> = {
   grant: "Set role/channel",
   dm: "Send DM",
 };
+
+// The title shown on a step's card and in From/To pickers — questions show
+// their prompt, other types fall back to their label or generic type name.
+export function titleFor(step: StepDraft): string {
+  if (step.type === "question") return step.prompt.trim() || "Untitled question";
+  return step.label.trim() || TYPE_TITLES[step.type];
+}
 
 // One muted line under the card title summarizing the step's config —
 // alternative count for questions, the action type (and its key variable)
@@ -57,7 +76,7 @@ export function stepSummary(step: StepDraft): string {
       return bits.join(" · ");
     }
     case "condition":
-      return "Branch — outgoing wires carry the conditions";
+      return "Branch — outgoing connections carry the conditions";
     case "action": {
       const bits = [ACTION_TYPE_LABELS[step.actionType]];
       if (
@@ -82,51 +101,101 @@ export function stepSummary(step: StepDraft): string {
   }
 }
 
-export function GuildFlowStepNode({ data, selected }: NodeProps) {
-  const step = (data as { step: StepDraft }).step;
-  const title =
-    step.type === "question"
-      ? (step.prompt.trim() || "Untitled question")
-      : (step.label.trim() || TYPE_TITLES[step.type]);
+export function GuildFlowStepNode({
+  data,
+  selected,
+}: NodeProps) {
+  const { step, hovered, onQuickAdd } = data as {
+    step: StepDraft;
+    hovered?: boolean;
+    onQuickAdd?: (type: StepDraft["type"]) => void;
+  };
+  const title = titleFor(step);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div
-      className={`bg-discord-base min-w-[200px] max-w-[240px] rounded-xl border px-3 py-2 text-sm text-discord-text ${
-        selected ? "border-discord-brand" : "border-black/20"
+      className={`group/node relative bg-discord-elevated w-56 rounded-xl border px-3 py-2.5 text-sm text-discord-text transition-shadow ${
+        selected
+          ? "border-discord-brand shadow-[0_0_0_1px_#5865f2,0_4px_16px_rgba(88,101,242,0.25)]"
+          : hovered
+            ? "border-[color:var(--schem-line)] shadow-[0_0_12px_rgba(159,212,245,0.3)]"
+            : "border-black/20"
       }`}
     >
-      <Handle type="target" position={Position.Left} />
-      <span className="schem-kicker text-discord-text-muted" style={{ fontSize: 10 }}>
+      <Handle type="target" position={Position.Top} />
+      <span className="schem-kicker text-[10px] text-discord-text-muted">
         {TYPE_KICKERS[step.type]}
       </span>
-      <div className="truncate font-semibold">{title}</div>
-      <div className="text-discord-text-muted mt-1 text-xs">
+      <div className="mt-0.5 line-clamp-2 leading-snug font-semibold">{title}</div>
+      <div className="text-discord-text-muted mt-1 line-clamp-1 text-xs">
         {stepSummary(step)}
       </div>
-      <Handle type="source" position={Position.Right} />
-    </div>
-  );
-}
+      <Handle type="source" position={Position.Bottom} />
 
-// Cosmetic-only dead-end marker (see endStubs in guild-flow-editor.tsx) —
-// not a real step, never saved. Shows an intentional "flow stops here" for
-// a question option nothing wires up (e.g. a bare "No" answer).
-export function GuildFlowEndNode() {
-  return (
-    <div className="border-discord-text-muted/40 text-discord-text-muted bg-discord-base rounded-full border border-dashed px-3 py-1.5 text-xs font-semibold">
-      <Handle type="target" position={Position.Left} isConnectable={false} />
-      End flow
+      {/* Quick-add: the next step, one click from the node it follows —
+          the same append a palette drop onto this node performs. */}
+      {onQuickAdd && (
+        <div className="pointer-events-none absolute top-full left-1/2 z-10 -translate-x-1/2 pt-3">
+          {menuOpen ? (
+            <div
+              className="bg-discord-elevated pointer-events-auto flex w-32 flex-col gap-0.5 rounded-lg border border-black/20 p-1 shadow-[0_8px_24px_rgba(0,0,0,0.5)]"
+              onMouseLeave={() => setMenuOpen(false)}
+            >
+              {NEW_STEP_TYPES.map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onQuickAdd(t.value);
+                  }}
+                  className="hover:bg-discord-elevated-hover rounded-md px-2 py-1 text-left text-xs font-semibold"
+                >
+                  + {t.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setMenuOpen(true)}
+              className="bg-discord-elevated text-discord-text-muted hover:text-discord-text hover:border-[color:var(--schem-line)] pointer-events-auto invisible flex h-6 w-6 items-center justify-center rounded-full border border-black/20 text-sm font-bold group-hover/node:visible hover:visible"
+              aria-label="Nästa steg"
+            >
+              +
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
 export function GuildFlowStartNode() {
   return (
-    <div className="border-discord-green text-discord-green bg-discord-base rounded-full border px-4 py-2 text-sm font-semibold">
-      {/* Flow entry point — the bot's walk starts here. Not deletable. */}
-      <Handle type="target" position={Position.Top} isConnectable={false} />
+    <div className="border-[color:var(--schem-green)] text-[color:var(--schem-green)] bg-discord-elevated rounded-full border px-4 py-1.5 text-sm font-semibold shadow-[0_0_10px_rgba(35,165,90,0.25)]">
       Start
-      <Handle type="source" position={Position.Right} />
+      <Handle type="source" position={Position.Bottom} isConnectable={false} />
+    </div>
+  );
+}
+
+// A dead-end marker for a question option nothing wires up (e.g. a bare
+// "No" answer). Selectable: the inspector's morph panel converts it into a
+// real step wired where the stub was (see convertStub in the editor).
+export function GuildFlowEndNode({ data, selected }: NodeProps) {
+  const { label } = data as { label?: string };
+  return (
+    <div
+      className={`bg-discord-base cursor-pointer rounded-full border border-dashed px-3 py-1.5 text-xs font-semibold transition ${
+        selected
+          ? "border-[color:var(--schem-line)] text-[color:var(--schem-line)] shadow-[0_0_10px_rgba(159,212,245,0.3)]"
+          : "border-discord-text-muted/40 text-discord-text-muted hover:border-[color:var(--schem-line)] hover:text-[color:var(--schem-line)]"
+      }`}
+    >
+      <Handle type="target" position={Position.Top} isConnectable={false} />
+      {label ? `${label} → End flow` : "End flow"}
     </div>
   );
 }

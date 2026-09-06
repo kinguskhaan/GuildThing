@@ -3142,8 +3142,6 @@ export const guildRouter = createTRPCRouter({
           id: s.id,
           type: s.type,
           label: s.label,
-          canvasX: s.canvasX,
-          canvasY: s.canvasY,
           prompt: s.prompt,
           questionType: s.questionType,
           varName: s.varName,
@@ -3207,8 +3205,6 @@ export const guildRouter = createTRPCRouter({
             id: z.string().min(1),
             type: z.enum(["question", "condition", "action", "loop"]),
             label: z.string().max(100).optional(),
-            canvasX: z.number(),
-            canvasY: z.number(),
             // --- question ---
             prompt: z.string().min(1).max(300).optional(),
             questionType: z
@@ -3506,23 +3502,29 @@ export const guildRouter = createTRPCRouter({
       }
 
       // Cycle check over the graph as it will exist after this save (Start
-      // = null) — rejects a save that would leave the bot's walk spinning
-      // forever, except a back-edge INTO a loop node, which is how a loop
-      // body's last step re-enters the next iteration by design.
-      const outgoing = new Map<string | null, string[]>();
+      // = null). A drawn back-edge loop is legal — that IS the loop model —
+      // but every DFS back-edge must be conditional (or re-enter a legacy
+      // loop node): an unconditional back-edge would spin the bot's walk
+      // until the engine's 50-iteration cap, so the save is rejected
+      // instead. The editor routes the admin through a condition picker on
+      // every ↺ arrow; this is the same rule enforced where it matters.
+      const outgoingEdgesForCycle = new Map<string, (typeof input.edges)[number][]>();
       for (const e of input.edges) {
-        const list = outgoing.get(e.fromStepId) ?? [];
-        list.push(e.toStepId);
-        outgoing.set(e.fromStepId, list);
+        if (e.fromStepId == null) continue;
+        const list = outgoingEdgesForCycle.get(e.fromStepId) ?? [];
+        list.push(e);
+        outgoingEdgesForCycle.set(e.fromStepId, list);
       }
       const visiting = new Set<string>();
       const finished = new Set<string>();
       function hasIllegalCycle(id: string): boolean {
         if (finished.has(id)) return false;
         visiting.add(id);
-        for (const next of outgoing.get(id) ?? []) {
+        for (const edge of outgoingEdgesForCycle.get(id) ?? []) {
+          const next = edge.toStepId;
           if (visiting.has(next)) {
-            if (stepsById.get(next)?.type !== "loop") return true;
+            const reEnteringLegacyLoop = stepsById.get(next)?.type === "loop";
+            if (!reEnteringLegacyLoop && edge.conditionType === "always") return true;
             continue;
           }
           if (hasIllegalCycle(next)) return true;
@@ -3536,7 +3538,7 @@ export const guildRouter = createTRPCRouter({
           throw new TRPCError({
             code: "BAD_REQUEST",
             message:
-              "This flow contains a loop — a step can't (indirectly) lead back to itself outside of a loop node.",
+              "This flow loops back unconditionally — a drawn back-edge (a step leading back to an earlier one) needs a condition, or the walk would never stop.",
           });
         }
       }
@@ -3668,8 +3670,6 @@ export const guildRouter = createTRPCRouter({
               guildId: input.guildId,
               type: s.type,
               label: s.label ?? null,
-              canvasX: s.canvasX,
-              canvasY: s.canvasY,
               prompt: s.prompt ?? null,
               questionType: s.questionType ?? null,
               varName: s.varName ?? null,
@@ -3686,8 +3686,6 @@ export const guildRouter = createTRPCRouter({
             update: {
               type: s.type,
               label: s.label ?? null,
-              canvasX: s.canvasX,
-              canvasY: s.canvasY,
               prompt: s.prompt ?? null,
               questionType: s.questionType ?? null,
               varName: s.varName ?? null,

@@ -157,3 +157,56 @@
   border-radius: 50%;
   flex: none;
 }
+/* ---- Onboarding flow workspace (React Flow) ---- */
+
+/* Handles: the connection points become real affordances — visible dots
+   that grow on node hover, so hand-drawn edges (forward or ↺ back) start
+   somewhere you can actually aim at. */
+.flow-canvas .react-flow__handle {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--schem-line);
+  background: #1e1f22;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.flow-canvas .react-flow__node:hover .react-flow__handle {
+  transform: scale(1.35);
+  box-shadow: 0 0 8px rgba(159, 212, 245, 0.5);
+}
+
+/* Zoom controls: Discord surfaces, not React Flow defaults. */
+.flow-canvas .react-flow__controls {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.flow-canvas .react-flow__controls-button {
+  background: #2b2d31;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  color: #949ba4;
+  width: 28px;
+  height: 28px;
+}
+
+.flow-canvas .react-flow__controls-button:hover {
+  background: #35373c;
+  color: #dbdee1;
+}
+
+.flow-canvas .react-flow__controls-button svg {
+  fill: currentColor;
+}
+
+/* Connection drop hint: a valid target answers the wire in schematic blue. */
+.flow-canvas .react-flow__handle.connectionindicator:hover {
+  box-shadow: 0 0 10px rgba(159, 212, 245, 0.7);
+}
+
+/* Edge labels sit on the discord elevated ground, never the raw default. */
+.flow-canvas .react-flow__edge-textbg {
+  fill: #2b2d31;
+}

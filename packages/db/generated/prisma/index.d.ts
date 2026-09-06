@@ -42430,20 +42430,8 @@ export namespace Prisma {
 
   export type AggregateGuildOnboardingStep = {
     _count: GuildOnboardingStepCountAggregateOutputType | null
-    _avg: GuildOnboardingStepAvgAggregateOutputType | null
-    _sum: GuildOnboardingStepSumAggregateOutputType | null
     _min: GuildOnboardingStepMinAggregateOutputType | null
     _max: GuildOnboardingStepMaxAggregateOutputType | null
-  }
-
-  export type GuildOnboardingStepAvgAggregateOutputType = {
-    canvasX: number | null
-    canvasY: number | null
-  }
-
-  export type GuildOnboardingStepSumAggregateOutputType = {
-    canvasX: number | null
-    canvasY: number | null
   }
 
   export type GuildOnboardingStepMinAggregateOutputType = {
@@ -42451,8 +42439,6 @@ export namespace Prisma {
     guildId: string | null
     type: string | null
     label: string | null
-    canvasX: number | null
-    canvasY: number | null
     createdAt: Date | null
     prompt: string | null
     questionType: string | null
@@ -42473,8 +42459,6 @@ export namespace Prisma {
     guildId: string | null
     type: string | null
     label: string | null
-    canvasX: number | null
-    canvasY: number | null
     createdAt: Date | null
     prompt: string | null
     questionType: string | null
@@ -42495,8 +42479,6 @@ export namespace Prisma {
     guildId: number
     type: number
     label: number
-    canvasX: number
-    canvasY: number
     createdAt: number
     prompt: number
     questionType: number
@@ -42514,23 +42496,11 @@ export namespace Prisma {
   }
 
 
-  export type GuildOnboardingStepAvgAggregateInputType = {
-    canvasX?: true
-    canvasY?: true
-  }
-
-  export type GuildOnboardingStepSumAggregateInputType = {
-    canvasX?: true
-    canvasY?: true
-  }
-
   export type GuildOnboardingStepMinAggregateInputType = {
     id?: true
     guildId?: true
     type?: true
     label?: true
-    canvasX?: true
-    canvasY?: true
     createdAt?: true
     prompt?: true
     questionType?: true
@@ -42551,8 +42521,6 @@ export namespace Prisma {
     guildId?: true
     type?: true
     label?: true
-    canvasX?: true
-    canvasY?: true
     createdAt?: true
     prompt?: true
     questionType?: true
@@ -42573,8 +42541,6 @@ export namespace Prisma {
     guildId?: true
     type?: true
     label?: true
-    canvasX?: true
-    canvasY?: true
     createdAt?: true
     prompt?: true
     questionType?: true
@@ -42629,18 +42595,6 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Select which fields to average
-    **/
-    _avg?: GuildOnboardingStepAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: GuildOnboardingStepSumAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
      * Select which fields to find the minimum value
     **/
     _min?: GuildOnboardingStepMinAggregateInputType
@@ -42671,8 +42625,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: GuildOnboardingStepCountAggregateInputType | true
-    _avg?: GuildOnboardingStepAvgAggregateInputType
-    _sum?: GuildOnboardingStepSumAggregateInputType
     _min?: GuildOnboardingStepMinAggregateInputType
     _max?: GuildOnboardingStepMaxAggregateInputType
   }
@@ -42682,8 +42634,6 @@ export namespace Prisma {
     guildId: string
     type: string
     label: string | null
-    canvasX: number
-    canvasY: number
     createdAt: Date
     prompt: string | null
     questionType: string | null
@@ -42698,8 +42648,6 @@ export namespace Prisma {
     classesVariable: string | null
     listVariable: string | null
     _count: GuildOnboardingStepCountAggregateOutputType | null
-    _avg: GuildOnboardingStepAvgAggregateOutputType | null
-    _sum: GuildOnboardingStepSumAggregateOutputType | null
     _min: GuildOnboardingStepMinAggregateOutputType | null
     _max: GuildOnboardingStepMaxAggregateOutputType | null
   }
@@ -42723,8 +42671,6 @@ export namespace Prisma {
     guildId?: boolean
     type?: boolean
     label?: boolean
-    canvasX?: boolean
-    canvasY?: boolean
     createdAt?: boolean
     prompt?: boolean
     questionType?: boolean
@@ -42753,8 +42699,6 @@ export namespace Prisma {
     guildId?: boolean
     type?: boolean
     label?: boolean
-    canvasX?: boolean
-    canvasY?: boolean
     createdAt?: boolean
     prompt?: boolean
     questionType?: boolean
@@ -42776,8 +42720,6 @@ export namespace Prisma {
     guildId?: boolean
     type?: boolean
     label?: boolean
-    canvasX?: boolean
-    canvasY?: boolean
     createdAt?: boolean
     prompt?: boolean
     questionType?: boolean
@@ -42799,8 +42741,6 @@ export namespace Prisma {
     guildId?: boolean
     type?: boolean
     label?: boolean
-    canvasX?: boolean
-    canvasY?: boolean
     createdAt?: boolean
     prompt?: boolean
     questionType?: boolean
@@ -42816,7 +42756,7 @@ export namespace Prisma {
     listVariable?: boolean
   }
 
-  export type GuildOnboardingStepOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "type" | "label" | "canvasX" | "canvasY" | "createdAt" | "prompt" | "questionType" | "varName" | "varType" | "required" | "appendList" | "actionType" | "nicknameTemplate" | "textTemplate" | "namesVariable" | "classesVariable" | "listVariable", ExtArgs["result"]["guildOnboardingStep"]>
+  export type GuildOnboardingStepOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "guildId" | "type" | "label" | "createdAt" | "prompt" | "questionType" | "varName" | "varType" | "required" | "appendList" | "actionType" | "nicknameTemplate" | "textTemplate" | "namesVariable" | "classesVariable" | "listVariable", ExtArgs["result"]["guildOnboardingStep"]>
   export type GuildOnboardingStepInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     guild?: boolean | GuildDefaultArgs<ExtArgs>
     grants?: boolean | GuildOnboardingStep$grantsArgs<ExtArgs>
@@ -42850,8 +42790,6 @@ export namespace Prisma {
       guildId: string
       type: string
       label: string | null
-      canvasX: number
-      canvasY: number
       createdAt: Date
       prompt: string | null
       questionType: string | null
@@ -43299,8 +43237,6 @@ export namespace Prisma {
     readonly guildId: FieldRef<"GuildOnboardingStep", 'String'>
     readonly type: FieldRef<"GuildOnboardingStep", 'String'>
     readonly label: FieldRef<"GuildOnboardingStep", 'String'>
-    readonly canvasX: FieldRef<"GuildOnboardingStep", 'Float'>
-    readonly canvasY: FieldRef<"GuildOnboardingStep", 'Float'>
     readonly createdAt: FieldRef<"GuildOnboardingStep", 'DateTime'>
     readonly prompt: FieldRef<"GuildOnboardingStep", 'String'>
     readonly questionType: FieldRef<"GuildOnboardingStep", 'String'>
@@ -73551,8 +73487,6 @@ export namespace Prisma {
     guildId: 'guildId',
     type: 'type',
     label: 'label',
-    canvasX: 'canvasX',
-    canvasY: 'canvasY',
     createdAt: 'createdAt',
     prompt: 'prompt',
     questionType: 'questionType',
@@ -76140,8 +76074,6 @@ export namespace Prisma {
     guildId?: StringFilter<"GuildOnboardingStep"> | string
     type?: StringFilter<"GuildOnboardingStep"> | string
     label?: StringNullableFilter<"GuildOnboardingStep"> | string | null
-    canvasX?: FloatFilter<"GuildOnboardingStep"> | number
-    canvasY?: FloatFilter<"GuildOnboardingStep"> | number
     createdAt?: DateTimeFilter<"GuildOnboardingStep"> | Date | string
     prompt?: StringNullableFilter<"GuildOnboardingStep"> | string | null
     questionType?: StringNullableFilter<"GuildOnboardingStep"> | string | null
@@ -76169,8 +76101,6 @@ export namespace Prisma {
     guildId?: SortOrder
     type?: SortOrder
     label?: SortOrderInput | SortOrder
-    canvasX?: SortOrder
-    canvasY?: SortOrder
     createdAt?: SortOrder
     prompt?: SortOrderInput | SortOrder
     questionType?: SortOrderInput | SortOrder
@@ -76201,8 +76131,6 @@ export namespace Prisma {
     guildId?: StringFilter<"GuildOnboardingStep"> | string
     type?: StringFilter<"GuildOnboardingStep"> | string
     label?: StringNullableFilter<"GuildOnboardingStep"> | string | null
-    canvasX?: FloatFilter<"GuildOnboardingStep"> | number
-    canvasY?: FloatFilter<"GuildOnboardingStep"> | number
     createdAt?: DateTimeFilter<"GuildOnboardingStep"> | Date | string
     prompt?: StringNullableFilter<"GuildOnboardingStep"> | string | null
     questionType?: StringNullableFilter<"GuildOnboardingStep"> | string | null
@@ -76230,8 +76158,6 @@ export namespace Prisma {
     guildId?: SortOrder
     type?: SortOrder
     label?: SortOrderInput | SortOrder
-    canvasX?: SortOrder
-    canvasY?: SortOrder
     createdAt?: SortOrder
     prompt?: SortOrderInput | SortOrder
     questionType?: SortOrderInput | SortOrder
@@ -76246,10 +76172,8 @@ export namespace Prisma {
     classesVariable?: SortOrderInput | SortOrder
     listVariable?: SortOrderInput | SortOrder
     _count?: GuildOnboardingStepCountOrderByAggregateInput
-    _avg?: GuildOnboardingStepAvgOrderByAggregateInput
     _max?: GuildOnboardingStepMaxOrderByAggregateInput
     _min?: GuildOnboardingStepMinOrderByAggregateInput
-    _sum?: GuildOnboardingStepSumOrderByAggregateInput
   }
 
   export type GuildOnboardingStepScalarWhereWithAggregatesInput = {
@@ -76260,8 +76184,6 @@ export namespace Prisma {
     guildId?: StringWithAggregatesFilter<"GuildOnboardingStep"> | string
     type?: StringWithAggregatesFilter<"GuildOnboardingStep"> | string
     label?: StringNullableWithAggregatesFilter<"GuildOnboardingStep"> | string | null
-    canvasX?: FloatWithAggregatesFilter<"GuildOnboardingStep"> | number
-    canvasY?: FloatWithAggregatesFilter<"GuildOnboardingStep"> | number
     createdAt?: DateTimeWithAggregatesFilter<"GuildOnboardingStep"> | Date | string
     prompt?: StringNullableWithAggregatesFilter<"GuildOnboardingStep"> | string | null
     questionType?: StringNullableWithAggregatesFilter<"GuildOnboardingStep"> | string | null
@@ -80216,8 +80138,6 @@ export namespace Prisma {
     id?: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -80245,8 +80165,6 @@ export namespace Prisma {
     guildId: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -80272,8 +80190,6 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -80301,8 +80217,6 @@ export namespace Prisma {
     guildId?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -80329,8 +80243,6 @@ export namespace Prisma {
     guildId: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -80350,8 +80262,6 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -80372,8 +80282,6 @@ export namespace Prisma {
     guildId?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -83706,8 +83614,6 @@ export namespace Prisma {
     guildId?: SortOrder
     type?: SortOrder
     label?: SortOrder
-    canvasX?: SortOrder
-    canvasY?: SortOrder
     createdAt?: SortOrder
     prompt?: SortOrder
     questionType?: SortOrder
@@ -83723,18 +83629,11 @@ export namespace Prisma {
     listVariable?: SortOrder
   }
 
-  export type GuildOnboardingStepAvgOrderByAggregateInput = {
-    canvasX?: SortOrder
-    canvasY?: SortOrder
-  }
-
   export type GuildOnboardingStepMaxOrderByAggregateInput = {
     id?: SortOrder
     guildId?: SortOrder
     type?: SortOrder
     label?: SortOrder
-    canvasX?: SortOrder
-    canvasY?: SortOrder
     createdAt?: SortOrder
     prompt?: SortOrder
     questionType?: SortOrder
@@ -83755,8 +83654,6 @@ export namespace Prisma {
     guildId?: SortOrder
     type?: SortOrder
     label?: SortOrder
-    canvasX?: SortOrder
-    canvasY?: SortOrder
     createdAt?: SortOrder
     prompt?: SortOrder
     questionType?: SortOrder
@@ -83770,11 +83667,6 @@ export namespace Prisma {
     namesVariable?: SortOrder
     classesVariable?: SortOrder
     listVariable?: SortOrder
-  }
-
-  export type GuildOnboardingStepSumOrderByAggregateInput = {
-    canvasX?: SortOrder
-    canvasY?: SortOrder
   }
 
   export type GuildOnboardingStepScalarRelationFilter = {
@@ -91064,8 +90956,6 @@ export namespace Prisma {
     id?: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -91091,8 +90981,6 @@ export namespace Prisma {
     id?: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -91978,8 +91866,6 @@ export namespace Prisma {
     guildId?: StringFilter<"GuildOnboardingStep"> | string
     type?: StringFilter<"GuildOnboardingStep"> | string
     label?: StringNullableFilter<"GuildOnboardingStep"> | string | null
-    canvasX?: FloatFilter<"GuildOnboardingStep"> | number
-    canvasY?: FloatFilter<"GuildOnboardingStep"> | number
     createdAt?: DateTimeFilter<"GuildOnboardingStep"> | Date | string
     prompt?: StringNullableFilter<"GuildOnboardingStep"> | string | null
     questionType?: StringNullableFilter<"GuildOnboardingStep"> | string | null
@@ -95784,8 +95670,6 @@ export namespace Prisma {
     id?: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -95812,8 +95696,6 @@ export namespace Prisma {
     guildId: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -95900,8 +95782,6 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -95928,8 +95808,6 @@ export namespace Prisma {
     guildId?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -98168,8 +98046,6 @@ export namespace Prisma {
     id?: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -98196,8 +98072,6 @@ export namespace Prisma {
     guildId: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -98295,8 +98169,6 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -98323,8 +98195,6 @@ export namespace Prisma {
     guildId?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -98415,8 +98285,6 @@ export namespace Prisma {
     id?: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -98443,8 +98311,6 @@ export namespace Prisma {
     guildId: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -98485,8 +98351,6 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -98513,8 +98377,6 @@ export namespace Prisma {
     guildId?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -98654,8 +98516,6 @@ export namespace Prisma {
     id?: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -98682,8 +98542,6 @@ export namespace Prisma {
     guildId: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -98713,8 +98571,6 @@ export namespace Prisma {
     id?: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -98741,8 +98597,6 @@ export namespace Prisma {
     guildId: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -98961,8 +98815,6 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -98989,8 +98841,6 @@ export namespace Prisma {
     guildId?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -99026,8 +98876,6 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -99054,8 +98902,6 @@ export namespace Prisma {
     guildId?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -99505,8 +99351,6 @@ export namespace Prisma {
     id?: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -99533,8 +99377,6 @@ export namespace Prisma {
     guildId: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -99715,8 +99557,6 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -99743,8 +99583,6 @@ export namespace Prisma {
     guildId?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -104044,8 +103882,6 @@ export namespace Prisma {
     id?: string
     type: string
     label?: string | null
-    canvasX?: number
-    canvasY?: number
     createdAt?: Date | string
     prompt?: string | null
     questionType?: string | null
@@ -104749,8 +104585,6 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -104776,8 +104610,6 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null
@@ -104803,8 +104635,6 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
-    canvasX?: FloatFieldUpdateOperationsInput | number
-    canvasY?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     prompt?: NullableStringFieldUpdateOperationsInput | string | null
     questionType?: NullableStringFieldUpdateOperationsInput | string | null

@@ -16,6 +16,13 @@ colors:
   discord-red: "#f23f42"
   discord-red-hover: "#da373c"
   arcade-void: "#0a0a12"
+  schem-line: "#9fd4f5"
+  schem-line-dim: "#3d5a75"
+  schem-line-text: "#7a9cbf"
+  schem-amber: "#ffb000"
+  schem-green: "#23a55a"
+  flow-wire-legacy: "#6b7280"
+  flow-wire-legacy-label: "#8b90a0"
 typography:
   headline:
     fontFamily: "var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif"
@@ -95,6 +102,11 @@ components:
     backgroundColor: "{colors.discord-elevated}"
     rounded: "{rounded.xl}"
     padding: "16px"
+  flow-node:
+    backgroundColor: "{colors.discord-elevated}"
+    textColor: "{colors.discord-text}"
+    rounded: "{rounded.xl}"
+    width: "224px"
 ---
 
 # Design System: guildthing
@@ -121,14 +133,22 @@ Borrowed near-verbatim from Discord's own dark theme, plus one system-original c
 
 ### Secondary
 - **Arcade Void** (`#0a0a12`): the near-black backdrop of the retro-arcade register. As built, it is the **document body ground** (`globals.css` sets `body { background-color: var(--color-arcade-void) }`), so the page reads dark even before/without the particle canvas and in full-page captures. The landing plays entirely on it; admin screens still paint `discord-base` on top. Never use it for ordinary admin surfaces — its whole job is to read as "somewhere else."
+- **Schematic Blue** (`#9fd4f5`, `--schem-line`): the Cabinet Schematic content layer's ink (`styles/discord-controls.css`) — kickers, traces, node-handle rings, node hover borders, the travelling sync pulse. Content-level signal, never chrome.
+- **Schematic Wire** (`#3d5a75`, `--schem-line-dim`): the quiet sibling. Forward edges in the onboarding-flow canvas hold this low-contrast blue so the graph reads as structure, not noise.
+- **Schematic Line Text** (`#7a9cbf`, `--schem-line-text`): de-emphasized schematic-blue text on trace labels.
+
+### Tertiary
+- **Schematic Amber** (`#ffb000`, `--schem-amber`): the drawn-loop color. A back-edge (↺) in the flow canvas, the unsaved-state toolbar chip, "ej kopplad" (unwired) tags, the protected-setting latch's dashed border, the paused bot breaker. Amber always means *attention: iterating, or held open.*
+- **Schematic Green** (`--schem-green`, same value as Discord Green `#23a55a`): saved-state chip, the flow canvas Start pill, the engaged breaker knob, healthy status lamps. Green means *closed, wired, healthy.*
 
 ### Neutral
-- **Rail** (`#1e1f22`): the darkest tier — guild-icon rail, avatar backdrops, the invader mark badge, the "one database" diagram node, and the `DEMO DATA` tag background.
-- **Sidebar** (`#2b2d31`): navigation surface.
-- **Base** (`#313338`): the app's default admin background — and, at 90% opacity (`bg-discord-base/90` + `backdrop-blur-sm`), the translucent panel fill of the landing's demo-reel bands floating over the void.
-- **Elevated** (`#383a40`): cards, panels, modals, and any surface sitting "on top of" base. Hover: `#3f4147`. On the landing it fills surface nodes, mapping-row source chips, channel pills, and secondary CTAs.
+- **Rail** (`#1e1f22`): the darkest tier — guild-icon rail, avatar backdrops, the invader mark badge, the "one database" diagram node, the `DEMO DATA` tag background, and the flow canvas's node-handle dot fill.
+- **Sidebar** (`#2b2d31`): navigation surface; in the flow canvas it is also the *label ground* — every edge label and zoom-control button sits on this tier instead of React Flow's raw default.
+- **Base** (`#313338`): the app's default admin background — the flow canvas background — and, at 90% opacity (`bg-discord-base/90` + `backdrop-blur-sm`), the translucent panel fill of the landing's demo-reel bands floating over the void.
+- **Elevated** (`#383a40`): cards, panels, modals, and any surface sitting "on top of" base. Hover: `#3f4147`. On the landing it fills surface nodes, mapping-row source chips, channel pills, and secondary CTAs; on the flow canvas it's the step-node card fill.
 - **Text** (`#f2f3f5`): primary text on dark surfaces.
 - **Text Muted** (`#949ba4`): secondary/meta text, table headers, placeholders, captions under reel bands, the `DEMO DATA` tag.
+- **Legacy Loop Wire** (`#6b7280`) / **Legacy Loop Label** (`#8b90a0`): the soft-phased-out `loop` step-type's dashed edges and italic labels in the flow editor — a deliberately duller, non-schematic pair marking "old model, being replaced by drawn back-edges," never reused elsewhere.
 
 ### Semantic
 - **Link** (`#00a8fc`): links, and on the landing also the color of role/channel tokens in demo content (`@Raider`, `#raider-chat`), keyboard focus outlines, and footer/CTA links.
@@ -136,7 +156,9 @@ Borrowed near-verbatim from Discord's own dark theme, plus one system-original c
 - **Danger** (`#f23f42`, hover `#da373c`): destructive actions and error text — including the hero's sign-in error line (`role="alert"`).
 
 ### Named Rules
-**The One Accent Rule.** Blurple is the only saturated color in the day-to-day admin UI. Everything else is a neutral gray step or the semantic red/green. Don't introduce a second brand hue into Operate-mode screens. (The starfield's drifting invaders carry decorative hue tints, but they live on the arcade ground, not in admin chrome.)
+**The One Accent Rule.** Blurple is the only saturated color in the day-to-day admin UI. Everything else is a neutral gray step or the semantic red/green. Don't introduce a second brand hue into Operate-mode screens. (The starfield's drifting invaders carry decorative hue tints, but they live on the arcade ground, not in admin chrome. The schematic ink set — blue/amber/green — is content-level signal inside panels, not a second chrome accent.)
+
+**The Wire-Semantics Rule.** In the onboarding-flow canvas, an edge's color IS its meaning: `#3d5a75` forward, `#ffb000` back-edge/invalid loop, `#5865f2` selected. Never restyle a wire's color as decoration — a new edge type must pick one of these three meanings or earn a fourth deliberately.
 
 ## Typography
 
@@ -176,6 +198,11 @@ The arcade register is the exception, and it's consistent: surfaces that float o
 ### Shadow Vocabulary
 - **Arcade-float** (`shadow-2xl` + `backdrop-blur-sm` over a translucent panel): a demo-reel panel separating from the starfield behind it. Currently the bot-log card and the `Yours to run` panel; not used on admin screens.
 - **Arcade-node** (`shadow-lg`): smaller lifted elements within the register — the invader rail badge, the "one database" diagram node.
+- **Selection glow** (`0 0 0 1px #5865f2, 0 4px 16px rgba(88,101,242,0.25)`): the selected flow-canvas step node.
+- **Hover glow** (`0 0 12px rgba(159,212,245,0.3)`): schematic-blue response to hovering a flow node or a hot `.schem-chip`.
+- **Overlay shadow** (`0 4px 12px rgba(0,0,0,0.4)`): floating canvas chrome (the flow zoom controls); open menus use `0 8px 24px rgba(0,0,0,0.5)`.
+
+**Named Rule — The Glow-Is-State Rule.** A box-shadow on admin/schematic surfaces is never decoration; it answers interaction or machine state (selection, hover, health). A resting card has no shadow.
 
 ## Shapes
 
@@ -218,6 +245,26 @@ Borders are used sparingly and only as low-opacity black dividers (`border-black
 ### Navigation (Sidebar)
 - **Style:** `w-56` fixed column, `bg-discord-sidebar`. Links: `rounded-lg` row, `text-sm`, muted by default, active/hover → `discord-elevated`/`discord-elevated-hover` background + full-contrast text. Section groups introduced by a bold uppercase `Label`-style heading and separated by a hairline `border-black/20` divider — never left to margin alone.
 
+
+### Schematic Hardware (signature content components)
+Small components styled like an arcade cabinet's back-panel wiring, drawn inside Discord panels (never as chrome). Defined in `apps/web/src/styles/discord-controls.css` (`.schem-*`).
+- **Kicker** (`.schem-kicker`): Share Tech Mono, 10–12px, `letter-spacing: 0.14em`, uppercase, schematic-blue or muted — section labels inside elevated cards (flow-node type badges, rail row indices).
+- **Chip** (`.schem-chip`): 8px radius, `6px 10px` padding, translucent elevated fill `rgba(49,51,56,0.6)`, schematic-blue border at 35% opacity; hover brightens the border to full `--schem-line`; a "hot" variant adds a soft blue glow.
+- **Bot breaker** (`.schem-breaker-track`, 52×26px): a literal machine switch — green-bordered track with a glowing green knob when automation runs, amber track/glow when paused.
+- **Latch** (`.schem-latch`): amber dashed 1px border, faint amber wash (`rgba(255,176,0,0.05)`), 6px radius — seals a protected setting; paired with a rotated amber **stamp** (`.schem-stamp`, 4px radius, 3° tilt).
+- **Trace + pulse** (`.schem-trace` / `.schem-pulse`): a 2px schematic-blue line (`rgba(159,212,245,0.4)`) carrying a 10px glowing dot that travels its length every 2.8s; hidden when the trace isn't firing; `prefers-reduced-motion` freezes the dot at center (0.7 opacity, no animation).
+- **Status lamp** (`.schem-lamp-dot`, 10px circle): green or red with a matching glow — API/connection health at a glance.
+
+### Flow Canvas (signature surface — onboarding-flow workspace)
+A full-height React Flow canvas on Discord surfaces, re-skinned entirely; nothing ships in library-default styling.
+- **Toolbar:** slim row above the canvas — flow name, a mono status chip (`● SPARAT` / `OSPARAT` / `SPARAR ...` / `FEL`, colored green/amber/muted/red), the step palette, and the Save button.
+- **Ledger rail:** a 256px elevated column left of the canvas — the flow's table of contents, not a toolbox. Each row: a mono two-digit index, a type kicker (FRÅGA/VILLKOR/ÅTGÄRD), a semibold title, a muted one-line summary. Selected row gets a base-color fill with a 2px inset schematic-blue bar; back-edge branches indent as sub-rows under an amber left border. Hover and selection sync bidirectionally with the canvas — rail and graph are one graph, shown twice. Collapses to a toggled overlay on small screens.
+- **Step node card:** 224px elevated card (rounded-xl, `black/20` border), mono kicker, semibold line-clamped title, one muted summary line. Connection handles are 10px dots with a 2px schematic-blue ring on a rail-dark fill, scaling to 1.35× with a blue glow on node hover. Selected state: blurple border + selection glow; hovered: schematic-blue border + hover glow.
+- **Start pill:** rounded-full, green-bordered, green text, soft green glow; a single non-connectable bottom handle.
+- **End-flow stub:** dashed rounded-full pill on base ground, muted text at 40% border opacity; hover/selected turns schematic blue. It's clickable — the dead end IS the affordance for adding the next step (opens a morph panel to convert it into a real question/condition/action/loop).
+- **Wires (see also Wire-Semantics Rule):** forward edges 1.5px `#3d5a75` with a closed arrowhead; back-edges (↺ drawn loops) and invalid (condition-less) loops render at 2px `#ffb000`, invalid ones dashed `6 4`; selected edge is 2px blurple. Every edge label rides on a `#2b2d31` ground, never React Flow's default. Legacy `loop` step-type edges (soft-phased out in favor of drawn back-edges) render distinctly duller — dashed `#6b7280` with italic `#8b90a0` labels — so they read as "old model" at a glance.
+- **Zoom controls:** Discord-surfaced, not library-default — `#2b2d31` buttons, muted icons brightening to `#dbdee1` on a `#35373c` hover, `rounded-lg`, hairline separators between buttons.
+
 ### Signature Component: Attract-Mode Landing
 The landing (`/`) is the arcade register's flagship: the product sells itself on a loop while you stand in front of the cabinet. Structure, top to bottom:
 
@@ -233,12 +280,15 @@ The landing (`/`) is the arcade register's flagship: the product sells itself on
 
 ## Motion
 
-The arcade register moves; admin screens don't.
+The arcade register moves ambient and continuous; the schematic layer moves as machine-state feedback; plain admin chrome barely moves at all.
 
 - **Starfield:** a fixed full-screen canvas (`ParticlesBackground`, `z-index: -1`) over `arcade-void`: ~200 small white square particles drifting at speed 0.2, no direction, wrapping at edges.
 - **Drifting pixel invaders:** four space-invader SVG variants spawn periodically, tinted to random hues via CSS filters, drifting slowly with rotation and a soft glow (`drop-shadow`), at ~0.7 opacity. Ambient and continuous — the attract-mode loop.
 - **Scroll reveal (`Reveal`):** one orchestrated reveal per reel band — `translate-y-6 → translate-y-0` + `opacity-0 → opacity-100`, `duration-700`, `ease-out`. It fires **once** (IntersectionObserver, `threshold: 0.05`, disconnects after the first intersection) and never re-triggers on scroll-back. Under `prefers-reduced-motion: reduce` the component short-circuits: bands render visible immediately, no transform, no observer.
-- **Hover/press:** background-color shifts only (brand→brand-hover, elevated→elevated-hover, elevated-hover→brand), `hover:underline` on text links — no transforms, no glows on interactive chrome.
+- **Hover/press:** background-color shifts only (brand→brand-hover, elevated→elevated-hover, elevated-hover→brand), `hover:underline` on text links — no transforms, no glows on plain interactive chrome.
+- **Trace pulse:** the schematic trace's travelling dot runs 2.8s linear infinite with soft fade at both ends; off entirely when the trace isn't firing (health/sync signal, not decoration).
+- **Flow node/handle micro-interactions:** 0.15s ease transitions on handle scale (1× → 1.35×) and glow, and on node border-color, on hover/selection — quick enough to read as instant feedback, not animation.
+- **Reduced motion:** the schematic trace pulse stills at center (0.7 opacity, no animation) rather than disappearing; the starfield/invader drift is the one ambient loop, confined to the arcade register and unaffected since it carries no essential information.
 
 ## Do's and Don'ts
 
@@ -249,6 +299,9 @@ The arcade register moves; admin screens don't.
 - **Do** keep arcade motion honest: reveals fire once per band and respect `prefers-reduced-motion`; only the ambient layer (starfield, invaders) loops.
 - **Do** label every piece of invented/demo content with the `DEMO DATA` rail tag — the reel's grammar depends on never passing demo data off as real.
 - **Do** keep destructive actions behind the `ConfirmButton` dialog pattern (description + Cancel/neutral + danger-pill confirm) rather than firing destructive mutations directly from a row action.
+- **Do** give every schematic component a machine-state story (breaker = automation on/off, lamp = API health, pulse = firing trace, chip = live rule sentence) — schematic surfaces exist to reveal what the bot will actually do.
+- **Do** keep amber for loops/held-open states, green for saved/closed/healthy, and blurple for selection/primary action — consistently, across flow toolbar chips, wires, and schematic hardware.
+- **Do** surface flow-graph problems as visible status (the unsaved chip, "ej kopplad" tags, dashed invalid wires) rather than only catching them at save time.
 
 ### Don't:
 - **Don't** bring the arcade register (starfield, void background, arcade fonts, blur/glow) into dense, high-frequency admin screens like the roster table, role-rule forms, or settings — it would fight the scanability those screens need.
@@ -256,3 +309,9 @@ The arcade register moves; admin screens don't.
 - **Don't** add colored borders or decorative outline-style strokes to admin controls — there, state is communicated by background-color shifts, not borders. The landing's link-blue `focus-visible` outline is the one sanctioned outline: a keyboard-accessibility treatment on the arcade surface, not a style to import into admin chrome.
 - **Don't** resurrect a square-cornered CTA — the pill is the system's only button/CTA shape now (the 4px login-CTA outlier was eliminated in the landing build); square corners are reserved for micro-badges like the "BOT" tag that aren't clickable.
 - **Don't** present demo content without its `DEMO DATA` tag, and don't re-trigger band reveals on every scroll pass — the reel plays once, like a proper attract mode.
+- **Don't** ship React Flow's default node/edge/minimap/control styling anywhere — every canvas piece is re-skinned onto Discord surfaces.
+- **Don't** restyle a flow-canvas wire's color as decoration — pick one of the three wire-semantic meanings (forward/loop/selected) or deliberately earn a fourth.
+
+---
+
+*Raster provenance: the flow-workspace surface (this update) shipped no generated raster assets — tokens, CSS, and React Flow-driven SVG only, code-led throughout. Landing-page imagery predates this update; see git history for its provenance.*

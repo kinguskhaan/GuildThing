@@ -173,10 +173,11 @@ export function DiscordServerControls({
   const loading = config.isLoading || roles.isLoading;
 
   // ---- sub-nav: one section at a time (Discord settings pattern) ----
-  type SectionId = "sync" | "flow" | "inactivity" | "audit";
+  type SectionId = "sync" | "flow" | "rules" | "inactivity" | "audit";
   const NAV: { id: SectionId; label: string }[] = [
     { id: "sync", label: "Bot & sync" },
-    { id: "flow", label: "Onboarding & rollregler" },
+    { id: "flow", label: "Onboarding flow" },
+    { id: "rules", label: "Role rules" },
     { id: "inactivity", label: "Inactivity" },
     { id: "audit", label: "Roles & audit" },
   ];
@@ -198,19 +199,24 @@ export function DiscordServerControls({
     return () => window.removeEventListener("hashchange", onHash);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   return (
-    <div className="flex w-full max-w-6xl flex-col gap-6">
+    <div
+      className={`flex flex-col gap-6 ${
+        section === "flow" ? "w-full" : "w-full max-w-6xl"
+      }`}
+    >
       <div>
         <h2 className="text-xl font-bold">Discord Server Controls</h2>
-        <p className="text-discord-text-muted mt-1 text-sm">
-          Everything the GuildThing Roster bot manages on the Discord server:
-          sync, onboarding, role rules, inactivity — and the log of what it
-          did. For the bot to notice manual role changes (and skip
-          overwriting them on resync), give it the{" "}
-          <strong>View Audit Log</strong> permission in Server Settings →
-          Roles.
-        </p>
+        {section !== "flow" && (
+          <p className="text-discord-text-muted mt-1 text-sm">
+            Everything the GuildThing Roster bot manages on the Discord server:
+            sync, onboarding, role rules, inactivity — and the log of what it
+            did. For the bot to notice manual role changes (and skip
+            overwriting them on resync), give it the{" "}
+            <strong>View Audit Log</strong> permission in Server Settings →
+            Roles.
+          </p>
+        )}
       </div>
       {/* ---- Sub-nav: Discord-settings pattern, one section at a time ---- */}
       <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[200px_minmax(0,1fr)] lg:items-start">
@@ -638,14 +644,18 @@ export function DiscordServerControls({
       )}
       {section === "flow" && (
         <>
-      {/* ---- Onboarding flow ---- */}
+      {/* ---- Onboarding flow: full-height workspace ---- */}
       <GuildFlowEditor guildId={guildId} />
-
+      </>
+      )}
+      {section === "rules" && (
+        <>
       <GuildRoleRulesEditor
         guildId={guildId}
         roles={roles.data}
         channels={channels.data}
       />
+
 
       {/* ---- Interlock cards: mutex chain + protected latches ---- */}
       <div className="grid gap-6 lg:grid-cols-2">

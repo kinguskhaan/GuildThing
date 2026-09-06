@@ -768,20 +768,19 @@ model GuildOnboardingAnswerOption {
 // One node in a guild's onboarding flow graph — the successor of the
 // LEGACY GuildOnboardingQuestion/Edge tables above, extended with
 // condition, action, and loop node types so the whole onboarding (not
-// just the custom questions) becomes one admin-editable canvas graph.
-// type drives what the bot does when the walk reaches the node; the
-// per-type config fields below are null unless type needs them.
+// just the custom questions) becomes one admin-editable graph. type
+// drives what the bot does when the walk reaches the node; the per-type
+// config fields below are null unless type needs them. Layout is derived
+// (topological order from Start), not stored — no canvasX/canvasY.
 model GuildOnboardingStep {
   id        String   @id @default(cuid())
   guildId   String
   guild     Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
   // "question" | "condition" | "action" | "loop"
   type      String
-  // Display name on the canvas for non-question steps (questions show
-  // their prompt instead).
+  // Display name for non-question steps (questions show their prompt
+  // instead).
   label     String?
-  canvasX   Float    @default(0)
-  canvasY   Float    @default(0)
   createdAt DateTime @default(now())
 
   // --- question ---

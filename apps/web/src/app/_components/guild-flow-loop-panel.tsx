@@ -47,12 +47,11 @@ export function GuildFlowLoopPanel({
       </label>
 
       <p className="text-discord-text-muted text-xs">
-        The loop&apos;s one outgoing &quot;Always&quot; wire is the body&apos;s
-        start — walk through the body&apos;s steps (question steps inside it
-        with &quot;Appends to list&quot; checked build this variable), then
-        wire the last body step&apos;s outgoing wire back to this loop node
-        for the next pass, or onward to something else to exit. Capped at 50
-        iterations.
+        The loop&apos;s one outgoing connection is the body&apos;s start —
+        the body&apos;s steps run in order (question steps inside it with
+        &quot;Appends to list&quot; checked build this variable), then a
+        connection back to this loop repeats it, or onward to something
+        else exits. Capped at 50 iterations.
       </p>
     </div>
   );

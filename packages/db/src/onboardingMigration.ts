@@ -62,18 +62,6 @@ async function migrateGuild(prisma: Db, guildId: string): Promise<void> {
       include: { selectedOptions: true },
     });
 
-    // --- Canvas layout (top-down waterfall) ---
-    // New fixed-flow steps stack in a left column; the migrated legacy
-    // questions keep their old canvas coords shifted below the pre-steps,
-    // and the post-steps (alts loop, nickname) stack below the lowest
-    // legacy question. The PUG branch sits to the right of everything.
-    const legacyMinY = Math.min(0, ...legacyQuestions.map((q) => q.canvasY));
-    const legacyMaxY = Math.max(0, ...legacyQuestions.map((q) => q.canvasY));
-    const legacyMaxX = Math.max(0, ...legacyQuestions.map((q) => q.canvasX));
-    const legacyYOffset = 800 - legacyMinY;
-    const tailY = 800 + (legacyMaxY - legacyMinY) + 200;
-    const pugX = legacyMaxX + 400;
-
     // --- 1. Legacy questions -> question steps (SAME row ids) ---
     // Keeping question/option ids means every FK that pointed at a legacy
     // question or option (persisted answers, edge conditions) keeps
@@ -94,8 +82,6 @@ async function migrateGuild(prisma: Db, guildId: string): Promise<void> {
           varName: `legacy_${q.id.replace(/[^a-z0-9]/gi, "").toLowerCase()}`,
           varType: q.type === "free_text" ? "text" : "choice",
           required: q.required,
-          canvasX: q.canvasX,
-          canvasY: q.canvasY + legacyYOffset,
         })),
       });
       const legacyOptions = legacyQuestions.flatMap((q) =>
@@ -177,8 +163,6 @@ async function migrateGuild(prisma: Db, guildId: string): Promise<void> {
       questionType: "single_select",
       varName: "affiliation",
       varType: "choice",
-      canvasX: 0,
-      canvasY: 0,
     });
     const guildMemberOptionId = await addOption(
       affiliationId,
@@ -194,16 +178,12 @@ async function migrateGuild(prisma: Db, guildId: string): Promise<void> {
       questionType: "free_text",
       varName: "pug_name",
       varType: "character",
-      canvasX: pugX,
-      canvasY: 200,
     });
     const pugActionId = await addStep("pug_action", {
       guildId,
       type: "action",
       actionType: "grant",
       label: "Set role/channel",
-      canvasX: pugX,
-      canvasY: 400,
     });
     if (guild.pugRoleId) {
       await tx.guildOnboardingActionGrant.create({
@@ -216,8 +196,6 @@ async function migrateGuild(prisma: Db, guildId: string): Promise<void> {
       actionType: "set_nickname",
       nicknameTemplate: "{pug_name}",
       label: "Set nickname",
-      canvasX: pugX,
-      canvasY: 600,
     });
 
     await addEdge(null, affiliationId); // Start -> affiliation
@@ -237,8 +215,6 @@ async function migrateGuild(prisma: Db, guildId: string): Promise<void> {
       questionType: "free_text",
       varName: "main",
       varType: "character",
-      canvasX: 0,
-      canvasY: 200,
     });
 
     // Class question only for rosterSource "onboarding" guilds — there is
@@ -252,8 +228,6 @@ async function migrateGuild(prisma: Db, guildId: string): Promise<void> {
         questionType: "single_select",
         varName: "class",
         varType: "class",
-        canvasX: 0,
-        canvasY: 400,
       });
       for (const [i, wowClass] of WOW_CLASS_TOKENS.entries()) {
         await addOption(classId, wowClass.label, i);
@@ -271,8 +245,6 @@ async function migrateGuild(prisma: Db, guildId: string): Promise<void> {
       actionType: "claim_characters",
       namesVariable: "main",
       label: "Claim main character",
-      canvasX: 0,
-      canvasY: guild.rosterSource === "onboarding" ? 600 : 400,
     });
 
     // --- 3. Wire the standard flow together ---
@@ -296,8 +268,6 @@ async function migrateGuild(prisma: Db, guildId: string): Promise<void> {
       questionType: "single_select",
       varName: "has_alts",
       varType: "choice",
-      canvasX: 0,
-      canvasY: tailY,
     });
     const hasAltsYesOptionId = await addOption(hasAltsId, "Yes", 0);
     const hasAltsNoOptionId = await addOption(hasAltsId, "No", 1);
@@ -313,8 +283,6 @@ async function migrateGuild(prisma: Db, guildId: string): Promise<void> {
       type: "loop",
       label: "Alt loop",
       listVariable: "alts",
-      canvasX: 0,
-      canvasY: tailY + 200,
     });
     const altNameId = await addStep("alt_name", {
       guildId,
@@ -324,10 +292,7 @@ async function migrateGuild(prisma: Db, guildId: string): Promise<void> {
       varName: "alt_name",
       varType: "character",
       appendList: true,
-      canvasX: 0,
-      canvasY: tailY + 400,
     });
-    const addAnotherY = guild.rosterSource === "onboarding" ? tailY + 800 : tailY + 600;
     const addAnotherId = await addStep("add_another", {
       guildId,
       type: "question",
@@ -335,8 +300,6 @@ async function migrateGuild(prisma: Db, guildId: string): Promise<void> {
       questionType: "single_select",
       varName: "add_another",
       varType: "choice",
-      canvasX: 0,
-      canvasY: addAnotherY,
     });
     const addAnotherYesOptionId = await addOption(addAnotherId, "Yes", 0);
     const addAnotherNoOptionId = await addOption(addAnotherId, "No, I'm done", 1);
@@ -356,15 +319,12 @@ async function migrateGuild(prisma: Db, guildId: string): Promise<void> {
         varName: "alt_classes",
         varType: "class",
         appendList: true,
-        canvasX: 0,
-        canvasY: tailY + 600,
       });
       for (const [i, wowClass] of WOW_CLASS_TOKENS.entries()) {
         await addOption(altClassId, wowClass.label, i);
       }
       preAddAnotherId = altClassId;
     }
-    const claimAltsY = addAnotherY + 200;
 
     const claimAltsId = await addStep("claim_alts", {
       guildId,
@@ -373,8 +333,6 @@ async function migrateGuild(prisma: Db, guildId: string): Promise<void> {
       namesVariable: "alts",
       classesVariable: guild.rosterSource === "onboarding" ? "alt_classes" : null,
       label: "Claim alts",
-      canvasX: 0,
-      canvasY: claimAltsY,
     });
     const nickId = await addStep("nick", {
       guildId,
@@ -382,8 +340,6 @@ async function migrateGuild(prisma: Db, guildId: string): Promise<void> {
       actionType: "set_nickname",
       nicknameTemplate: "{main}/{alts}",
       label: "Set nickname",
-      canvasX: 0,
-      canvasY: claimAltsY + 200,
     });
 
     // Legacy questions with no outgoing edges flow into the alts tail.

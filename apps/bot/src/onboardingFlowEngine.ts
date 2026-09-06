@@ -101,6 +101,17 @@ export interface FlowGraph {
   // Keyed by fromStepId, or START for the synthetic Start node (edges with
   // fromStepId === null).
   outgoingByFrom: Map<string, FlowEdge[]>;
+  // Preorder DFS position from Start, following outgoing edges in storage
+  // order. Bounds drawn back-edge loops (the cycle region end); unreachable
+  // steps get POSITIVE_INFINITY — they never route anywhere, and the UI
+  // flags them as unwired.
+  orderById: Map<string, number>;
+  // The graph's true DFS back-edges, keyed "fromId->toId" — an edge whose
+  // target sits on the DFS stack when the edge is walked. NOT the same as
+  // "target ordered earlier": in a diamond (A→B→D, A→C→D) the second branch
+  // C→D targets an earlier-ordered node but is a legal merge, and treating
+  // it as a ↺ loop would re-ask D. Only stack edges are cycles.
+  backEdgeKeys: Set<string>;
 }
 
 // The synthetic "Start" node's key in outgoingByFrom — never a real cuid,
@@ -111,20 +122,6 @@ const START = "__start__";
 // after this many iterations the loop aborts with a warning rather than
 // looping forever on a malformed or adversarial answer sequence.
 const MAX_LOOP_ITERATIONS = 50;
-
-export function buildFlowGraph(steps: FlowStep[], edges: FlowEdge[]): FlowGraph {
-  const stepsById = new Map<string, FlowStep>();
-  for (const step of steps) stepsById.set(step.id, step);
-
-  const outgoingByFrom = new Map<string, FlowEdge[]>();
-  for (const edge of edges) {
-    const key = edge.fromStepId ?? START;
-    const list = outgoingByFrom.get(key) ?? [];
-    list.push(edge);
-    outgoingByFrom.set(key, list);
-  }
-  return { stepsById, outgoingByFrom };
-}
 
 // A walk's collected state: answers (in-memory, as they're given) plus the
 // resolved class/level used by class_equals/level_between edges. Mutated
@@ -182,16 +179,81 @@ export function edgeSatisfied(
   return false;
 }
 
-// A walk scope: the global top-level walk, or one loop's current
-// iteration. Steps are deduped per-scope (`visited`) — a loop's scope gets
-// a fresh, empty `visited` every time it iterates, which is exactly what
+export function buildFlowGraph(steps: FlowStep[], edges: FlowEdge[]): FlowGraph {
+  const stepsById = new Map<string, FlowStep>();
+  for (const step of steps) stepsById.set(step.id, step);
+
+  const outgoingByFrom = new Map<string, FlowEdge[]>();
+  for (const edge of edges) {
+    const key = edge.fromStepId ?? START;
+    const list = outgoingByFrom.get(key) ?? [];
+    list.push(edge);
+    outgoingByFrom.set(key, list);
+  }
+
+  // Preorder DFS from Start. Iterative: onboarding graphs are small, but a
+  // recursion depth cap is still the wrong failure mode for a save the
+  // admin just wrote. Two outputs ride along:
+  //
+  // - orderById: preorder position, for the cycle-region bound in the
+  //   walker. Unreachable steps get POSITIVE_INFINITY.
+  // - backEdgeKeys: edges whose target is ON the DFS stack when walked —
+  //   the graph's true cycles. Stack membership matters: in a diamond
+  //   (A→B→D, A→C→D) the second branch C→D targets an earlier-ordered node
+  //   but is a legal merge, not a loop. Only stack edges are back-edges.
+  const orderById = new Map<string, number>();
+  const backEdgeKeys = new Set<string>();
+  let next = 0;
+  const onStack = new Set<string>();
+  const stack: string[] = [START];
+  while (stack.length > 0) {
+    const id = stack[stack.length - 1]!;
+    if (!onStack.has(id)) {
+      onStack.add(id);
+      if (id !== START) orderById.set(id, next++);
+    }
+    const pendingChild = (outgoingByFrom.get(id) ?? [])
+      .map((e) => e.toStepId)
+      .find((child) => {
+        if (!stepsById.has(child)) return false;
+        if (onStack.has(child)) {
+          backEdgeKeys.add(`${id}->${child}`);
+          return false;
+        }
+        return !orderById.has(child);
+      });
+    if (pendingChild == null) {
+      onStack.delete(id);
+      stack.pop();
+    } else {
+      stack.push(pendingChild);
+    }
+  }
+  for (const id of stepsById.keys()) {
+    if (!orderById.has(id)) orderById.set(id, Number.POSITIVE_INFINITY);
+  }
+
+  return { stepsById, outgoingByFrom, orderById, backEdgeKeys };
+}
+
+// A walk scope: the global top-level walk, one loop's current iteration
+// (legacy loop nodes), or one drawn back-edge loop's current iteration.
+// Steps are deduped per-scope (`visited`) — an iteration scope gets a
+// fresh, empty `visited` every time it iterates, which is exactly what
 // lets its body steps be re-asked on the next iteration while everything
 // outside the loop is still asked at most once.
+//
+// regionEnd bounds a drawn back-edge loop: the flow order of the step the
+// back-edge was drawn FROM. Steps past that order belong to the enclosing
+// scope (the loop has been exited); steps within [head, regionEnd) are the
+// cycle body and re-askable. Legacy loop scopes carry regionEnd: null —
+// their body is bounded by the exit route in routeAndEnqueue instead.
 interface Scope {
   parent: Scope | null;
   visited: Set<string>;
   loopStepId: string | null;
   bodyStartId: string | null;
+  regionEnd: number | null;
 }
 
 export type WalkResult =
@@ -213,6 +275,7 @@ export class FlowWalker {
     visited: new Set(),
     loopStepId: null,
     bodyStartId: null,
+    regionEnd: null,
   };
   private readonly loopIterations = new Map<string, number>();
   private loopCapWarnings: FlowStep[] = [];
@@ -280,6 +343,7 @@ export class FlowWalker {
           visited: new Set(),
           loopStepId: stepId,
           bodyStartId: bodyEdge.toStepId,
+          regionEnd: null,
         };
         this.loopIterations.set(stepId, 1);
         this.queue.push({ stepId: bodyEdge.toStepId, scope: loopScope });
@@ -300,12 +364,17 @@ export class FlowWalker {
   }
 
   // Decides where a satisfied edge from `fromStepId` (currently in `scope`)
-  // actually lands: back into the loop for another iteration, deeper into
-  // the same loop's body, or out into the enclosing scope. See the design
-  // brief: "a body step's outgoing edge pointing back to the loop node ->
-  // next iteration; otherwise -> exit" — "otherwise" only applies to the
-  // specific step whose edges include that back-edge (the loop's decision
-  // node); every other body step's edges just continue within the body.
+  // actually lands. Four routes, in priority order:
+  //
+  // 1. Back into a legacy loop node -> next iteration of that loop's scope
+  //    (the pre-back-edge loop model, kept verbatim for saved flows).
+  // 2. A drawn back-edge (the graph's DFS-stack cycle set, see
+  //    buildFlowGraph) -> a fresh cycle scope re-enters the target: the
+  //    editor's ↺ loop. The cap is keyed by the loop's head step, shared
+  //    with (1).
+  // 3. Inside a bounded cycle scope, a target past the region end exits to
+  //    the enclosing scope — the loop's "No" branch carries on outside.
+  // 4. Otherwise the target continues in the current scope.
   private routeAndEnqueue(
     fromStepId: string,
     scope: Scope,
@@ -338,6 +407,39 @@ export class FlowWalker {
         this.routeAndEnqueue(fromStepId, scope.parent, targetId, ctx);
         return;
       }
+    }
+
+    // A drawn back-edge: re-enter the earlier step as a new cycle
+    // iteration. The back-edge is itself the loop head, so the iteration
+    // cap keys on it and the fresh `visited` only covers the cycle region.
+    // Membership in backEdgeKeys — not "target ordered earlier" — is what
+    // separates a ↺ loop from a diamond's legal merge edge.
+    if (this.graph.backEdgeKeys.has(`${fromStepId}->${targetId}`)) {
+      const iteration = (this.loopIterations.get(targetId) ?? 0) + 1;
+      if (iteration > MAX_LOOP_ITERATIONS) {
+        const loopStep = this.graph.stepsById.get(targetId);
+        if (loopStep) this.loopCapWarnings.push(loopStep);
+        return; // Abort this loop — no further steps from this branch.
+      }
+      this.loopIterations.set(targetId, iteration);
+      const cycleScope: Scope = {
+        parent: scope,
+        visited: new Set(),
+        loopStepId: targetId,
+        bodyStartId: targetId,
+        regionEnd: this.graph.orderById.get(fromStepId) ?? null,
+      };
+      this.queue.push({ stepId: targetId, scope: cycleScope });
+      return;
+    }
+
+    const targetOrder = this.graph.orderById.get(targetId) ?? Number.POSITIVE_INFINITY;
+
+    // Past the cycle region from inside one -> the walk has left the loop;
+    // continue in the enclosing scope (its `visited` still dedupes).
+    if (scope.regionEnd != null && targetOrder > scope.regionEnd && scope.parent) {
+      this.routeAndEnqueue(fromStepId, scope.parent, targetId, ctx);
+      return;
     }
 
     this.queue.push({ stepId: targetId, scope });

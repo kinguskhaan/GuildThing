@@ -2,8 +2,8 @@
 
 import type { StepDraft } from "./guild-flow-editor";
 
-// A condition step has no config of its own — its OUTGOING wires carry
-// the branching (see GuildFlowEdgePanel). This panel is just the canvas
+// A condition step has no config of its own — its outgoing connections
+// carry the branching (see GuildFlowEdgePanel). This panel is just the
 // label + delete, same as the other step panels.
 export function GuildFlowConditionPanel({
   step,
@@ -41,9 +41,11 @@ export function GuildFlowConditionPanel({
 
       <p className="text-discord-text-muted text-xs">
         A condition step doesn&apos;t ask anything itself — it&apos;s a
-        branch point. Click each of its outgoing wires to set what makes
-        the bot follow it. It needs at least two outgoing wires to be a
-        valid branch when you save.
+        branch point. Drag a step type onto one of its outgoing arrows, or
+        use the link control below, to add a branch — then click that
+        connection&apos;s arrow to set what makes the bot follow it. It
+        needs at least two outgoing connections (one always, one
+        conditional) to be a valid branch when you save.
       </p>
     </div>
   );
