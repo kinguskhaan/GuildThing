@@ -1,7 +1,13 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { FaArrowRight, FaDiscord, FaDownload, FaGithub } from "react-icons/fa";
+import {
+  FaArrowRight,
+  FaChevronDown,
+  FaDiscord,
+  FaDownload,
+  FaGithub,
+} from "react-icons/fa";
 
 import { ParticlesBackground } from "~/app/_components/particles-background";
 import { SpaceInvaderGlyph } from "~/app/_components/space-invader";
@@ -56,6 +62,27 @@ function Reveal({
   );
 }
 
+function ScrollHint() {
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        document
+          .getElementById("reel-bot")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }}
+      className="group mt-14 flex cursor-pointer flex-col items-center gap-1 border-0 bg-transparent p-0 font-[family-name:var(--font-arcade-mono)] text-xs text-discord-text-muted transition hover:text-discord-text focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-discord-link"
+    >
+      the demo reel starts below
+      <FaChevronDown
+        size={14}
+        className="animate-bounce transition group-hover:text-discord-brand"
+        aria-hidden="true"
+      />
+    </button>
+  );
+}
+
 function Hero({
   signIn,
 }: {
@@ -75,7 +102,7 @@ function Hero({
         guildthing
       </h1>
       <p className="m-0 mt-5 text-balance text-xl font-bold text-discord-text">
-        Your guild&apos;s Discord, on rails.
+        A better Discord for your guild.
       </p>
       <p className="m-0 mt-3 max-w-xl text-balance text-sm leading-relaxed text-discord-text-muted">
         GuildThing syncs Discord roles to guild ranks, opens channels by rank
@@ -109,9 +136,7 @@ function Hero({
           {state.error}
         </p>
       ) : null}
-      <p className="m-0 mt-14 font-[family-name:var(--font-arcade-mono)] text-xs text-discord-text-muted">
-        the demo reel starts below
-      </p>
+      <ScrollHint />
     </section>
   );
 }
@@ -150,7 +175,7 @@ function BotReel() {
               <span className="text-discord-text">Kromgar</span>
             </p>
             <p className="m-0 pl-5 text-discord-text-muted">
-              guild rank “Raider” → Discord role, synced
+              guild rank "Raider" → Discord role, synced
             </p>
             <p className="m-0 text-discord-text">
               <span className="text-discord-green">✓</span> opened{" "}
@@ -163,7 +188,7 @@ function BotReel() {
           </div>
         </div>
         <p className="m-0 mt-5 max-w-xl text-sm leading-relaxed text-discord-text-muted">
-          Ranks change in the roster — roles follow on Discord, and every
+          Ranks change in the roster, roles follow on Discord, and every
           change lands in the audit log. Officers can pause all background
           automation without taking the bot offline.
         </p>
@@ -195,7 +220,7 @@ function ChannelsReel() {
           id="reel-channels"
           className="m-0 mb-8 font-[family-name:var(--font-arcade-display)] text-2xl text-discord-text md:text-3xl"
         >
-          Channels open by rank, class — your rules{" "}
+          Channels open by rank and class. Your rules.{" "}
           <span className="ml-2 inline-block align-middle rounded-full bg-discord-rail px-2 py-0.5 align-middle font-sans text-[10px] font-bold tracking-wider text-discord-text-muted">
             DEMO DATA
           </span>
@@ -228,8 +253,8 @@ function ChannelsReel() {
           ))}
         </div>
         <p className="m-0 mt-5 max-w-xl text-sm leading-relaxed text-discord-text-muted">
-          Role rules grant Discord roles and channels on the conditions you
-          set — ranks, classes, or anything else the roster knows. Change a
+          Role rules grant Discord roles and channels based on conditions you
+          set: ranks, classes, or anything else the roster knows. Change a
           rule and the bot catches everyone up.
         </p>
       </Reveal>
@@ -240,7 +265,7 @@ function ChannelsReel() {
 const SURFACES = [
   {
     name: "Web app",
-    caption: "roster, events, rules — this site",
+    caption: "roster, events, rules (this site)",
   },
   {
     name: "Discord bot",
@@ -294,8 +319,8 @@ function DatabaseReel() {
         </div>
         <p className="m-0 mt-5 max-w-xl text-sm leading-relaxed text-discord-text-muted">
           Enter a character once and the roster, the bot and the addon all see
-          it. No spreadsheets, no re-entering anything, no surfaces drifting
-          apart.
+          it — no spreadsheet to keep in sync, no re-typing the same roster
+          three times.
         </p>
       </Reveal>
     </section>
@@ -332,7 +357,7 @@ const YOURS_TO_RUN = [
   },
   {
     term: "Free & open source",
-    detail: "MIT licensed, every line of it — the bot, the addon and this site.",
+    detail: "MIT licensed, every line of it: the bot, the addon and this site.",
   },
 ] as const;
 
