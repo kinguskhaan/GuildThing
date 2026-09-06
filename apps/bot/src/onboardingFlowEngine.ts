@@ -925,11 +925,9 @@ export async function runFlow(params: {
       );
       freshEntry = false;
       if (nextCursor == null) {
-        await member
-          .send(
-            `**${member.guild.name}** — Heads up — you didn't respond in time, so I stopped there. Whatever you'd already answered (and any roles/nickname already set up) were saved. Run \`/onboarding\` again anytime to pick back up.`,
-          )
-          .catch(() => {});
+        // Timed out waiting for a reply — whatever was already answered
+        // (roles/nickname set up so far) is already saved by this point, so
+        // just stop silently rather than DM the member about it.
         return;
       }
       cursorBox.interaction = nextCursor;
