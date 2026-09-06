@@ -187,6 +187,30 @@ function withWotlkSpellIds(buffs: BuffDef[]): BuffDef[] {
   }));
 }
 
+// Classic Era's live Wowhead domain has its own (often much lower-numbered,
+// pre-TBC) spell ids for base abilities — the shared SPELL_IDS map is
+// TBC/Wrath-derived and 404s for these on /classic/. Every id here was
+// confirmed to resolve on /classic/ directly; ids not listed here (base
+// abilities that never got renumbered, e.g. battle-shout, blood-pact,
+// faerie-fire, trueshot-aura) checked out fine against the shared map.
+const CLASSIC_SPELL_ID_OVERRIDES: Record<string, number> = {
+  "arcane-intellect": 10157,
+  "blessing-of-sanctuary": 25951,
+  "devotion-aura": 10295,
+  "divine-spirit": 27841,
+  "insect-swarm": 24977,
+  "mark-of-the-wild": 9885,
+  "power-word-fortitude": 10938,
+  "shadow-protection": 10958,
+};
+
+function withClassicSpellIds(buffs: BuffDef[]): BuffDef[] {
+  return buffs.map((b) => ({
+    ...b,
+    spellId: CLASSIC_SPELL_ID_OVERRIDES[b.id] ?? SPELL_IDS[b.id],
+  }));
+}
+
 function withSpellIds(buffs: BuffDef[]): BuffDef[] {
   return buffs.map((b) => ({ ...b, spellId: SPELL_IDS[b.id] }));
 }
@@ -423,7 +447,9 @@ const TBC_BUFFS: BuffDef[] = [
   { id: "shadow-protection", label: "Shadow Protection", icon: "shadow-protection", scope: "group", kind: "buff", classToken: "PRIEST" },
   { id: "totem-of-wrath", label: "Totem of Wrath", icon: "totem-of-wrath", scope: "group", kind: "buff", specToken: "ELEMENTAL" },
   { id: "tree-of-life", label: "Tree of Life", icon: "tree-of-life", scope: "group", kind: "buff", specToken: "RESTORATION_DRUID" },
-  { id: "trueshot-aura", label: "Trueshot Aura", icon: "trueshot-aura", scope: "group", kind: "buff", specToken: "SURVIVAL" },
+  // Marksmanship talent in TBC, not Survival — confirmed via Wowhead's rank
+  // list, which tags every rank's Skill column "Marksmanship".
+  { id: "trueshot-aura", label: "Trueshot Aura", icon: "trueshot-aura", scope: "group", kind: "buff", specToken: "MARKSMANSHIP" },
   { id: "unleashed-rage", label: "Unleashed Rage", icon: "unleashed-rage", scope: "group", kind: "buff", specToken: "ENHANCEMENT" },
 
   { id: "blood-frenzy", label: "Blood Frenzy", icon: "blood-frenzy", scope: "group", kind: "debuff", specToken: "ARMS" },
@@ -555,7 +581,7 @@ export const EXPANSIONS: Record<ExpansionId, ExpansionDef> = {
     maxLevel: 60,
     classes: CLASSES_9,
     specs: SPECS_CLASSIC,
-    buffs: withSpellIds(CLASSIC_BUFFS),
+    buffs: withClassicSpellIds(CLASSIC_BUFFS),
   },
   tbc: {
     id: "tbc",
