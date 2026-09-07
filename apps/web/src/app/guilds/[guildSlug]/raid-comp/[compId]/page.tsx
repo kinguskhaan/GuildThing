@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { RaidCompView } from "~/app/_components/raid-comp-view";
@@ -29,8 +30,15 @@ export default async function RaidCompSharePage({
       <div className="w-full">
         <h2 className="text-xl font-bold">{comp.name}</h2>
         <p className="text-discord-text-muted mt-1 text-sm">
-          Shared raid comp — read-only snapshot. Officers edit the live version
-          in the raid comp builder.
+          Shared raid comp — read-only snapshot.{" "}
+          {guild.isAdmin && (
+            <Link
+              href={`/guilds/${guildSlug}/admin/raid-comp`}
+              className="text-discord-link hover:underline"
+            >
+              Edit in the builder
+            </Link>
+          )}
         </p>
       </div>
       <RaidCompView expansion={expansion} comp={comp} />

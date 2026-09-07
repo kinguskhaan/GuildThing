@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { Sidebar } from "~/app/_components/sidebar";
+import { auth } from "~/server/better-auth";
 import { getSession } from "~/server/better-auth/server";
 
 export default async function GuildsLayout({
@@ -12,9 +14,31 @@ export default async function GuildsLayout({
 
   if (!session) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-discord-base text-discord-text">
+      <main className="bg-discord-base text-discord-text flex min-h-screen flex-col items-center justify-center gap-4">
         <p>You need to log in to view guilds.</p>
-        <Link href="/" className="underline">
+        <form>
+          <button
+            className="bg-discord-brand hover:bg-discord-brand-hover rounded-full px-6 py-2 font-semibold text-white transition"
+            formAction={async () => {
+              "use server";
+              // No slug context this far out in the tree — after login,
+              // land on the guild list and let them click through.
+              const res = await auth.api.signInSocial({
+                body: {
+                  provider: "discord",
+                  callbackURL: "/guilds",
+                },
+              });
+              if (!res.url) {
+                throw new Error("No URL returned from signInSocial");
+              }
+              redirect(res.url);
+            }}
+          >
+            Log in with Discord
+          </button>
+        </form>
+        <Link href="/" className="text-discord-text-muted text-sm underline">
           Back to home
         </Link>
       </main>
@@ -22,7 +46,7 @@ export default async function GuildsLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-discord-base text-discord-text">
+    <div className="bg-discord-base text-discord-text flex min-h-screen">
       <Sidebar />
       <div className="flex-1">{children}</div>
     </div>
