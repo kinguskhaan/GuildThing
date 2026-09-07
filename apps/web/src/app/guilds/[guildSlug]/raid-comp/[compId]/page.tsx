@@ -30,15 +30,16 @@ export default async function RaidCompSharePage({
       <div className="w-full">
         <h2 className="text-xl font-bold">{comp.name}</h2>
         <p className="text-discord-text-muted mt-1 text-sm">
-          Shared raid comp — read-only snapshot.{" "}
+          View-only copy of this comp. Officers make changes in the{" "}
           {guild.isAdmin && (
             <Link
               href={`/guilds/${guildSlug}/admin/raid-comp`}
               className="text-discord-link hover:underline"
             >
-              Edit in the builder
+              builder
             </Link>
           )}
+          {!guild.isAdmin && "builder"}.
         </p>
       </div>
       <RaidCompView expansion={expansion} comp={comp} />
