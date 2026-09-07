@@ -1,0 +1,34 @@
+name: deploy
+
+# Rebuilds and redeploys the web app + discord bot in the `apps` LXC
+# (CT 105 on fubar). The runner lives in the same container as the
+# deployment clone (/home/flip/.docker/GuildThing), so the job checks
+# out nothing — it fast-forwards that clone and rebuilds the compose
+# stack in place.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: guildthing
+    steps:
+      - name: Fast-forward deployment clone
+        run: |
+          cd /home/flip/.docker/GuildThing
+          git fetch origin main
+          git reset --hard origin/main
+
+      - name: Build and restart stack
+        run: |
+          cd /home/flip/.docker/GuildThing
+          docker compose build
+          docker compose up -d
+
+      - name: Prune dangling images
+        run: docker image prune -f
