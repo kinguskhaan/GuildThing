@@ -2,12 +2,22 @@
 
 import { useState } from "react";
 
-import { wowIconUrl, wowheadSpellUrl, type ExpansionDef } from "@guildthing/wowhead-data";
+import {
+  wowIconUrl,
+  wowheadSpellUrl,
+  type ExpansionDef,
+} from "@guildthing/wowhead-data";
 
 import { classColor } from "~/lib/format";
 
 import type { CompSlot, CompState } from "./raid-comp-state";
-import { BENCH_GROUP_INDEX, GROUP_SIZE, benchSlots, groupCoverage, groupSlots } from "./raid-comp-state";
+import {
+  BENCH_GROUP_INDEX,
+  GROUP_SIZE,
+  benchSlots,
+  groupCoverage,
+  groupSlots,
+} from "./raid-comp-state";
 
 // What a drag carries: a fresh roster pick or an existing block being moved.
 export type DragPayload =
@@ -54,19 +64,25 @@ export function CompBlock({
   onSetClass,
   onDragStart,
   onDragEnd,
-  dragging,
+  dragging = false,
   altWarningNames = [],
+  readOnly = false,
 }: {
   slot: CompSlot;
   expansion: ExpansionDef;
-  onRemove: () => void;
-  onSetSpec: (slot: CompSlot, specToken: string | null) => void;
-  onSetClass: (slot: CompSlot, classToken: string) => void;
-  onDragStart: () => void;
-  onDragEnd: () => void;
-  dragging: boolean;
+  /** Handlers are optional so the read-only share view can render the same
+   * block without wiring interaction plumbing it never fires. */
+  onRemove?: () => void;
+  onSetSpec?: (slot: CompSlot, specToken: string | null) => void;
+  onSetClass?: (slot: CompSlot, classToken: string) => void;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
+  dragging?: boolean;
   /** Names of this character's OTHER claimed characters also placed in the comp. */
   altWarningNames?: string[];
+  /** Share-view mode: renders the block without its drag/remove/spec-pick
+   * affordances — the static snapshot members see through a share link. */
+  readOnly?: boolean;
 }) {
   const cls = expansion.classes.find((c) => c.token === slot.classToken);
   const spec = slot.specToken
@@ -78,8 +94,11 @@ export function CompBlock({
   // different from `stale`, below: a slot whose rosterMemberId got SetNull
   // because the roster row it pointed to was deleted, but whose name
   // snapshot survives on the row.
-  const isPlaceholder = slot.rosterMemberId == null && slot.characterName == null;
-  const label = slot.characterName ?? (isPlaceholder ? (cls?.label ?? "Placeholder") : "Unknown");
+  const isPlaceholder =
+    slot.rosterMemberId == null && slot.characterName == null;
+  const label =
+    slot.characterName ??
+    (isPlaceholder ? (cls?.label ?? "Placeholder") : "Unknown");
   const stale = slot.rosterMemberId == null && slot.characterName != null;
   const [specPickerOpen, setSpecPickerOpen] = useState(false);
   const [classPickerOpen, setClassPickerOpen] = useState(false);
@@ -90,13 +109,13 @@ export function CompBlock({
 
   return (
     <div
-      draggable={!stale}
+      draggable={!stale && !readOnly}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       className={`bg-discord-elevated-hover group relative flex h-9 items-center gap-2 rounded-lg px-2 ${
         dragging ? "opacity-40" : ""
       } ${stale ? "opacity-60" : ""} ${
-        isPlaceholder ? "border border-dashed border-discord-text-muted/50" : ""
+        isPlaceholder ? "border-discord-text-muted/50 border border-dashed" : ""
       } ${altWarningNames.length > 0 ? "ring-discord-yellow/60 ring-1" : ""}`}
       title={
         stale
@@ -120,7 +139,9 @@ export function CompBlock({
       )}
       <span
         className={`truncate text-sm font-semibold ${isPlaceholder ? "italic" : ""}`}
-        style={{ color: slot.classToken ? classColor(slot.classToken) : undefined }}
+        style={{
+          color: slot.classToken ? classColor(slot.classToken) : undefined,
+        }}
       >
         {label}
       </span>
@@ -129,7 +150,7 @@ export function CompBlock({
           ⚠
         </span>
       )}
-      {!stale && expansion.hasSpecs && (
+      {!stale && !readOnly && expansion.hasSpecs && (
         <button
           type="button"
           onClick={() => setSpecPickerOpen(true)}
@@ -138,12 +159,18 @@ export function CompBlock({
               ? `Change ${label}'s specialization`
               : `Set ${label}'s specialization (synced from Battle.net when configured)`
           }
-          className={`truncate rounded px-1 text-xs transition hover:text-discord-text ${
+          className={`hover:text-discord-text truncate rounded px-1 text-xs transition ${
             spec ? "text-discord-text-muted" : "text-discord-link"
           }`}
         >
           {spec ? spec.label : "set spec"}
         </button>
+      )}
+      {/* Read-only share view: the spec is a plain label, not a picker. */}
+      {!stale && readOnly && spec && (
+        <span className="text-discord-text-muted truncate text-xs">
+          {spec.label}
+        </span>
       )}
       {specPickerOpen && (
         <>
@@ -151,8 +178,8 @@ export function CompBlock({
             className="fixed inset-0 z-10"
             onClick={() => setSpecPickerOpen(false)}
           />
-          <div className="bg-discord-elevated absolute top-full right-0 z-20 mt-1 min-w-40 rounded-lg p-1 shadow-lg">
-            <span className="text-discord-text-muted block px-2 py-1 text-xs font-bold tracking-wider uppercase">
+          <div className="bg-discord-elevated absolute right-0 top-full z-20 mt-1 min-w-40 rounded-lg p-1 shadow-lg">
+            <span className="text-discord-text-muted block px-2 py-1 text-xs font-bold uppercase tracking-wider">
               {cls?.label ?? "Spec"}
             </span>
             {classSpecs.map((s) => (
@@ -160,10 +187,10 @@ export function CompBlock({
                 key={s.token}
                 type="button"
                 onClick={() => {
-                  onSetSpec(slot, s.token);
+                  onSetSpec?.(slot, s.token);
                   setSpecPickerOpen(false);
                 }}
-                className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm transition hover:bg-discord-elevated-hover ${
+                className={`hover:bg-discord-elevated-hover flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm transition ${
                   slot.specToken === s.token ? "font-semibold" : ""
                 }`}
               >
@@ -180,10 +207,10 @@ export function CompBlock({
               <button
                 type="button"
                 onClick={() => {
-                  onSetSpec(slot, null);
+                  onSetSpec?.(slot, null);
                   setSpecPickerOpen(false);
                 }}
-                className="text-discord-text-muted w-full rounded px-2 py-1.5 text-left text-xs transition hover:bg-discord-elevated-hover hover:text-discord-text"
+                className="text-discord-text-muted hover:bg-discord-elevated-hover hover:text-discord-text w-full rounded px-2 py-1.5 text-left text-xs transition"
               >
                 Clear spec
               </button>
@@ -196,12 +223,12 @@ export function CompBlock({
                     key={c.token}
                     type="button"
                     onClick={() => {
-                      onSetClass(slot, c.token);
+                      onSetClass?.(slot, c.token);
                       setSpecPickerOpen(false);
                       setClassPickerOpen(false);
                     }}
                     title={c.label}
-                    className="rounded p-1 transition hover:bg-discord-elevated-hover"
+                    className="hover:bg-discord-elevated-hover rounded p-1 transition"
                   >
                     <img
                       src={wowIconUrl(c.icon)}
@@ -216,7 +243,7 @@ export function CompBlock({
               <button
                 type="button"
                 onClick={() => setClassPickerOpen(true)}
-                className="text-discord-text-muted w-full rounded px-2 py-1.5 text-left text-xs transition hover:bg-discord-elevated-hover hover:text-discord-text"
+                className="text-discord-text-muted hover:bg-discord-elevated-hover hover:text-discord-text w-full rounded px-2 py-1.5 text-left text-xs transition"
               >
                 Change class…
               </button>
@@ -224,14 +251,16 @@ export function CompBlock({
           </div>
         </>
       )}
-      <button
-        type="button"
-        onClick={onRemove}
-        aria-label={`Remove ${label} from this slot`}
-        className="text-discord-text-muted ml-auto rounded px-1 text-xs opacity-0 transition group-hover:opacity-100 hover:text-discord-text"
-      >
-        ✕
-      </button>
+      {!readOnly && (
+        <button
+          type="button"
+          onClick={() => onRemove?.()}
+          aria-label={`Remove ${label} from this slot`}
+          className="text-discord-text-muted hover:text-discord-text ml-auto rounded px-1 text-xs opacity-0 transition group-hover:opacity-100"
+        >
+          ✕
+        </button>
+      )}
     </div>
   );
 }
@@ -239,12 +268,12 @@ export function CompBlock({
 // One empty slot — a recessed drop target that highlights while a drag is
 // over it. Keyboard users reach the same operation through the roster
 // drawer's click-to-place and each block's remove button.
-function EmptySlot({
+export function EmptySlot({
   dragActive,
   onDrop,
 }: {
   dragActive: boolean;
-  onDrop: () => void;
+  onDrop?: () => void;
 }) {
   const [over, setOver] = useState(false);
   return (
@@ -258,10 +287,10 @@ function EmptySlot({
       onDrop={(e) => {
         e.preventDefault();
         setOver(false);
-        onDrop();
+        onDrop?.();
       }}
       className={`bg-discord-base h-9 rounded-lg transition ${
-        over && dragActive ? "ring-1 ring-discord-brand" : ""
+        over && dragActive ? "ring-discord-brand ring-1" : ""
       }`}
     />
   );
@@ -319,7 +348,9 @@ export function RaidCompCanvas({
           <EmptySlot
             key={`empty:${g}:${i}`}
             dragActive={dragActive}
-            onDrop={() => onDropAt({ kind: "slot", groupIndex: g, slotIndex: i })}
+            onDrop={() =>
+              onDropAt({ kind: "slot", groupIndex: g, slotIndex: i })
+            }
           />
         ),
       );
@@ -327,7 +358,7 @@ export function RaidCompCanvas({
     groups.push(
       <div key={g} className="bg-discord-base rounded-xl p-2">
         <div className="mb-1.5 flex items-center justify-between px-1">
-          <span className="text-discord-text-muted text-xs font-bold tracking-wider uppercase">
+          <span className="text-discord-text-muted text-xs font-bold uppercase tracking-wider">
             Group {g + 1}
           </span>
           {comp.groupCount > 1 && (
@@ -336,7 +367,7 @@ export function RaidCompCanvas({
               onClick={() => onRemoveGroup(g)}
               aria-label={`Remove group ${g + 1} — its members move to the bench`}
               title="Remove group — members move to the bench"
-              className="text-discord-text-muted rounded px-1 text-xs transition hover:text-discord-text"
+              className="text-discord-text-muted hover:text-discord-text rounded px-1 text-xs transition"
             >
               ✕
             </button>
@@ -345,7 +376,11 @@ export function RaidCompCanvas({
         <div className="flex flex-col gap-1">{slotRows}</div>
         <div
           className="mt-1.5 flex min-h-6 items-center gap-1 rounded-lg px-1 py-0.5"
-          title={groupBuffs.some((b) => !b.spellId) ? groupBuffs.map((b) => b.label).join(", ") : undefined}
+          title={
+            groupBuffs.some((b) => !b.spellId)
+              ? groupBuffs.map((b) => b.label).join(", ")
+              : undefined
+          }
         >
           {groupBuffs.length > 0 ? (
             groupBuffs.map((b) =>
@@ -402,10 +437,10 @@ export function RaidCompCanvas({
           onDropAt({ kind: "bench" });
         }}
         className={`bg-discord-base rounded-xl p-2 transition ${
-          benchOver && dragActive ? "ring-1 ring-discord-brand" : ""
+          benchOver && dragActive ? "ring-discord-brand ring-1" : ""
         }`}
       >
-        <span className="text-discord-text-muted px-1 pb-1.5 text-xs font-bold tracking-wider uppercase">
+        <span className="text-discord-text-muted px-1 pb-1.5 text-xs font-bold uppercase tracking-wider">
           Bench
         </span>
         {bench.length > 0 ? (

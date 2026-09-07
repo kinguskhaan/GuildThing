@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 
 import { RaidCompBuilder } from "~/app/_components/raid-comp-builder";
 import { api } from "~/trpc/server";
@@ -21,7 +20,8 @@ export default async function RaidCompPage({
         <h2 className="text-xl font-bold">Raid comp</h2>
         <p className="text-discord-text-muted mt-1 text-sm">
           Snap roster members into group blocks and see what the comp covers
-          before raid night. Saved comps are only visible to officers and GMs.
+          before raid night. Saved comps are officer/GM only — the Copy share
+          link button gives guild members a read-only view of one.
         </p>
       </div>
       {!guild.bnetConfigured && (

@@ -8,7 +8,12 @@ import { ConfirmButton } from "~/app/_components/confirm-button";
 import { classColor } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";
 
-import { RaidCompCanvas, type DragPayload, type DropTarget, type SlotRef } from "./raid-comp-canvas";
+import {
+  RaidCompCanvas,
+  type DragPayload,
+  type DropTarget,
+  type SlotRef,
+} from "./raid-comp-canvas";
 import { RaidCompCoverage } from "./raid-comp-coverage";
 import { RaidCompRoles } from "./raid-comp-roles";
 import {
@@ -88,6 +93,9 @@ export function RaidCompBuilder({
   const [draft, setDraft] = useState<CompState | null>(null);
   const [dirty, setDirty] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
+  // Flash feedback for the share-link copy — clears on the next timeout so
+  // the button returns to its label without any hover state dependence.
+  const [shareCopied, setShareCopied] = useState(false);
   const [dragPayload, setDragPayload] = useState<DragPayload | null>(null);
   const [search, setSearch] = useState("");
   const [classFilter, setClassFilter] = useState<string[]>([]);
@@ -222,13 +230,20 @@ export function RaidCompBuilder({
         if (target.kind === "slot") {
           slots = slots.map((s) =>
             s.groupIndex === dest.groupIndex && s.slotIndex === dest.slotIndex
-              ? { ...s, groupIndex: BENCH_GROUP_INDEX, slotIndex: nextBenchIndex(slots) }
+              ? {
+                  ...s,
+                  groupIndex: BENCH_GROUP_INDEX,
+                  slotIndex: nextBenchIndex(slots),
+                }
               : s,
           );
         }
         const finalDest =
           target.kind === "bench"
-            ? { groupIndex: BENCH_GROUP_INDEX, slotIndex: nextBenchIndex(slots) }
+            ? {
+                groupIndex: BENCH_GROUP_INDEX,
+                slotIndex: nextBenchIndex(slots),
+              }
             : dest;
         slots.push({ ...placed, ...finalDest });
         return { ...prev, slots };
@@ -260,7 +275,9 @@ export function RaidCompBuilder({
       const target: DropTarget = draft
         ? (() => {
             const empty = firstEmptyGroupSlot(draft);
-            return empty ? { kind: "slot" as const, ...empty } : { kind: "bench" as const };
+            return empty
+              ? { kind: "slot" as const, ...empty }
+              : { kind: "bench" as const };
           })()
         : { kind: "bench" as const };
       place(
@@ -282,7 +299,9 @@ export function RaidCompBuilder({
       const target: DropTarget = draft
         ? (() => {
             const empty = firstEmptyGroupSlot(draft);
-            return empty ? { kind: "slot" as const, ...empty } : { kind: "bench" as const };
+            return empty
+              ? { kind: "slot" as const, ...empty }
+              : { kind: "bench" as const };
           })()
         : { kind: "bench" as const };
       place({ source: "placeholder", classToken }, target);
@@ -295,7 +314,8 @@ export function RaidCompBuilder({
       update((prev) => ({
         ...prev,
         slots: prev.slots.filter(
-          (s) => !(s.groupIndex === ref.groupIndex && s.slotIndex === ref.slotIndex),
+          (s) =>
+            !(s.groupIndex === ref.groupIndex && s.slotIndex === ref.slotIndex),
         ),
       }));
     },
@@ -444,7 +464,9 @@ export function RaidCompBuilder({
   // and by placed blocks (already placed, showing who else shares a player).
   const altWarningForRosterId = useCallback(
     (rosterMemberId: string | null) => {
-      const discordUserId = rosterMemberId ? discordUserIdByRosterId.get(rosterMemberId) : undefined;
+      const discordUserId = rosterMemberId
+        ? discordUserIdByRosterId.get(rosterMemberId)
+        : undefined;
       if (!discordUserId) return [];
       const alts = altsByDiscordId.get(discordUserId) ?? [];
       return alts
@@ -486,16 +508,14 @@ export function RaidCompBuilder({
         <h3 className="text-lg font-bold">No raid comps yet</h3>
         <p className="text-discord-text-muted max-w-sm text-sm">
           Build your raid night: snap roster members into {expansion.raidSize}-
-          person group blocks, bench the rest, and watch the buff coverage
-          fill in.
+          person group blocks, bench the rest, and watch the buff coverage fill
+          in.
         </p>
         <button
           type="button"
-          onClick={() =>
-            createComp.mutate({ guildId, name: "Raid comp 1" })
-          }
+          onClick={() => createComp.mutate({ guildId, name: "Raid comp 1" })}
           disabled={createComp.isPending}
-          className="bg-discord-brand rounded-full px-6 py-2 text-sm font-semibold text-white transition hover:bg-discord-brand-hover disabled:opacity-50"
+          className="bg-discord-brand hover:bg-discord-brand-hover rounded-full px-6 py-2 text-sm font-semibold text-white transition disabled:opacity-50"
         >
           Create raid comp
         </button>
@@ -517,10 +537,13 @@ export function RaidCompBuilder({
   const members = (roster.data ?? []).filter((m) => {
     const matchesSearch = m.name.toLowerCase().includes(search.toLowerCase());
     const matchesClass =
-      classFilter.length === 0 || (m.class != null && classFilter.includes(m.class));
+      classFilter.length === 0 ||
+      (m.class != null && classFilter.includes(m.class));
     const matchesRank =
-      rankFilter.length === 0 || (m.rank != null && rankFilter.includes(m.rank));
-    const matchesLevel = showLowLevels || m.level == null || m.level >= expansion.maxLevel;
+      rankFilter.length === 0 ||
+      (m.rank != null && rankFilter.includes(m.rank));
+    const matchesLevel =
+      showLowLevels || m.level == null || m.level >= expansion.maxLevel;
     return matchesSearch && matchesClass && matchesRank && matchesLevel;
   });
   const lowLevelCount = (roster.data ?? []).filter(
@@ -555,9 +578,14 @@ export function RaidCompBuilder({
         ))}
         <button
           type="button"
-          onClick={() => createComp.mutate({ guildId, name: `Raid comp ${(comps.data?.length ?? 0) + 1}` })}
+          onClick={() =>
+            createComp.mutate({
+              guildId,
+              name: `Raid comp ${(comps.data?.length ?? 0) + 1}`,
+            })
+          }
           disabled={createComp.isPending}
-          className="bg-discord-elevated-hover text-discord-text-muted rounded-full px-3 py-1.5 text-sm transition hover:bg-discord-brand hover:text-white disabled:opacity-50"
+          className="bg-discord-elevated-hover text-discord-text-muted hover:bg-discord-brand rounded-full px-3 py-1.5 text-sm transition hover:text-white disabled:opacity-50"
         >
           + New comp
         </button>
@@ -604,9 +632,23 @@ export function RaidCompBuilder({
           type="button"
           onClick={addGroup}
           disabled={comp.groupCount >= MAX_GROUPS}
-          className="bg-discord-elevated-hover rounded-full px-4 py-2 text-sm transition hover:bg-discord-elevated disabled:opacity-50"
+          className="bg-discord-elevated-hover hover:bg-discord-elevated rounded-full px-4 py-2 text-sm transition disabled:opacity-50"
         >
           Add group
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            const url = `${window.location.origin}/guilds/${guildSlug}/raid-comp/${comp.id}`;
+            void navigator.clipboard.writeText(url).then(() => {
+              setShareCopied(true);
+              setTimeout(() => setShareCopied(false), 2000);
+            });
+          }}
+          title="Copy a read-only link to this comp that any guild member can open"
+          className="bg-discord-elevated-hover hover:bg-discord-elevated rounded-full px-4 py-2 text-sm transition"
+        >
+          {shareCopied ? "Link copied!" : "Copy share link"}
         </button>
         <span
           className={`text-xs ${
@@ -626,7 +668,7 @@ export function RaidCompBuilder({
             confirmLabel="Delete"
             description={`Delete "${comp.name}" and all its placements? This can't be undone.`}
             onConfirm={() => deleteComp.mutate({ compId: comp.id })}
-            className="rounded-full bg-discord-elevated-hover px-4 py-2 text-sm transition hover:bg-discord-red"
+            className="bg-discord-elevated-hover hover:bg-discord-red rounded-full px-4 py-2 text-sm transition"
           />
         </div>
       </div>
@@ -644,7 +686,7 @@ export function RaidCompBuilder({
           }}
           className="bg-discord-elevated flex flex-col gap-2 rounded-xl p-3"
         >
-          <span className="text-discord-text-muted text-xs font-bold tracking-wider uppercase">
+          <span className="text-discord-text-muted text-xs font-bold uppercase tracking-wider">
             Roster
           </span>
           <input
@@ -671,7 +713,9 @@ export function RaidCompBuilder({
                   aria-pressed={active}
                   title={cls.label}
                   className={`rounded p-1 transition ${
-                    active ? "bg-discord-brand/30" : "hover:bg-discord-elevated-hover"
+                    active
+                      ? "bg-discord-brand/30"
+                      : "hover:bg-discord-elevated-hover"
                   }`}
                 >
                   <img
@@ -724,7 +768,7 @@ export function RaidCompBuilder({
             </div>
           )}
           <div className="flex flex-col gap-1 border-t border-black/10 pt-2">
-            <span className="text-discord-text-muted text-xs font-bold tracking-wider uppercase">
+            <span className="text-discord-text-muted text-xs font-bold uppercase tracking-wider">
               Add placeholder
             </span>
             <div className="flex flex-wrap gap-1">
@@ -734,12 +778,15 @@ export function RaidCompBuilder({
                   type="button"
                   draggable
                   onDragStart={() =>
-                    setDragPayload({ source: "placeholder", classToken: cls.token })
+                    setDragPayload({
+                      source: "placeholder",
+                      classToken: cls.token,
+                    })
                   }
                   onDragEnd={() => setDragPayload(null)}
                   onClick={() => placePlaceholder(cls.token)}
                   title={`Add a placeholder ${cls.label} — a slot to plan for a class you don't have a character for yet`}
-                  className="rounded p-1 transition hover:bg-discord-elevated-hover"
+                  className="hover:bg-discord-elevated-hover rounded p-1 transition"
                 >
                   <img
                     src={wowIconUrl(cls.icon)}
@@ -801,14 +848,14 @@ export function RaidCompBuilder({
                     placed
                       ? "cursor-default opacity-40"
                       : altsInComp.length > 0
-                        ? "bg-discord-yellow/10 ring-discord-yellow/60 cursor-pointer ring-1 hover:bg-discord-elevated-hover"
-                        : "cursor-pointer hover:bg-discord-elevated-hover"
+                        ? "bg-discord-yellow/10 ring-discord-yellow/60 hover:bg-discord-elevated-hover cursor-pointer ring-1"
+                        : "hover:bg-discord-elevated-hover cursor-pointer"
                   }`}
                 >
                   <img
                     src={wowIconUrl(
-                      expansion.classes.find((c) => c.token === m.class)?.icon ??
-                        "inv_misc_questionmark",
+                      expansion.classes.find((c) => c.token === m.class)
+                        ?.icon ?? "inv_misc_questionmark",
                     )}
                     alt=""
                     className="h-[18px] w-[18px] shrink-0 rounded-[3px]"
@@ -821,16 +868,22 @@ export function RaidCompBuilder({
                     {m.name}
                   </span>
                   {altsInComp.length > 0 && (
-                    <span className="text-discord-yellow shrink-0 text-xs" aria-hidden>
+                    <span
+                      className="text-discord-yellow shrink-0 text-xs"
+                      aria-hidden
+                    >
                       ⚠
                     </span>
                   )}
                   {placed && (
-                    <span className="text-discord-text-muted text-xs">in comp</span>
+                    <span className="text-discord-text-muted text-xs">
+                      in comp
+                    </span>
                   )}
                   {m.spec && (
                     <span className="text-discord-text-muted truncate text-xs">
-                      {expansion.specs.find((s) => s.token === m.spec)?.label ?? m.spec}
+                      {expansion.specs.find((s) => s.token === m.spec)?.label ??
+                        m.spec}
                     </span>
                   )}
                 </div>

@@ -1,6 +1,8 @@
 // Raid comp CRUD + Battle.net spec sync — officer/GM only (same
-// checkGuildAdmin gate as guild settings), see PRODUCT.md's "officer/GM is
-// the default audience" principle and the surface brief at
+// checkGuildAdmin gate as guild settings), except the read-only `view`
+// query behind share links, which uses ordinary guild access so members
+// can open a shared comp. See PRODUCT.md's "officer/GM is the default
+// audience" principle and the surface brief at
 // .impeccable/surfaces/src-app-guilds-guildslug-admin-raid-comp-page-tsx.md.
 
 import { TRPCError } from "@trpc/server";
@@ -9,7 +11,11 @@ import { z } from "zod";
 import { EXPANSIONS, getExpansion } from "@guildthing/wowhead-data";
 
 import { lookupCharacterSpecialization } from "~/server/battlenet";
-import { checkGuildAdmin, forbiddenOrRateLimited } from "~/server/api/routers/guild";
+import {
+  checkGuildAdmin,
+  checkGuildRole,
+  forbiddenOrRateLimited,
+} from "~/server/api/routers/guild";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import type { db as Db } from "~/server/db";
 
@@ -42,6 +48,42 @@ async function requireCompAdmin(db: typeof Db, userId: string, compId: string) {
 }
 
 export const raidCompRouter = createTRPCRouter({
+  // Read-only view of one saved comp — the share-link target. Deliberately
+  // gated by ordinary guild access (checkGuildRole), NOT the officer/GM gate:
+  // the whole point of a share link is that regular members can open it.
+  // Returns only what the static view renders, CompState-shaped, so the
+  // viewer gets no mutation surface and no roster bookkeeping fields.
+  view: protectedProcedure
+    .input(z.object({ compId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const comp = await ctx.db.guildRaidComp.findUnique({
+        where: { id: input.compId },
+        include: { slots: true },
+      });
+      if (!comp) throw new TRPCError({ code: "NOT_FOUND" });
+      const { hasAccess, needsReauth, retryAfterSeconds } =
+        await checkGuildRole(ctx.db, comp.guildId, ctx.session.user.id);
+      if (!hasAccess) {
+        throw needsReauth
+          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
+          : forbiddenOrRateLimited(retryAfterSeconds);
+      }
+
+      return {
+        id: comp.id,
+        name: comp.name,
+        groupCount: comp.groupCount,
+        slots: comp.slots.map((s) => ({
+          groupIndex: s.groupIndex,
+          slotIndex: s.slotIndex,
+          rosterMemberId: s.rosterMemberId,
+          characterName: s.characterName,
+          classToken: s.classToken,
+          specToken: s.specToken,
+        })),
+      };
+    }),
+
   list: protectedProcedure
     .input(z.object({ guildId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -239,11 +281,7 @@ export const raidCompRouter = createTRPCRouter({
       if (!member) throw new TRPCError({ code: "NOT_FOUND" });
 
       const { guild, isAdmin, needsReauth, retryAfterSeconds } =
-        await checkGuildAdmin(
-          ctx.db,
-          member.guildId,
-          ctx.session.user.id,
-        );
+        await checkGuildAdmin(ctx.db, member.guildId, ctx.session.user.id);
       if (!isAdmin) {
         throw needsReauth
           ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
