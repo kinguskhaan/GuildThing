@@ -175,7 +175,7 @@ function BotReel() {
               <span className="text-discord-text">Kromgar</span>
             </p>
             <p className="m-0 pl-5 text-discord-text-muted">
-              guild rank "Raider" → Discord role, synced
+              guild rank &quot;Raider&quot; → Discord role, synced
             </p>
             <p className="m-0 text-discord-text">
               <span className="text-discord-green">✓</span> opened{" "}
