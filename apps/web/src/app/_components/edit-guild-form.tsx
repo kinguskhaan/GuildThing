@@ -106,7 +106,7 @@ export function EditGuildForm({
       <label className="flex flex-col gap-1 text-sm">
         Name
         <input
-          className="rounded-full bg-discord-elevated px-4 py-2 text-discord-text"
+          className="w-full rounded-full bg-discord-elevated px-4 py-2 text-base lg:text-sm text-discord-text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
@@ -115,7 +115,7 @@ export function EditGuildForm({
       <label className="flex flex-col gap-1 text-sm">
         Discord server ID
         <input
-          className="rounded-full bg-discord-elevated px-4 py-2 text-discord-text"
+          className="w-full rounded-full bg-discord-elevated px-4 py-2 text-base lg:text-sm text-discord-text"
           value={discordGuildId}
           onChange={(e) => setDiscordGuildId(e.target.value)}
           required
@@ -175,7 +175,7 @@ export function EditGuildForm({
       {updateGuild.error && (
         <p className="text-sm text-discord-red">{updateGuild.error.message}</p>
       )}
-      <div className="flex gap-2">
+      <div className="flex flex-col items-stretch gap-2 lg:flex-row lg:items-center">
         <button
           type="submit"
           className="rounded-full bg-discord-elevated px-6 py-2 font-semibold transition hover:bg-discord-elevated-hover"
@@ -211,7 +211,7 @@ export function EditGuildForm({
                 This permanently deletes &quot;{name}&quot; and every
                 character/recipe imported under it. This can&apos;t be undone.
               </p>
-              <div className="flex gap-2">
+              <div className="flex flex-col items-stretch gap-2 lg:flex-row lg:items-center">
                 <button
                   type="button"
                   onClick={() => deleteGuild.mutate({ guildId })}

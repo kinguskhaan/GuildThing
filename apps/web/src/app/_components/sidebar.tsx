@@ -21,7 +21,7 @@ function navLinkClass(active: boolean) {
 // sidebar reads as distinct groups instead of one long flat list.
 function SidebarHeading({ children }: { children: ReactNode }) {
   return (
-    <span className="font-[family-name:var(--font-arcade-ui)] text-discord-text px-2 pb-1 text-xs font-semibold tracking-wider uppercase">
+    <span className="text-discord-text px-2 pb-1 font-[family-name:var(--font-arcade-ui)] text-xs font-semibold uppercase tracking-wider">
       {children}
     </span>
   );
@@ -33,7 +33,13 @@ function SidebarDivider() {
   return <div className="my-3 border-t border-black/20" />;
 }
 
-export function Sidebar() {
+export function Sidebar({
+  mobileOpen = false,
+  inert,
+}: {
+  mobileOpen?: boolean;
+  inert?: boolean;
+}) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -99,12 +105,19 @@ export function Sidebar() {
     : [];
 
   return (
-    <nav className="bg-discord-sidebar flex h-screen w-56 shrink-0 flex-col gap-1 overflow-y-auto border-r border-black/20 p-3">
+    <nav
+      inert={inert}
+      className={`bg-discord-sidebar flex h-screen w-56 shrink-0 flex-col gap-1 overflow-y-auto border-r border-black/20 p-3 max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-40 max-lg:h-dvh max-lg:transition-transform max-lg:duration-200 max-lg:ease-out ${
+        mobileOpen
+          ? "max-lg:translate-x-0 max-lg:shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
+          : "max-lg:-translate-x-full"
+      }`}
+    >
       <Link
         href="/"
-        className="mb-1 flex items-center justify-center gap-2 rounded-lg py-1 text-discord-text-muted transition hover:text-discord-text"
+        className="text-discord-text-muted hover:text-discord-text mb-1 flex items-center justify-center gap-2 rounded-lg py-1 transition"
       >
-        <SpaceInvaderGlyph className="h-4 w-4 text-discord-brand" />
+        <SpaceInvaderGlyph className="text-discord-brand h-4 w-4" />
         <span className="font-[family-name:var(--font-arcade-display)] text-sm">
           guildthing
         </span>

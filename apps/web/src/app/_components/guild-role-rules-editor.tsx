@@ -325,10 +325,10 @@ export function GuildRoleRulesEditor({
           {/* editor */}
           {selectedRuleIndex != null && selectedDraft && (
             <div className="flex flex-col gap-4 rounded-lg bg-discord-base p-4">
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3 max-lg:flex-col max-lg:items-stretch">
                 <span className="schem-kicker">{`R${selectedRuleIndex + 1}`}</span>
                 <input
-                  className="bg-discord-elevated text-discord-text min-w-64 flex-1 rounded-full px-4 py-2 text-sm"
+                  className="bg-discord-elevated text-discord-text w-full min-w-0 flex-1 rounded-full px-4 py-2 text-base lg:text-sm lg:min-w-64"
                   value={selectedDraft.label}
                   onChange={(e) =>
                     updateDraft(selectedRuleIndex, { label: e.target.value })
@@ -358,9 +358,9 @@ export function GuildRoleRulesEditor({
                   <span className="schem-kicker">Conditions (all must match)</span>
                   {selectedDraft.conditions.map((cond, j) => (
                     <div key={j} className="flex flex-col gap-2 rounded-lg bg-discord-elevated p-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 max-lg:flex-wrap">
                         <select
-                          className="bg-discord-base text-discord-text rounded-full px-3 py-1.5 text-sm"
+                          className="bg-discord-base text-discord-text rounded-full px-3 py-1.5 text-base lg:text-sm"
                           value={cond.field}
                           onChange={(e) =>
                             updateCondition(selectedRuleIndex, j, {
@@ -383,7 +383,7 @@ export function GuildRoleRulesEditor({
                           <>
                             <input
                               type="number"
-                              className="bg-discord-base text-discord-text w-20 rounded-full px-3 py-1.5 text-sm"
+                              className="bg-discord-base text-discord-text w-20 rounded-full px-3 py-1.5 text-base lg:text-sm"
                               value={cond.minNumber}
                               onChange={(e) =>
                                 updateCondition(selectedRuleIndex, j, {
@@ -395,7 +395,7 @@ export function GuildRoleRulesEditor({
                             <span className="text-discord-text-muted">–</span>
                             <input
                               type="number"
-                              className="bg-discord-base text-discord-text w-20 rounded-full px-3 py-1.5 text-sm"
+                              className="bg-discord-base text-discord-text w-20 rounded-full px-3 py-1.5 text-base lg:text-sm"
                               value={cond.maxNumber}
                               onChange={(e) =>
                                 updateCondition(selectedRuleIndex, j, {
@@ -407,7 +407,7 @@ export function GuildRoleRulesEditor({
                           </>
                         ) : cond.field === "answer" ? (
                           <select
-                            className="bg-discord-base text-discord-text min-w-0 flex-1 rounded-full px-3 py-1.5 text-sm"
+                            className="bg-discord-base text-discord-text min-w-0 flex-1 rounded-full px-3 py-1.5 text-base lg:text-sm"
                             value={cond.onboardingStepId}
                             onChange={(e) =>
                               updateCondition(selectedRuleIndex, j, {
@@ -430,7 +430,7 @@ export function GuildRoleRulesEditor({
                             list={
                               cond.field === "rank" ? "rank-options" : "class-options"
                             }
-                            className="bg-discord-base text-discord-text min-w-0 flex-1 rounded-full px-3 py-1.5 text-sm"
+                            className="bg-discord-base text-discord-text min-w-0 flex-1 rounded-full px-3 py-1.5 text-base lg:text-sm"
                             value={cond.textValue}
                             onChange={(e) =>
                               updateCondition(selectedRuleIndex, j, {
@@ -600,7 +600,7 @@ export function GuildRoleRulesEditor({
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 max-lg:flex-wrap max-lg:sticky max-lg:bottom-0 max-lg:-mx-4 max-lg:-mb-4 max-lg:mt-1 max-lg:rounded-b-lg max-lg:bg-discord-base max-lg:px-4 max-lg:pt-3 max-lg:pb-[calc(0.75rem+env(safe-area-inset-bottom))] max-lg:border-t max-lg:border-black/10">
                 <button
                   type="button"
                   onClick={() => saveDraft(selectedRuleIndex)}

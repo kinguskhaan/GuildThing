@@ -94,10 +94,10 @@ export function GuildDiscordRolesTable({ guildId }: { guildId: string }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search character, nick, or account name"
-          className="rounded-full bg-discord-elevated px-3 py-1.5 text-sm text-discord-text placeholder:text-discord-text-muted"
+          className="max-lg:w-full rounded-full bg-discord-elevated px-3 py-1.5 text-base lg:text-sm text-discord-text placeholder:text-discord-text-muted"
         />
         <select
-          className="rounded-full bg-discord-elevated px-3 py-1.5 text-sm text-discord-text"
+          className="rounded-full bg-discord-elevated px-3 py-1.5 text-base lg:text-sm text-discord-text"
           value={rankFilter}
           onChange={(e) => setRankFilter(e.target.value)}
         >
@@ -109,7 +109,7 @@ export function GuildDiscordRolesTable({ guildId }: { guildId: string }) {
           ))}
         </select>
         <select
-          className="rounded-full bg-discord-elevated px-3 py-1.5 text-sm text-discord-text"
+          className="rounded-full bg-discord-elevated px-3 py-1.5 text-base lg:text-sm text-discord-text"
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
         >
@@ -148,7 +148,7 @@ export function GuildDiscordRolesTable({ guildId }: { guildId: string }) {
             <thead>
               <tr className="border-b border-black/20 text-xs whitespace-nowrap text-discord-text-muted uppercase">
                 <th
-                  className="sticky top-0 cursor-pointer bg-discord-elevated px-4 py-2 font-semibold select-none"
+                  className="max-lg:z-30 max-lg:left-0 sticky top-0 cursor-pointer bg-discord-elevated px-4 py-2 font-semibold select-none"
                   onClick={() => toggleSort("characterName")}
                 >
                   Ing Name{sortIndicator(sortKey, "characterName", sortDesc)}
@@ -179,7 +179,7 @@ export function GuildDiscordRolesTable({ guildId }: { guildId: string }) {
             <tbody>
               {sorted.map((row) => (
                 <tr key={row.id} className="border-b border-black/10 last:border-0">
-                  <td className="px-4 py-2 font-semibold whitespace-nowrap">
+                  <td className="max-lg:z-20 max-lg:left-0 max-lg:sticky max-lg:bg-discord-elevated px-4 py-2 font-semibold whitespace-nowrap">
                     {row.characterName}
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap text-discord-text-muted">
@@ -192,7 +192,7 @@ export function GuildDiscordRolesTable({ guildId }: { guildId: string }) {
                     {row.discordTag ?? "—"}
                   </td>
                   <td
-                    className="max-w-[300px] truncate px-4 py-2 text-discord-text-muted"
+                    className="max-lg:whitespace-normal max-w-[300px] truncate px-4 py-2 text-discord-text-muted"
                     title={row.roleNames.join(", ")}
                   >
                     {row.roleNames.length > 0 ? row.roleNames.join(", ") : "—"}

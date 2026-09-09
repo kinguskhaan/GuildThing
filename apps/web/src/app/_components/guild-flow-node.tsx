@@ -160,7 +160,7 @@ export function GuildFlowStepNode({
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
-              className="bg-discord-elevated text-discord-text-muted hover:text-discord-text hover:border-[color:var(--schem-line)] pointer-events-auto invisible flex h-6 w-6 items-center justify-center rounded-full border border-black/20 text-sm font-bold group-hover/node:visible hover:visible"
+              className="bg-discord-elevated text-discord-text-muted hover:text-discord-text hover:border-[color:var(--schem-line)] pointer-events-auto invisible flex h-6 w-6 items-center justify-center rounded-full border border-black/20 text-sm font-bold max-lg:visible max-lg:h-8 max-lg:w-8 group-hover/node:visible hover:visible"
               aria-label="Next step"
             >
               +

@@ -89,7 +89,7 @@ function NameAndServerStep({
       <label className="flex flex-col gap-1 text-sm">
         Name
         <input
-          className="rounded-full bg-discord-elevated px-4 py-2 text-discord-text"
+          className="w-full rounded-full bg-discord-elevated px-4 py-2 text-base lg:text-sm text-discord-text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Insert cool guild name here"
@@ -100,7 +100,7 @@ function NameAndServerStep({
         Discord server
         {showPicker ? (
           <select
-            className="rounded-full bg-discord-elevated px-4 py-2 text-discord-text"
+            className="w-full rounded-full bg-discord-elevated px-4 py-2 text-base lg:text-sm text-discord-text"
             value={discordGuildId}
             onChange={(e) => {
               setDiscordGuildId(e.target.value);
@@ -120,7 +120,7 @@ function NameAndServerStep({
           </select>
         ) : (
           <input
-            className="rounded-full bg-discord-elevated px-4 py-2 text-discord-text"
+            className="w-full rounded-full bg-discord-elevated px-4 py-2 text-base lg:text-sm text-discord-text"
             value={discordGuildId}
             onChange={(e) => setDiscordGuildId(e.target.value)}
             placeholder="Server ID (copy it in Discord with Developer Mode)"
@@ -199,7 +199,7 @@ function AddBotStep({
         Add to Discord server
       </a>
 
-      <div className="flex items-center gap-2 rounded-lg bg-discord-elevated px-4 py-3">
+      <div className="flex flex-wrap items-center gap-2 rounded-lg bg-discord-elevated px-4 py-3">
         <span
           className={`h-2 w-2 shrink-0 rounded-full ${
             botCheck.data === true ? "bg-discord-green" : "bg-discord-text-muted"
@@ -303,7 +303,7 @@ function PickRolesStep({
 
       {saveRoles.error && <p className="text-sm text-discord-red">{saveRoles.error.message}</p>}
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
         <button
           type="button"
           disabled={requiredRoleIds.length === 0 || saveRoles.isPending}

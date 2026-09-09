@@ -56,7 +56,7 @@ export function GuildEventsList({
         return (
           <li
             key={event.id}
-            className="bg-discord-elevated flex items-center justify-between gap-3 rounded-xl p-4"
+            className="bg-discord-elevated flex items-center justify-between gap-3 rounded-xl p-4 max-lg:flex-col max-lg:items-start max-lg:gap-2"
           >
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">

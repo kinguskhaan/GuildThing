@@ -108,9 +108,9 @@ export function InstanceSettingsForm() {
           {settings.data.allowedCreators.map((c) => (
             <li
               key={c.id}
-              className="flex items-center justify-between rounded-lg bg-discord-base px-3 py-2 text-sm"
+              className="flex min-w-0 items-center justify-between gap-2 rounded-lg bg-discord-base px-3 py-2 text-sm"
             >
-              <span>{c.email}</span>
+              <span className="min-w-0 truncate">{c.email}</span>
               <button
                 type="button"
                 onClick={() => removeAllowedCreator.mutate({ id: c.id })}
@@ -131,7 +131,7 @@ export function InstanceSettingsForm() {
             value={newEmail}
             onChange={(e) => setNewEmail(e.target.value)}
             placeholder="friend@example.com"
-            className="flex-1 rounded-full bg-discord-base px-4 py-2 text-discord-text"
+            className="min-w-0 flex-1 rounded-full bg-discord-base px-4 py-2 text-discord-text"
           />
           <button
             type="button"

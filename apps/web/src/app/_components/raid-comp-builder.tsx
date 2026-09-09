@@ -515,7 +515,7 @@ export function RaidCompBuilder({
           type="button"
           onClick={() => createComp.mutate({ guildId, name: "Raid comp 1" })}
           disabled={createComp.isPending}
-          className="bg-discord-brand hover:bg-discord-brand-hover rounded-full px-6 py-2 text-sm font-semibold text-white transition disabled:opacity-50"
+          className="bg-discord-brand hover:bg-discord-brand-hover rounded-full px-6 py-2 text-sm font-semibold text-white transition disabled:opacity-50 max-lg:py-3"
         >
           Create raid comp
         </button>
@@ -567,7 +567,7 @@ export function RaidCompBuilder({
                 ? "Unsaved changes — wait for the save to finish before switching"
                 : undefined
             }
-            className={`rounded-full px-3 py-1.5 text-sm transition ${
+            className={`rounded-full px-3 py-1.5 text-sm transition max-lg:px-4 max-lg:py-2.5 max-lg:max-w-full ${
               c.id === activeCompId
                 ? "bg-discord-brand font-semibold text-white"
                 : "bg-discord-elevated text-discord-text hover:bg-discord-elevated-hover"
@@ -585,7 +585,7 @@ export function RaidCompBuilder({
             })
           }
           disabled={createComp.isPending}
-          className="bg-discord-elevated-hover text-discord-text-muted hover:bg-discord-brand rounded-full px-3 py-1.5 text-sm transition hover:text-white disabled:opacity-50"
+          className="bg-discord-elevated-hover text-discord-text-muted hover:bg-discord-brand rounded-full px-3 py-1.5 text-sm transition hover:text-white disabled:opacity-50 max-lg:px-4 max-lg:py-2.5"
         >
           + New comp
         </button>
@@ -595,7 +595,7 @@ export function RaidCompBuilder({
             type="button"
             onClick={() => setViewMode("groups")}
             aria-pressed={viewMode === "groups"}
-            className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+            className={`rounded-full px-3 py-1 text-xs font-semibold transition max-lg:px-4 max-lg:py-2 ${
               viewMode === "groups"
                 ? "bg-discord-brand text-white"
                 : "text-discord-text-muted hover:text-discord-text"
@@ -607,7 +607,7 @@ export function RaidCompBuilder({
             type="button"
             onClick={() => setViewMode("roles")}
             aria-pressed={viewMode === "roles"}
-            className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+            className={`rounded-full px-3 py-1 text-xs font-semibold transition max-lg:px-4 max-lg:py-2 ${
               viewMode === "roles"
                 ? "bg-discord-brand text-white"
                 : "text-discord-text-muted hover:text-discord-text"
@@ -626,13 +626,13 @@ export function RaidCompBuilder({
           value={comp.name}
           onChange={(e) => renameComp(e.target.value)}
           aria-label="Comp name"
-          className="bg-discord-elevated-hover text-discord-text w-56 rounded-full px-4 py-2 text-sm font-semibold"
+          className="bg-discord-elevated-hover text-discord-text w-56 rounded-full px-4 py-2 text-sm font-semibold max-lg:w-full"
         />
         <button
           type="button"
           onClick={addGroup}
           disabled={comp.groupCount >= MAX_GROUPS}
-          className="bg-discord-elevated-hover hover:bg-discord-elevated rounded-full px-4 py-2 text-sm transition disabled:opacity-50"
+          className="bg-discord-elevated-hover hover:bg-discord-elevated rounded-full px-4 py-2 text-sm transition disabled:opacity-50 max-lg:py-3"
         >
           Add group
         </button>
@@ -645,8 +645,8 @@ export function RaidCompBuilder({
               setTimeout(() => setShareCopied(false), 2000);
             });
           }}
-          title="Copy a read-only link to this comp that any guild member can open"
-          className="bg-discord-elevated-hover hover:bg-discord-elevated rounded-full px-4 py-2 text-sm transition"
+          title="Copy a read-only link to this comp that anyone with the link can open"
+          className="bg-discord-elevated-hover hover:bg-discord-elevated rounded-full px-4 py-2 text-sm transition max-lg:py-3"
         >
           {shareCopied ? "Link copied!" : "Copy share link"}
         </button>
@@ -668,7 +668,7 @@ export function RaidCompBuilder({
             confirmLabel="Delete"
             description={`Delete "${comp.name}" and all its placements? This can't be undone.`}
             onConfirm={() => deleteComp.mutate({ compId: comp.id })}
-            className="bg-discord-elevated-hover hover:bg-discord-red rounded-full px-4 py-2 text-sm transition"
+            className="bg-discord-elevated-hover hover:bg-discord-red rounded-full px-4 py-2 text-sm transition max-lg:py-3"
           />
         </div>
       </div>
@@ -712,7 +712,7 @@ export function RaidCompBuilder({
                   }
                   aria-pressed={active}
                   title={cls.label}
-                  className={`rounded p-1 transition ${
+                  className={`rounded p-1 transition max-lg:p-2 ${
                     active
                       ? "bg-discord-brand/30"
                       : "hover:bg-discord-elevated-hover"
@@ -755,7 +755,7 @@ export function RaidCompBuilder({
                     }
                     aria-pressed={active}
                     title={`Filter by guild rank: ${rank}`}
-                    className={`rounded-full px-2 py-0.5 text-xs transition ${
+                    className={`rounded-full px-2 py-0.5 text-xs transition max-lg:px-3 max-lg:py-1.5 ${
                       active
                         ? "bg-discord-brand font-semibold text-white"
                         : "bg-discord-elevated-hover text-discord-text-muted hover:text-discord-text"
@@ -786,7 +786,7 @@ export function RaidCompBuilder({
                   onDragEnd={() => setDragPayload(null)}
                   onClick={() => placePlaceholder(cls.token)}
                   title={`Add a placeholder ${cls.label} — a slot to plan for a class you don't have a character for yet`}
-                  className="hover:bg-discord-elevated-hover rounded p-1 transition"
+                  className="hover:bg-discord-elevated-hover rounded p-1 transition max-lg:p-2"
                 >
                   <img
                     src={wowIconUrl(cls.icon)}
@@ -844,7 +844,7 @@ export function RaidCompBuilder({
                       ? `Same player as ${altsInComp.join(", ")}, already in this comp`
                       : undefined
                   }
-                  className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-left transition ${
+                  className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-left transition max-lg:py-2.5 ${
                     placed
                       ? "cursor-default opacity-40"
                       : altsInComp.length > 0
@@ -906,6 +906,14 @@ export function RaidCompBuilder({
               onSetSpec={handleSetSpec}
               onSetClass={handleSetClass}
               getAltWarning={altWarningForRosterId}
+              onBenchAt={(slot) =>
+                place({ source: "slot", slot }, { kind: "bench" })
+              }
+              onPlaceFromBench={(slot) => {
+                const empty = firstEmptyGroupSlot(comp);
+                if (empty)
+                  place({ source: "slot", slot }, { kind: "slot", ...empty });
+              }}
             />
           ) : (
             <RaidCompRoles

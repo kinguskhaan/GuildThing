@@ -1,8 +1,8 @@
 // Raid comp CRUD + Battle.net spec sync — officer/GM only (same
 // checkGuildAdmin gate as guild settings), except the read-only `view`
-// query behind share links, which uses ordinary guild access so members
-// can open a shared comp. See PRODUCT.md's "officer/GM is the default
-// audience" principle and the surface brief at
+// query behind share links, which is public: the unguessable compId in
+// the link is the access control. See PRODUCT.md's "officer/GM is the
+// default audience" principle and the surface brief at
 // .impeccable/surfaces/src-app-guilds-guildslug-admin-raid-comp-page-tsx.md.
 
 import { TRPCError } from "@trpc/server";
@@ -16,7 +16,11 @@ import {
   checkGuildRole,
   forbiddenOrRateLimited,
 } from "~/server/api/routers/guild";
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "~/server/api/trpc";
 import type { db as Db } from "~/server/db";
 
 const slotSchema = z.object({
@@ -48,39 +52,56 @@ async function requireCompAdmin(db: typeof Db, userId: string, compId: string) {
 }
 
 export const raidCompRouter = createTRPCRouter({
-  // Read-only view of one saved comp — the share-link target. Deliberately
-  // gated by ordinary guild access (checkGuildRole), NOT the officer/GM gate:
-  // the whole point of a share link is that regular members can open it.
-  // Returns only what the static view renders, CompState-shaped, so the
-  // viewer gets no mutation surface and no roster bookkeeping fields.
-  view: protectedProcedure
-    .input(z.object({ compId: z.string() }))
+  // Read-only view of one saved comp — the share-link target. PUBLIC by
+  // design: the unguessable compId in the link is the access control, so
+  // anyone who holds the link can read the comp, logged in or not. The
+  // slug has to match the comp's guild, so stale links 404. Logged-in
+  // viewers additionally get their guild-admin status so the page can
+  // offer the builder link; nothing here mutates anything.
+  view: publicProcedure
+    .input(z.object({ compId: z.string(), slug: z.string() }))
     .query(async ({ ctx, input }) => {
       const comp = await ctx.db.guildRaidComp.findUnique({
         where: { id: input.compId },
-        include: { slots: true },
+        include: {
+          slots: true,
+          guild: { select: { name: true, slug: true, expansion: true } },
+        },
       });
-      if (!comp) throw new TRPCError({ code: "NOT_FOUND" });
-      const { hasAccess, needsReauth, retryAfterSeconds } =
-        await checkGuildRole(ctx.db, comp.guildId, ctx.session.user.id);
-      if (!hasAccess) {
-        throw needsReauth
-          ? new TRPCError({ code: "FORBIDDEN", message: "needs-reauth" })
-          : forbiddenOrRateLimited(retryAfterSeconds);
+      if (comp?.guild.slug !== input.slug) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      let viewer = { loggedIn: false, isAdmin: false };
+      if (ctx.session) {
+        const { isAdmin } = await checkGuildAdmin(
+          ctx.db,
+          comp.guildId,
+          ctx.session.user.id,
+        ).catch(() => ({ isAdmin: false }));
+        viewer = { loggedIn: true, isAdmin };
       }
 
       return {
-        id: comp.id,
-        name: comp.name,
-        groupCount: comp.groupCount,
-        slots: comp.slots.map((s) => ({
-          groupIndex: s.groupIndex,
-          slotIndex: s.slotIndex,
-          rosterMemberId: s.rosterMemberId,
-          characterName: s.characterName,
-          classToken: s.classToken,
-          specToken: s.specToken,
-        })),
+        comp: {
+          id: comp.id,
+          name: comp.name,
+          groupCount: comp.groupCount,
+          slots: comp.slots.map((s) => ({
+            groupIndex: s.groupIndex,
+            slotIndex: s.slotIndex,
+            rosterMemberId: s.rosterMemberId,
+            characterName: s.characterName,
+            classToken: s.classToken,
+            specToken: s.specToken,
+          })),
+        },
+        guild: {
+          name: comp.guild.name,
+          slug: comp.guild.slug,
+          expansion: comp.guild.expansion,
+        },
+        viewer,
       };
     }),
 

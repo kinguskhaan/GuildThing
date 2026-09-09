@@ -2,7 +2,10 @@
 
 import { useMemo, useState } from "react";
 
-import { GuildClaimCharacter, type ClaimPrefill } from "~/app/_components/guild-claim-character";
+import {
+  GuildClaimCharacter,
+  type ClaimPrefill,
+} from "~/app/_components/guild-claim-character";
 import { GuildMemberDetail } from "~/app/_components/guild-member-detail";
 import { classColor, relativeTime } from "~/lib/format";
 import { api } from "~/trpc/react";
@@ -15,7 +18,8 @@ type Row =
   | { kind: "character"; data: Member }
   | { kind: "unclaimed"; data: UnclaimedMember };
 type SortKey = "name" | "rank" | "level";
-type ClaimStatus = "claimed" | "unclaimed" | "conflict" | "skipped" | "noCharacter";
+type ClaimStatus =
+  "claimed" | "unclaimed" | "conflict" | "skipped" | "noCharacter";
 type Activity = "7" | "14" | "30" | "never";
 
 const ALL = "__all__";
@@ -38,10 +42,16 @@ function unclaimedPlayerName(u: UnclaimedMember) {
   return u.preferredNickname ?? u.computedName ?? u.tag;
 }
 
-function roleSyncSkipText(reason: NonNullable<Member["roleSyncSkipReason"]>): string {
+function roleSyncSkipText(
+  reason: NonNullable<Member["roleSyncSkipReason"]>,
+): string {
   const changes = [
-    reason.addedRoleNames.length > 0 ? `+${reason.addedRoleNames.join(", ")}` : "",
-    reason.removedRoleNames.length > 0 ? `-${reason.removedRoleNames.join(", ")}` : "",
+    reason.addedRoleNames.length > 0
+      ? `+${reason.addedRoleNames.join(", ")}`
+      : "",
+    reason.removedRoleNames.length > 0
+      ? `-${reason.removedRoleNames.join(", ")}`
+      : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -70,15 +80,21 @@ export function GuildRosterTable({
   const [classFilter, setClassFilter] = useState(ALL);
   const [rankFilter, setRankFilter] = useState(ALL);
   const [professionFilter, setProfessionFilter] = useState(ALL);
-  const [claimStatusFilter, setClaimStatusFilter] = useState<typeof ALL | ClaimStatus>(ALL);
+  const [claimStatusFilter, setClaimStatusFilter] = useState<
+    typeof ALL | ClaimStatus
+  >(ALL);
   const [answerQuestion, setAnswerQuestion] = useState(ALL);
   const [answerValue, setAnswerValue] = useState(ALL);
-  const [activityFilter, setActivityFilter] = useState<typeof ALL | Activity>(ALL);
+  const [activityFilter, setActivityFilter] = useState<typeof ALL | Activity>(
+    ALL,
+  );
   const [unclaimedRoleFilter, setUnclaimedRoleFilter] = useState("");
   const [assignRoleId, setAssignRoleId] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("level");
   const [sortDesc, setSortDesc] = useState(true);
-  const [detailDiscordUserId, setDetailDiscordUserId] = useState<string | null>(null);
+  const [detailDiscordUserId, setDetailDiscordUserId] = useState<string | null>(
+    null,
+  );
   const [claimOpen, setClaimOpen] = useState(false);
   const [claimPrefill, setClaimPrefill] = useState<ClaimPrefill>(null);
 
@@ -114,7 +130,9 @@ export function GuildRosterTable({
 
   const classes = useMemo(
     () =>
-      [...new Set(members.map((m) => m.class).filter((c): c is string => !!c))].sort(),
+      [
+        ...new Set(members.map((m) => m.class).filter((c): c is string => !!c)),
+      ].sort(),
     [members],
   );
   const ranks = useMemo(
@@ -150,7 +168,9 @@ export function GuildRosterTable({
     return [
       ...new Set(
         members.flatMap((m) =>
-          m.customAnswers.filter((a) => a.prompt === answerQuestion).map((a) => a.value),
+          m.customAnswers
+            .filter((a) => a.prompt === answerQuestion)
+            .map((a) => a.value),
         ),
       ),
     ].sort();
@@ -173,11 +193,15 @@ export function GuildRosterTable({
           (r.data.computedName?.toLowerCase().includes(query) ?? false) ||
           (r.data.preferredNickname?.toLowerCase().includes(query) ?? false),
     );
-    if (!isAdmin) return { searchResults: directMatches, altIds: new Set<string>() };
+    if (!isAdmin)
+      return { searchResults: directMatches, altIds: new Set<string>() };
 
     const claimIds = new Set(
       directMatches
-        .filter((r): r is Extract<Row, { kind: "character" }> => r.kind === "character")
+        .filter(
+          (r): r is Extract<Row, { kind: "character" }> =>
+            r.kind === "character",
+        )
         .map((r) => r.data.claimedByDiscordUserId)
         .filter((id): id is string => id != null),
     );
@@ -199,25 +223,45 @@ export function GuildRosterTable({
     () =>
       searchResults.filter((r) => {
         if (r.kind === "unclaimed") {
-          if (claimStatusFilter !== ALL && claimStatusFilter !== "noCharacter") return false;
-          if (classFilter !== ALL || rankFilter !== ALL || professionFilter !== ALL) return false;
+          if (claimStatusFilter !== ALL && claimStatusFilter !== "noCharacter")
+            return false;
+          if (
+            classFilter !== ALL ||
+            rankFilter !== ALL ||
+            professionFilter !== ALL
+          )
+            return false;
           if (answerQuestion !== ALL || activityFilter !== ALL) return false;
-          if (unclaimedRoleFilter && !r.data.roleIds.includes(unclaimedRoleFilter)) return false;
+          if (
+            unclaimedRoleFilter &&
+            !r.data.roleIds.includes(unclaimedRoleFilter)
+          )
+            return false;
           return true;
         }
         if (claimStatusFilter === "noCharacter") return false;
         const m = r.data;
         if (classFilter !== ALL && m.class !== classFilter) return false;
         if (rankFilter !== ALL && m.rank !== rankFilter) return false;
-        if (professionFilter !== ALL && !m.professions.includes(professionFilter)) return false;
+        if (
+          professionFilter !== ALL &&
+          !m.professions.includes(professionFilter)
+        )
+          return false;
         if (claimStatusFilter !== ALL) {
-          if (claimStatusFilter === "claimed" && !m.claimedByDiscordUserId) return false;
-          if (claimStatusFilter === "unclaimed" && m.claimedByDiscordUserId) return false;
-          if (claimStatusFilter === "conflict" && !m.hasClaimConflict) return false;
-          if (claimStatusFilter === "skipped" && !m.roleSyncSkipReason) return false;
+          if (claimStatusFilter === "claimed" && !m.claimedByDiscordUserId)
+            return false;
+          if (claimStatusFilter === "unclaimed" && m.claimedByDiscordUserId)
+            return false;
+          if (claimStatusFilter === "conflict" && !m.hasClaimConflict)
+            return false;
+          if (claimStatusFilter === "skipped" && !m.roleSyncSkipReason)
+            return false;
         }
         if (answerQuestion !== ALL) {
-          const answer = m.customAnswers.find((a) => a.prompt === answerQuestion);
+          const answer = m.customAnswers.find(
+            (a) => a.prompt === answerQuestion,
+          );
           if (!answer) return false;
           if (answerValue !== ALL && answer.value !== answerValue) return false;
         }
@@ -227,7 +271,8 @@ export function GuildRosterTable({
           } else {
             if (!m.lastActiveAt) return false;
             const days = Number(activityFilter);
-            const inactiveDays = (Date.now() - new Date(m.lastActiveAt).getTime()) / 86_400_000;
+            const inactiveDays =
+              (Date.now() - new Date(m.lastActiveAt).getTime()) / 86_400_000;
             if (inactiveDays < days) return false;
           }
         }
@@ -314,12 +359,14 @@ export function GuildRosterTable({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={
-            isAdmin ? "Search name (shows their claimed alts too)" : "Search name"
+            isAdmin
+              ? "Search name (shows their claimed alts too)"
+              : "Search name"
           }
-          className="rounded-full bg-discord-elevated px-3 py-1.5 text-sm text-discord-text placeholder:text-discord-text-muted"
+          className="bg-discord-elevated text-discord-text placeholder:text-discord-text-muted rounded-full px-3 py-1.5 text-sm max-lg:w-full"
         />
         <select
-          className="rounded-full bg-discord-elevated px-3 py-1.5 text-sm text-discord-text"
+          className="bg-discord-elevated text-discord-text rounded-full px-3 py-1.5 text-sm"
           value={classFilter}
           onChange={(e) => setClassFilter(e.target.value)}
         >
@@ -331,7 +378,7 @@ export function GuildRosterTable({
           ))}
         </select>
         <select
-          className="rounded-full bg-discord-elevated px-3 py-1.5 text-sm text-discord-text"
+          className="bg-discord-elevated text-discord-text rounded-full px-3 py-1.5 text-sm"
           value={rankFilter}
           onChange={(e) => setRankFilter(e.target.value)}
         >
@@ -344,7 +391,7 @@ export function GuildRosterTable({
         </select>
         {professions.length > 0 && (
           <select
-            className="rounded-full bg-discord-elevated px-3 py-1.5 text-sm text-discord-text"
+            className="bg-discord-elevated text-discord-text rounded-full px-3 py-1.5 text-sm"
             value={professionFilter}
             onChange={(e) => setProfessionFilter(e.target.value)}
           >
@@ -358,22 +405,26 @@ export function GuildRosterTable({
         )}
         {isAdmin && (
           <select
-            className="rounded-full bg-discord-elevated px-3 py-1.5 text-sm text-discord-text"
+            className="bg-discord-elevated text-discord-text rounded-full px-3 py-1.5 text-sm"
             value={claimStatusFilter}
-            onChange={(e) => setClaimStatusFilter(e.target.value as typeof ALL | ClaimStatus)}
+            onChange={(e) =>
+              setClaimStatusFilter(e.target.value as typeof ALL | ClaimStatus)
+            }
           >
             <option value={ALL}>Any claim status</option>
             <option value="claimed">Claimed</option>
             <option value="unclaimed">Unclaimed</option>
             <option value="conflict">Claim conflict</option>
             <option value="skipped">Role sync skipped</option>
-            <option value="noCharacter">No character yet ({unclaimedMembers.length})</option>
+            <option value="noCharacter">
+              No character yet ({unclaimedMembers.length})
+            </option>
           </select>
         )}
         {questionPrompts.length > 0 && (
           <>
             <select
-              className="rounded-full bg-discord-elevated px-3 py-1.5 text-sm text-discord-text"
+              className="bg-discord-elevated text-discord-text rounded-full px-3 py-1.5 text-sm"
               value={answerQuestion}
               onChange={(e) => {
                 setAnswerQuestion(e.target.value);
@@ -389,7 +440,7 @@ export function GuildRosterTable({
             </select>
             {answerQuestion !== ALL && (
               <select
-                className="rounded-full bg-discord-elevated px-3 py-1.5 text-sm text-discord-text"
+                className="bg-discord-elevated text-discord-text rounded-full px-3 py-1.5 text-sm"
                 value={answerValue}
                 onChange={(e) => setAnswerValue(e.target.value)}
               >
@@ -405,9 +456,11 @@ export function GuildRosterTable({
         )}
         {isAdmin && (
           <select
-            className="rounded-full bg-discord-elevated px-3 py-1.5 text-sm text-discord-text"
+            className="bg-discord-elevated text-discord-text rounded-full px-3 py-1.5 text-sm"
             value={activityFilter}
-            onChange={(e) => setActivityFilter(e.target.value as typeof ALL | Activity)}
+            onChange={(e) =>
+              setActivityFilter(e.target.value as typeof ALL | Activity)
+            }
           >
             <option value={ALL}>Any activity</option>
             <option value="7">Inactive 7+ days</option>
@@ -420,7 +473,7 @@ export function GuildRosterTable({
           <button
             type="button"
             onClick={clearFilters}
-            className="rounded-full bg-discord-elevated px-3 py-1.5 text-sm text-discord-text-muted transition hover:bg-discord-elevated-hover"
+            className="bg-discord-elevated text-discord-text-muted hover:bg-discord-elevated-hover rounded-full px-3 py-1.5 text-sm transition"
           >
             Clear filters
           </button>
@@ -430,7 +483,7 @@ export function GuildRosterTable({
             <button
               type="button"
               onClick={() => openClaim(null)}
-              className="text-sm text-discord-link hover:underline"
+              className="text-discord-link text-sm hover:underline"
             >
               + Claim a character
             </button>
@@ -438,7 +491,7 @@ export function GuildRosterTable({
               <button
                 type="button"
                 onClick={() => setClaimStatusFilter(ALL)}
-                className="text-sm text-discord-link hover:underline"
+                className="text-discord-link text-sm hover:underline"
               >
                 Show whole roster
               </button>
@@ -447,14 +500,14 @@ export function GuildRosterTable({
                 type="button"
                 onClick={() => setClaimStatusFilter("noCharacter")}
                 title="Show who hasn't claimed a character yet — you can DM them a reminder"
-                className="text-sm text-discord-text-muted hover:underline"
+                className="text-discord-text-muted text-sm hover:underline"
               >
                 {unclaimedMembers.length} unclaimed
               </button>
             )}
           </div>
         )}
-        <span className="ml-auto text-xs text-discord-text-muted">
+        <span className="text-discord-text-muted ml-auto text-xs">
           {sorted.length} of {allRows.length}
           {lastRosterImportedAt && (
             <> · Last synced {relativeTime(new Date(lastRosterImportedAt))}</>
@@ -463,12 +516,12 @@ export function GuildRosterTable({
       </div>
 
       {isAdmin && claimStatusFilter === "noCharacter" && (
-        <div className="flex flex-wrap items-center gap-2 rounded-xl bg-discord-elevated p-3">
-          <span className="text-sm text-discord-text-muted">
+        <div className="bg-discord-elevated flex flex-wrap items-center gap-2 rounded-xl p-3">
+          <span className="text-discord-text-muted text-sm">
             {unclaimedInView.length} haven&apos;t claimed a character
           </span>
           <select
-            className="rounded-full bg-discord-base px-3 py-1.5 text-sm text-discord-text"
+            className="bg-discord-base text-discord-text rounded-full px-3 py-1.5 text-sm"
             value={unclaimedRoleFilter}
             onChange={(e) => setUnclaimedRoleFilter(e.target.value)}
           >
@@ -482,20 +535,25 @@ export function GuildRosterTable({
           <button
             type="button"
             onClick={() =>
-              remind.mutate({ guildId, memberIds: unclaimedInView.map((u) => u.id) })
+              remind.mutate({
+                guildId,
+                memberIds: unclaimedInView.map((u) => u.id),
+              })
             }
             disabled={remind.isPending || unclaimedInView.length === 0}
-            className="rounded-full bg-discord-elevated-hover px-4 py-1.5 text-sm font-semibold"
+            className="bg-discord-elevated-hover rounded-full px-4 py-1.5 text-sm font-semibold"
           >
-            {remind.isPending ? "Sending..." : `DM ${unclaimedInView.length} a reminder`}
+            {remind.isPending
+              ? "Sending..."
+              : `DM ${unclaimedInView.length} a reminder`}
           </button>
           {remind.isSuccess && (
-            <span className="text-sm text-discord-text-muted">
+            <span className="text-discord-text-muted text-sm">
               Sent to {remind.data.sent}, failed for {remind.data.failed}
             </span>
           )}
           <select
-            className="rounded-full bg-discord-base px-3 py-1.5 text-sm text-discord-text"
+            className="bg-discord-base text-discord-text rounded-full px-3 py-1.5 text-sm"
             value={assignRoleId}
             onChange={(e) => setAssignRoleId(e.target.value)}
           >
@@ -516,22 +574,27 @@ export function GuildRosterTable({
               })
             }
             disabled={
-              assignRole.isPending || assignRoleId.trim() === "" || unclaimedInView.length === 0
+              assignRole.isPending ||
+              assignRoleId.trim() === "" ||
+              unclaimedInView.length === 0
             }
-            className="rounded-full bg-discord-elevated-hover px-4 py-1.5 text-sm font-semibold"
+            className="bg-discord-elevated-hover rounded-full px-4 py-1.5 text-sm font-semibold"
           >
-            {assignRole.isPending ? "Assigning..." : `Assign to ${unclaimedInView.length}`}
+            {assignRole.isPending
+              ? "Assigning..."
+              : `Assign to ${unclaimedInView.length}`}
           </button>
           {assignRole.isSuccess && (
-            <span className="text-sm text-discord-text-muted">
-              Assigned to {assignRole.data.succeeded}, failed for {assignRole.data.failed}
+            <span className="text-discord-text-muted text-sm">
+              Assigned to {assignRole.data.succeeded}, failed for{" "}
+              {assignRole.data.failed}
             </span>
           )}
         </div>
       )}
 
       {sorted.length === 0 ? (
-        <div className="w-full rounded-xl bg-discord-elevated p-6 text-center text-discord-text-muted">
+        <div className="bg-discord-elevated text-discord-text-muted w-full rounded-xl p-6 text-center">
           No members match these filters.
         </div>
       ) : (
@@ -543,16 +606,16 @@ export function GuildRosterTable({
         // width when it needs to (a width-capped table has nowhere to grow
         // but into its own cells). Header cells are sticky so they stay
         // visible while scrolling down through a long roster.
-        <div className="w-full max-h-[70vh] overflow-auto rounded-xl bg-discord-elevated">
+        <div className="bg-discord-elevated max-h-[70vh] w-full overflow-auto rounded-xl">
           <table className="text-left text-sm">
             <thead>
-              <tr className="border-b border-black/20 text-xs whitespace-nowrap text-discord-text-muted uppercase">
-                <th className="sticky top-0 left-0 bg-discord-elevated px-4 py-2 text-right font-semibold">
+              <tr className="text-discord-text-muted whitespace-nowrap border-b border-black/20 text-xs uppercase">
+                <th className="bg-discord-elevated sticky left-0 top-0 px-4 py-2 text-right font-semibold max-lg:z-30 max-lg:w-10 max-lg:px-2">
                   #
                 </th>
                 <th
                   aria-sort={ariaSortFor(sortKey, "name", sortDesc)}
-                  className="sticky top-0 bg-discord-elevated px-4 py-2 font-semibold select-none"
+                  className="bg-discord-elevated sticky top-0 select-none px-4 py-2 font-semibold max-lg:left-10 max-lg:z-30"
                 >
                   <button
                     type="button"
@@ -564,7 +627,7 @@ export function GuildRosterTable({
                 </th>
                 <th
                   aria-sort={ariaSortFor(sortKey, "rank", sortDesc)}
-                  className="sticky top-0 bg-discord-elevated px-4 py-2 font-semibold select-none"
+                  className="bg-discord-elevated sticky top-0 select-none px-4 py-2 font-semibold"
                 >
                   <button
                     type="button"
@@ -576,7 +639,7 @@ export function GuildRosterTable({
                 </th>
                 <th
                   aria-sort={ariaSortFor(sortKey, "level", sortDesc)}
-                  className="sticky top-0 bg-discord-elevated px-4 py-2 font-semibold select-none"
+                  className="bg-discord-elevated sticky top-0 select-none px-4 py-2 font-semibold"
                 >
                   <button
                     type="button"
@@ -586,30 +649,30 @@ export function GuildRosterTable({
                     Level{sortIndicator(sortKey, "level", sortDesc)}
                   </button>
                 </th>
-                <th className="sticky top-0 bg-discord-elevated px-4 py-2 font-semibold">
+                <th className="bg-discord-elevated sticky top-0 px-4 py-2 font-semibold">
                   Professions
                 </th>
-                <th className="sticky top-0 bg-discord-elevated px-4 py-2 font-semibold">
+                <th className="bg-discord-elevated sticky top-0 px-4 py-2 font-semibold">
                   Note
                 </th>
                 {questionPrompts.map((prompt) => (
                   <th
                     key={prompt}
                     title={prompt}
-                    className="sticky top-0 max-w-[160px] truncate bg-discord-elevated px-4 py-2 font-semibold normal-case"
+                    className="bg-discord-elevated sticky top-0 max-w-[160px] truncate px-4 py-2 font-semibold normal-case"
                   >
                     {prompt}
                   </th>
                 ))}
                 {isAdmin && (
                   <>
-                    <th className="sticky top-0 bg-discord-elevated px-4 py-2 font-semibold">
+                    <th className="bg-discord-elevated sticky top-0 px-4 py-2 font-semibold">
                       Officer note
                     </th>
-                    <th className="sticky top-0 bg-discord-elevated px-4 py-2 font-semibold">
+                    <th className="bg-discord-elevated sticky top-0 px-4 py-2 font-semibold">
                       Player
                     </th>
-                    <th className="sticky top-0 bg-discord-elevated px-4 py-2 font-semibold">
+                    <th className="bg-discord-elevated sticky top-0 px-4 py-2 font-semibold">
                       Last active
                     </th>
                   </>
@@ -621,26 +684,34 @@ export function GuildRosterTable({
                 if (row.kind === "unclaimed") {
                   const u = row.data;
                   return (
-                    <tr key={`unclaimed-${u.id}`} className="border-b border-black/10 last:border-0">
-                      <td className="bg-discord-elevated sticky left-0 px-4 py-2 text-right text-discord-text-muted whitespace-nowrap">
+                    <tr
+                      key={`unclaimed-${u.id}`}
+                      className="border-b border-black/10 last:border-0"
+                    >
+                      <td className="bg-discord-elevated text-discord-text-muted sticky left-0 whitespace-nowrap px-4 py-2 text-right max-lg:w-10 max-lg:px-2">
                         {i + 1}
                       </td>
-                      <td className="px-4 py-2 text-discord-text-muted italic whitespace-nowrap">
+                      <td className="max-lg:bg-discord-elevated text-discord-text-muted whitespace-nowrap px-4 py-2 italic max-lg:sticky max-lg:left-10 max-lg:z-20">
                         Unclaimed
                       </td>
-                      <td className="px-4 py-2 text-discord-text-muted">—</td>
-                      <td className="px-4 py-2 text-discord-text-muted">—</td>
-                      <td className="px-4 py-2 text-discord-text-muted">—</td>
-                      <td className="px-4 py-2 text-discord-text-muted">—</td>
+                      <td className="text-discord-text-muted px-4 py-2">—</td>
+                      <td className="text-discord-text-muted px-4 py-2">—</td>
+                      <td className="text-discord-text-muted px-4 py-2">—</td>
+                      <td className="text-discord-text-muted px-4 py-2">—</td>
                       {questionPrompts.map((prompt) => (
-                        <td key={prompt} className="px-4 py-2 text-discord-text-muted">
+                        <td
+                          key={prompt}
+                          className="text-discord-text-muted px-4 py-2"
+                        >
                           —
                         </td>
                       ))}
                       {isAdmin && (
                         <>
-                          <td className="px-4 py-2 text-discord-text-muted">—</td>
-                          <td className="px-4 py-2 whitespace-nowrap">
+                          <td className="text-discord-text-muted px-4 py-2">
+                            —
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-2">
                             <button
                               type="button"
                               onClick={() =>
@@ -652,12 +723,14 @@ export function GuildRosterTable({
                                 })
                               }
                               title="Claim a character for this person"
-                              className="flex items-center gap-1.5 rounded-full bg-discord-base px-2.5 py-1 font-medium text-discord-text transition hover:bg-discord-brand hover:text-white"
+                              className="bg-discord-base text-discord-text hover:bg-discord-brand flex items-center gap-1.5 rounded-full px-2.5 py-1 font-medium transition hover:text-white max-lg:px-3 max-lg:py-2.5"
                             >
                               {unclaimedPlayerName(u)}
                             </button>
                           </td>
-                          <td className="px-4 py-2 text-discord-text-muted">—</td>
+                          <td className="text-discord-text-muted px-4 py-2">
+                            —
+                          </td>
                         </>
                       )}
                     </tr>
@@ -666,132 +739,143 @@ export function GuildRosterTable({
 
                 const member = row.data;
                 return (
-                <tr
-                  key={member.id}
-                  className="border-b border-black/10 last:border-0"
-                >
-                  <td className="bg-discord-elevated sticky left-0 px-4 py-2 text-right text-discord-text-muted whitespace-nowrap">
-                    {i + 1}
-                  </td>
-                  <td
-                    className="px-4 py-2 font-semibold whitespace-nowrap"
-                    style={{ color: classColor(member.class) }}
+                  <tr
+                    key={member.id}
+                    className="border-b border-black/10 last:border-0"
                   >
-                    {member.name}
-                    {altIds.has(member.id) && (
-                      <span
-                        title="Claimed by the same Discord account as one of your search matches."
-                        className="ml-2 rounded-full bg-discord-elevated-hover px-2 py-0.5 text-xs font-normal text-discord-text-muted"
-                      >
-                        🔗 alt match
-                      </span>
-                    )}
-                    {member.hasClaimConflict && (
-                      <span
-                        title="More than one Discord account has claimed to be this character during onboarding — only the first claim was granted roles."
-                        className="ml-2 rounded-full bg-discord-red/20 px-2 py-0.5 text-xs font-normal text-discord-red"
-                      >
-                        ⚠ claim conflict
-                      </span>
-                    )}
-                    {member.roleSyncSkipReason &&
-                      (isAdmin && member.claimedByDiscordUserId ? (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setDetailDiscordUserId(member.claimedByDiscordUserId)
-                          }
-                          title={roleSyncSkipText(member.roleSyncSkipReason)}
-                          className="ml-2 rounded-full bg-discord-elevated-hover px-2 py-0.5 text-xs font-normal text-discord-text-muted underline decoration-dotted hover:bg-discord-brand hover:text-white hover:no-underline"
-                        >
-                          ✋ skipped: {member.roleSyncSkipReason.executorTag ?? "manual change"}
-                        </button>
-                      ) : (
+                    <td className="bg-discord-elevated text-discord-text-muted sticky left-0 whitespace-nowrap px-4 py-2 text-right max-lg:w-10 max-lg:px-2">
+                      {i + 1}
+                    </td>
+                    <td
+                      className="max-lg:bg-discord-elevated whitespace-nowrap px-4 py-2 font-semibold max-lg:sticky max-lg:left-10 max-lg:z-20"
+                      style={{ color: classColor(member.class) }}
+                    >
+                      {member.name}
+                      {altIds.has(member.id) && (
                         <span
-                          title="Someone manually changed this person's Discord roles more recently than their last rank change — the automatic resync is skipping them so it doesn't overwrite that."
-                          className="ml-2 rounded-full bg-discord-elevated-hover px-2 py-0.5 text-xs font-normal text-discord-text-muted"
+                          title="Claimed by the same Discord account as one of your search matches."
+                          className="bg-discord-elevated-hover text-discord-text-muted ml-2 rounded-full px-2 py-0.5 text-xs font-normal"
                         >
-                          ✋ role sync skipped
+                          🔗 alt match
                         </span>
-                      ))}
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-discord-text-muted">
-                    {member.rank}
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-discord-text-muted">
-                    {member.level}
-                  </td>
-                  <td
-                    className="max-w-[200px] truncate px-4 py-2 text-discord-text-muted"
-                    title={member.professions.join(", ")}
-                  >
-                    {member.professions.length > 0
-                      ? member.professions.join(", ")
-                      : "—"}
-                  </td>
-                  <td
-                    className="max-w-[200px] truncate px-4 py-2 text-discord-text-muted"
-                    title={member.note ?? undefined}
-                  >
-                    {member.note}
-                  </td>
-                  {questionPrompts.map((prompt) => {
-                    const answer = member.customAnswers.find(
-                      (a) => a.prompt === prompt,
-                    );
-                    return (
-                      <td
-                        key={prompt}
-                        className="max-w-[200px] truncate px-4 py-2 text-discord-text-muted"
-                        title={answer?.value}
-                      >
-                        {answer?.value ?? "—"}
-                      </td>
-                    );
-                  })}
-                  {isAdmin && (
-                    <>
-                      <td
-                        className="max-w-[200px] truncate px-4 py-2 text-discord-text-muted"
-                        title={member.officerNote ?? undefined}
-                      >
-                        {member.officerNote}
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap">
-                        {member.claimedByDiscordUserId ? (
+                      )}
+                      {member.hasClaimConflict && (
+                        <span
+                          title="More than one Discord account has claimed to be this character during onboarding — only the first claim was granted roles."
+                          className="bg-discord-red/20 text-discord-red ml-2 rounded-full px-2 py-0.5 text-xs font-normal"
+                        >
+                          ⚠ claim conflict
+                        </span>
+                      )}
+                      {member.roleSyncSkipReason &&
+                        (isAdmin && member.claimedByDiscordUserId ? (
                           <button
                             type="button"
                             onClick={() =>
-                              setDetailDiscordUserId(member.claimedByDiscordUserId)
+                              setDetailDiscordUserId(
+                                member.claimedByDiscordUserId,
+                              )
                             }
-                            className="flex items-center gap-1.5 rounded-full bg-discord-base px-2.5 py-1 text-discord-text-muted transition hover:bg-discord-elevated-hover hover:text-discord-text"
+                            title={roleSyncSkipText(member.roleSyncSkipReason)}
+                            className="bg-discord-elevated-hover text-discord-text-muted hover:bg-discord-brand ml-2 rounded-full px-2 py-0.5 text-xs font-normal underline decoration-dotted hover:text-white hover:no-underline max-lg:px-3 max-lg:py-1.5"
                           >
-                            <span className="font-medium text-discord-text">
-                              {playerName(
-                                nicknameByDiscordId.get(member.claimedByDiscordUserId),
-                                member.claimedByDiscordTag ?? "?",
-                              )}
-                            </span>
-                            {(altsByDiscordId.get(member.claimedByDiscordUserId)?.length ?? 0) >
-                              1 && (
-                              <span className="text-xs">
-                                +
-                                {altsByDiscordId.get(member.claimedByDiscordUserId)!.length - 1}
-                              </span>
-                            )}
+                            ✋ skipped:{" "}
+                            {member.roleSyncSkipReason.executorTag ??
+                              "manual change"}
                           </button>
                         ) : (
-                          <span className="text-discord-text-muted">—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-discord-text-muted">
-                        {member.lastActiveAt
-                          ? relativeTime(new Date(member.lastActiveAt))
-                          : "—"}
-                      </td>
-                    </>
-                  )}
-                </tr>
+                          <span
+                            title="Someone manually changed this person's Discord roles more recently than their last rank change — the automatic resync is skipping them so it doesn't overwrite that."
+                            className="bg-discord-elevated-hover text-discord-text-muted ml-2 rounded-full px-2 py-0.5 text-xs font-normal"
+                          >
+                            ✋ role sync skipped
+                          </span>
+                        ))}
+                    </td>
+                    <td className="text-discord-text-muted whitespace-nowrap px-4 py-2">
+                      {member.rank}
+                    </td>
+                    <td className="text-discord-text-muted whitespace-nowrap px-4 py-2">
+                      {member.level}
+                    </td>
+                    <td
+                      className="text-discord-text-muted max-w-[200px] truncate px-4 py-2 max-lg:whitespace-normal"
+                      title={member.professions.join(", ")}
+                    >
+                      {member.professions.length > 0
+                        ? member.professions.join(", ")
+                        : "—"}
+                    </td>
+                    <td
+                      className="text-discord-text-muted max-w-[200px] truncate px-4 py-2 max-lg:whitespace-normal"
+                      title={member.note ?? undefined}
+                    >
+                      {member.note}
+                    </td>
+                    {questionPrompts.map((prompt) => {
+                      const answer = member.customAnswers.find(
+                        (a) => a.prompt === prompt,
+                      );
+                      return (
+                        <td
+                          key={prompt}
+                          className="text-discord-text-muted max-w-[200px] truncate px-4 py-2 max-lg:whitespace-normal"
+                          title={answer?.value}
+                        >
+                          {answer?.value ?? "—"}
+                        </td>
+                      );
+                    })}
+                    {isAdmin && (
+                      <>
+                        <td
+                          className="text-discord-text-muted max-w-[200px] truncate px-4 py-2 max-lg:whitespace-normal"
+                          title={member.officerNote ?? undefined}
+                        >
+                          {member.officerNote}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-2">
+                          {member.claimedByDiscordUserId ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setDetailDiscordUserId(
+                                  member.claimedByDiscordUserId,
+                                )
+                              }
+                              className="bg-discord-base text-discord-text-muted hover:bg-discord-elevated-hover hover:text-discord-text flex items-center gap-1.5 rounded-full px-2.5 py-1 transition max-lg:px-3 max-lg:py-2.5"
+                            >
+                              <span className="text-discord-text font-medium">
+                                {playerName(
+                                  nicknameByDiscordId.get(
+                                    member.claimedByDiscordUserId,
+                                  ),
+                                  member.claimedByDiscordTag ?? "?",
+                                )}
+                              </span>
+                              {(altsByDiscordId.get(
+                                member.claimedByDiscordUserId,
+                              )?.length ?? 0) > 1 && (
+                                <span className="text-xs">
+                                  +
+                                  {altsByDiscordId.get(
+                                    member.claimedByDiscordUserId,
+                                  )!.length - 1}
+                                </span>
+                              )}
+                            </button>
+                          ) : (
+                            <span className="text-discord-text-muted">—</span>
+                          )}
+                        </td>
+                        <td className="text-discord-text-muted whitespace-nowrap px-4 py-2">
+                          {member.lastActiveAt
+                            ? relativeTime(new Date(member.lastActiveAt))
+                            : "—"}
+                        </td>
+                      </>
+                    )}
+                  </tr>
                 );
               })}
             </tbody>
@@ -805,7 +889,9 @@ export function GuildRosterTable({
           discordUserId={detailDiscordUserId}
           allMembers={members}
           nicknameRow={
-            detailDiscordUserId ? nicknameByDiscordId.get(detailDiscordUserId) : undefined
+            detailDiscordUserId
+              ? nicknameByDiscordId.get(detailDiscordUserId)
+              : undefined
           }
           onClose={() => setDetailDiscordUserId(null)}
         />
@@ -816,6 +902,12 @@ export function GuildRosterTable({
           guildId={guildId}
           open={claimOpen}
           prefill={claimPrefill}
+          rankOptions={ranks}
+          classOptions={classes}
+          nameOptions={members.map((m) => ({
+            name: m.name,
+            claimedByTag: m.claimedByDiscordTag ?? null,
+          }))}
           onClose={() => {
             setClaimOpen(false);
             setClaimPrefill(null);

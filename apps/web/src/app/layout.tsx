@@ -1,7 +1,7 @@
 import "~/styles/globals.css";
 import "~/styles/discord-controls.css";
 
-import { type Metadata } from "next";
+import { type Metadata, type Viewport } from "next";
 import {
   Chakra_Petch,
   Geist,
@@ -16,6 +16,12 @@ export const metadata: Metadata = {
   description:
     "Manage your guild's Discord with a bot — sync roles to guild ranks, gate channels by rank and class. Self-hosted, private by default, MIT licensed.",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 const geist = Geist({
@@ -44,10 +50,12 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geist.variable} ${silkscreen.variable} ${chakraPetch.variable} ${shareTechMono.variable}`}>
+    <html
+      lang="en"
+      className={`${geist.variable} ${silkscreen.variable} ${chakraPetch.variable} ${shareTechMono.variable}`}
+    >
       <body>
         <TRPCReactProvider>{children}</TRPCReactProvider>
-
       </body>
     </html>
   );

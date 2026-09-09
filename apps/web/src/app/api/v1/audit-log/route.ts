@@ -84,25 +84,26 @@ export async function GET(request: NextRequest) {
   const entries = [
     ...rankEvents.map((r) => ({
       characterName: r.characterName,
-      detail: `Rank: ${r.oldRank ?? "?"} -> ${r.newRank}`,
+      detail: `${r.characterName}: Rank ${r.oldRank ?? "?"} -> ${r.newRank}`,
       detectedAt: Math.floor(r.detectedAt.getTime() / 1000),
       ...identity(discordUserIdByName.get(r.characterName)),
     })),
     ...roleChanges.map((r) => {
+      const who = nameByDiscordUserId.get(r.discordUserId) ?? r.discordUserTag;
       const added = (JSON.parse(r.addedRoleNames) as string[]).join(", ");
       const removed = (JSON.parse(r.removedRoleNames) as string[]).join(", ");
       const parts = [added && `+${added}`, removed && `-${removed}`].filter(Boolean);
       const by = r.source === "bot" ? "bot" : (r.executorTag ?? "someone");
       return {
-        characterName: nameByDiscordUserId.get(r.discordUserId) ?? r.discordUserTag,
-        detail: `${parts.join(" ")} by ${by}`,
+        characterName: who,
+        detail: `${who}: ${parts.join(" ")} by ${by}`,
         detectedAt: Math.floor(r.detectedAt.getTime() / 1000),
         ...identity(r.discordUserId),
       };
     }),
     ...claims.map((c) => ({
       characterName: c.name,
-      detail: `Claimed by ${c.claimedByDiscordTag ?? "someone"}`,
+      detail: `${c.name} claimed by ${c.claimedByDiscordTag ?? "someone"}`,
       // claimedAt is guaranteed non-null by the where clause above.
       detectedAt: Math.floor(c.claimedAt!.getTime() / 1000),
       ...identity(c.claimedByDiscordUserId),

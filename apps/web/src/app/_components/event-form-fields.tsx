@@ -136,7 +136,7 @@ export function EventFormFields({
         value={date}
         onChange={(e) => setDate(e.target.value)}
       />
-      <label className="text-discord-text-muted flex items-center gap-1.5 text-sm">
+      <label className="text-discord-text-muted flex flex-wrap items-center gap-1.5 text-sm">
         <input
           type="checkbox"
           checked={repeatEnabled}
@@ -170,34 +170,36 @@ export function EventFormFields({
       <div className="flex flex-col gap-2">
         <span className="text-sm font-semibold">Roles needed</span>
         {roleSlots.map((slot, i) => (
-          <div key={i} className="flex items-center gap-2">
+          <div key={i} className="flex items-center gap-2 max-lg:flex-col max-lg:items-stretch">
             <input
               className="bg-discord-base text-discord-text flex-1 rounded-full px-4 py-2"
               value={slot.roleName}
               onChange={(e) => updateRoleSlot(i, { roleName: e.target.value })}
               placeholder="Role (e.g. Tank)"
             />
-            <input
-              className="bg-discord-base text-discord-text w-20 rounded-full px-4 py-2"
-              type="number"
-              min={1}
-              value={slot.capacity}
-              onChange={(e) => updateRoleSlot(i, { capacity: e.target.value })}
-            />
-            <input
-              className="bg-discord-base text-discord-text w-24 rounded-full px-4 py-2"
-              value={slot.emoji}
-              onChange={(e) => updateRoleSlot(i, { emoji: e.target.value })}
-              placeholder="🛡️ (paste)"
-              title="Paste a unicode emoji. For a custom server emoji, create the event with /guildthing event in Discord instead — its modal can pick one."
-            />
-            <button
-              type="button"
-              onClick={() => setRoleSlots((rs) => rs.filter((_, j) => j !== i))}
-              className="text-discord-text-muted hover:text-discord-red px-2"
-            >
-              ✕
-            </button>
+            <div className="flex items-center gap-2 max-lg:w-full">
+              <input
+                className="bg-discord-base text-discord-text w-20 rounded-full px-4 py-2"
+                type="number"
+                min={1}
+                value={slot.capacity}
+                onChange={(e) => updateRoleSlot(i, { capacity: e.target.value })}
+              />
+              <input
+                className="bg-discord-base text-discord-text w-24 rounded-full px-4 py-2"
+                value={slot.emoji}
+                onChange={(e) => updateRoleSlot(i, { emoji: e.target.value })}
+                placeholder="🛡️ (paste)"
+                title="Paste a unicode emoji. For a custom server emoji, create the event with /guildthing event in Discord instead — its modal can pick one."
+              />
+              <button
+                type="button"
+                onClick={() => setRoleSlots((rs) => rs.filter((_, j) => j !== i))}
+                className="text-discord-text-muted hover:text-discord-red px-2"
+              >
+                ✕
+              </button>
+            </div>
           </div>
         ))}
         <button

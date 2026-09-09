@@ -40,7 +40,7 @@ export function GuildImportForm({ guildId }: { guildId: string }) {
     >
       <h2 className="text-xl font-bold">Import character</h2>
       <textarea
-        className="h-40 rounded-lg bg-discord-elevated px-4 py-2 font-mono text-xs text-discord-text"
+        className="h-40 rounded-lg bg-discord-elevated px-4 py-2 font-mono text-base lg:text-xs text-discord-text"
         value={raw}
         onChange={(e) => setRaw(e.target.value)}
         placeholder='Paste the JSON from the addon, e.g. {"name":"Tankkingen","realm":"Spineshatter",...}'
@@ -55,6 +55,7 @@ export function GuildImportForm({ guildId }: { guildId: string }) {
       {importCharacter.isSuccess && (
         <p className="text-sm text-discord-green">Imported!</p>
       )}
+      <div className="max-lg:sticky max-lg:bottom-0 max-lg:-mx-6 max-lg:-mb-6 max-lg:mt-1 max-lg:flex max-lg:justify-start max-lg:rounded-b-xl max-lg:bg-discord-elevated max-lg:px-6 max-lg:pt-3 max-lg:pb-[calc(0.75rem+env(safe-area-inset-bottom))] max-lg:border-t max-lg:border-black/20">
       <button
         type="submit"
         className="rounded-full bg-discord-elevated px-6 py-2 font-semibold transition hover:bg-discord-elevated-hover"
@@ -62,6 +63,7 @@ export function GuildImportForm({ guildId }: { guildId: string }) {
       >
         {importCharacter.isPending ? "Importing..." : "Import"}
       </button>
+      </div>
     </form>
   );
 }

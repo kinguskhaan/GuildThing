@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { eventText } from "~/app/_components/guild-audit-log";
 import { absoluteTime } from "~/lib/format";
 import { api } from "~/trpc/react";
 import type { RouterOutputs } from "~/trpc/react";
@@ -29,7 +30,7 @@ export function RoleSelect({
   if (!roles || roles.length === 0) {
     return (
       <input
-        className="bg-discord-base text-discord-text flex-1 rounded-full px-4 py-2 disabled:opacity-50"
+        className="bg-discord-base text-discord-text min-w-0 flex-1 rounded-full px-4 py-2 disabled:opacity-50"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Discord role ID (invite the bot to pick from a list instead)"
@@ -39,7 +40,7 @@ export function RoleSelect({
   }
   return (
     <select
-      className="bg-discord-base text-discord-text flex-1 rounded-full px-4 py-2 disabled:opacity-50"
+      className="bg-discord-base text-discord-text min-w-0 flex-1 rounded-full px-4 py-2 disabled:opacity-50"
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
@@ -70,7 +71,7 @@ export function ChannelSelect({
   if (!channels || channels.length === 0) {
     return (
       <input
-        className="bg-discord-base text-discord-text flex-1 rounded-full px-4 py-2"
+        className="bg-discord-base text-discord-text min-w-0 flex-1 rounded-full px-4 py-2"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Discord channel ID (invite the bot to pick from a list instead)"
@@ -79,7 +80,7 @@ export function ChannelSelect({
   }
   return (
     <select
-      className="bg-discord-base text-discord-text flex-1 rounded-full px-4 py-2"
+      className="bg-discord-base text-discord-text min-w-0 flex-1 rounded-full px-4 py-2"
       value={value}
       onChange={(e) => onChange(e.target.value)}
     >
@@ -110,7 +111,7 @@ export function ChannelGrantSelect({
   if (!channels || channels.length === 0) {
     return (
       <input
-        className="bg-discord-base text-discord-text flex-1 rounded-full px-4 py-2"
+        className="bg-discord-base text-discord-text min-w-0 flex-1 rounded-full px-4 py-2"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Discord channel ID (invite the bot to pick from a list instead)"
@@ -121,7 +122,7 @@ export function ChannelGrantSelect({
   const voiceChannels = channels.filter((c) => c.type === "voice");
   return (
     <select
-      className="bg-discord-base text-discord-text flex-1 rounded-full px-4 py-2"
+      className="bg-discord-base text-discord-text min-w-0 flex-1 rounded-full px-4 py-2"
       value={value}
       onChange={(e) => onChange(e.target.value)}
     >
@@ -428,7 +429,7 @@ export function MembersByRolePanel({
         />
         {ranks.length > 1 && (
           <select
-            className="bg-discord-base text-discord-text rounded-full px-3 py-2 text-sm"
+            className="bg-discord-base text-discord-text rounded-full px-3 py-2 text-base lg:text-sm"
             value={rankFilter}
             onChange={(e) => setRankFilter(e.target.value)}
             aria-label="Filter by rank"
@@ -442,7 +443,7 @@ export function MembersByRolePanel({
           </select>
         )}
         <input
-          className="bg-discord-base text-discord-text placeholder:text-discord-text-muted rounded-full px-4 py-2 text-sm"
+          className="bg-discord-base text-discord-text placeholder:text-discord-text-muted rounded-full px-4 py-2 text-base lg:text-sm"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search character, nick, account…"
@@ -593,7 +594,7 @@ export function MembersByRolePanel({
       <dialog
         ref={confirmDialogRef}
         onClose={() => setConfirmOpen(false)}
-        className="bg-discord-elevated text-discord-text fixed inset-0 m-auto w-96 rounded-xl p-6 backdrop:bg-black/60"
+        className="bg-discord-elevated text-discord-text fixed inset-0 m-auto w-96 max-w-[calc(100vw-2rem)] rounded-xl p-6 backdrop:bg-black/60"
       >
         <h4 className="font-bold">
           Apply {changes.length} role change{changes.length === 1 ? "" : "s"}?
@@ -700,26 +701,21 @@ export function MembersByRolePanel({
   );
 }
 
-// One line of human-readable detail per audit entry kind — same phrasing
-// the audit log component uses, so an event reads identically everywhere.
+// One line of human-readable detail per audit entry kind — the shared
+// eventText from the audit log component, so an event reads identically
+// everywhere; only the green/red coloring is decided here, by whether the
+// change added or removed roles.
 function auditLine(entry: AuditEntry): { what: string; cls: "" | "add" | "rem" } {
-  if (entry.kind === "rank_change") {
-    return { what: `rank ${entry.oldRank ?? "?"} → ${entry.newRank}`, cls: "" };
+  if (entry.kind !== "role_change") {
+    return { what: eventText(entry), cls: "" };
   }
-  if (entry.kind === "claim") {
-    return { what: "claimed", cls: "" };
-  }
-  const added =
-    entry.addedRoleNames.length > 0 ? `+${entry.addedRoleNames.join(", ")}` : "";
-  const removed =
-    entry.removedRoleNames.length > 0
-      ? `-${entry.removedRoleNames.join(", ")}`
-      : "";
-  const by = entry.source === "bot" ? "the bot" : (entry.executorTag ?? "someone");
-  return {
-    what: `${[added, removed].filter(Boolean).join(" ")} → ${entry.characterName} — ${by}`,
-    cls: added ? "add" : "rem",
-  };
+  const cls =
+    entry.addedRoleNames.length > 0
+      ? "add"
+      : entry.removedRoleNames.length > 0
+        ? "rem"
+        : "";
+  return { what: eventText(entry), cls };
 }
 
 // Compact audit feed used by the two modals: full guild feed by default,
@@ -754,28 +750,37 @@ function MemberAuditFeed({
     });
   }, [audit.data, query]);
 
+  // The search box must survive an empty filtered list — returning the
+  // empty-state paragraph alone used to trap the modal on a query that
+  // couldn't be cleared or edited.
+  const searchBox =
+    audit.data && audit.data.length > 0 && discordUserId === undefined ? (
+      <input
+        className="bg-discord-elevated text-discord-text placeholder:text-discord-text-muted sticky top-0 mb-1 w-full rounded-full px-3 py-1.5 text-base lg:text-sm"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search the log…"
+      />
+    ) : null;
+
   if (audit.isLoading) {
     return <p className="text-discord-text-muted text-sm">Loading…</p>;
   }
   if (filtered.length === 0) {
     return (
-      <p className="text-discord-text-muted text-sm">
-        {audit.data?.length === 0
-          ? "No events yet — the log prints when the bot or an officer acts."
-          : "No events match that search."}
-      </p>
+      <>
+        {searchBox}
+        <p className="text-discord-text-muted text-sm">
+          {audit.data?.length === 0
+            ? "No events yet — the log prints when the bot or an officer acts."
+            : "No events match that search."}
+        </p>
+      </>
     );
   }
   return (
     <>
-      {discordUserId === undefined && (
-        <input
-          className="bg-discord-elevated text-discord-text placeholder:text-discord-text-muted sticky top-0 mb-1 w-full rounded-full px-3 py-1.5 text-sm"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search the log…"
-        />
-      )}
+      {searchBox}
       {filtered.map((e, i) => {
         const line = auditLine(e);
         return (

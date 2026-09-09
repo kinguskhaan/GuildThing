@@ -1,7 +1,8 @@
 import Link from "next/link";
+
 import { redirect } from "next/navigation";
 
-import { Sidebar } from "~/app/_components/sidebar";
+import { MemberShell } from "~/app/_components/member-shell";
 import { auth } from "~/server/better-auth";
 import { getSession } from "~/server/better-auth/server";
 
@@ -45,10 +46,5 @@ export default async function GuildsLayout({
     );
   }
 
-  return (
-    <div className="bg-discord-base text-discord-text flex min-h-screen">
-      <Sidebar />
-      <div className="flex-1">{children}</div>
-    </div>
-  );
+  return <MemberShell>{children}</MemberShell>;
 }

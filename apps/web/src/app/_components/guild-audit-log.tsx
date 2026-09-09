@@ -8,20 +8,21 @@ import type { RouterOutputs } from "~/trpc/react";
 
 type Entry = RouterOutputs["guild"]["auditLog"][number];
 
-// One line of human-readable detail per entry kind — what actually
-// happened, independent of the columns (which are about WHO it happened
-// to, not what).
-function eventText(entry: Entry): string {
+// One line of human-readable detail per entry kind. Carries the character
+// name explicitly — "rank Core Raider → Trial Raider" is meaningless
+// without knowing who it happened to, and the columns/search elsewhere in
+// the row aren't part of a copied line.
+export function eventText(entry: Entry): string {
   if (entry.kind === "rank_change") {
-    return `Rank ${entry.oldRank ?? "?"} → ${entry.newRank}`;
+    return `${entry.characterName}: Rank ${entry.oldRank ?? "?"} → ${entry.newRank}`;
   }
   if (entry.kind === "claim") {
-    return `Claimed by ${entry.discordUserTag ?? "someone"}`;
+    return `${entry.characterName} claimed by ${entry.discordUserTag ?? "someone"}`;
   }
   const added = entry.addedRoleNames.length > 0 ? `+${entry.addedRoleNames.join(", ")}` : "";
   const removed = entry.removedRoleNames.length > 0 ? `-${entry.removedRoleNames.join(", ")}` : "";
   const by = entry.source === "bot" ? "the bot" : (entry.executorTag ?? "someone");
-  return [added, removed].filter(Boolean).join(" ") + ` by ${by}`;
+  return `${entry.characterName}: ${[added, removed].filter(Boolean).join(" ")} by ${by}`;
 }
 
 // Read-only — the unified feed exists for visibility, not for undoing
@@ -67,7 +68,7 @@ export function GuildAuditLog({ guildId }: { guildId: string }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search in-game name, Discord nick, or account"
-          className="rounded-full bg-discord-base px-3 py-1.5 text-sm text-discord-text placeholder:text-discord-text-muted"
+          className="max-lg:w-full rounded-full bg-discord-base px-3 py-1.5 text-sm text-discord-text placeholder:text-discord-text-muted"
         />
         <span className="ml-auto text-xs text-discord-text-muted">
           {filtered.length} of {data.length}
@@ -81,7 +82,7 @@ export function GuildAuditLog({ guildId }: { guildId: string }) {
           <table className="text-left text-sm">
             <thead>
               <tr className="border-b border-black/20 text-xs whitespace-nowrap text-discord-text-muted uppercase">
-                <th className="sticky top-0 bg-discord-base px-3 py-2 font-semibold">When</th>
+                <th className="max-lg:z-30 max-lg:left-0 sticky top-0 bg-discord-base px-3 py-2 font-semibold">When</th>
                 <th className="sticky top-0 bg-discord-base px-3 py-2 font-semibold">Ing Name</th>
                 <th className="sticky top-0 bg-discord-base px-3 py-2 font-semibold">Disc Nick</th>
                 <th className="sticky top-0 bg-discord-base px-3 py-2 font-semibold">Disc Acc</th>
@@ -91,7 +92,7 @@ export function GuildAuditLog({ guildId }: { guildId: string }) {
             <tbody>
               {filtered.map((entry) => (
                 <tr key={entry.id} className="border-b border-black/10 last:border-0">
-                  <td className="font-[family-name:var(--font-arcade-mono)] px-3 py-2 text-xs whitespace-nowrap text-discord-text-muted">
+                  <td className="max-lg:z-20 max-lg:left-0 max-lg:sticky max-lg:bg-discord-base font-[family-name:var(--font-arcade-mono)] px-3 py-2 text-xs whitespace-nowrap text-discord-text-muted">
                     {absoluteTime(new Date(entry.detectedAt))}
                   </td>
                   <td className="px-3 py-2 font-semibold whitespace-nowrap">

@@ -158,7 +158,7 @@ export function GuildEventEditForm({
         setAllowTimeSuggestions={setAllowTimeSuggestions}
       />
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 max-lg:flex-wrap max-lg:sticky max-lg:bottom-0 max-lg:-mx-4 max-lg:-mb-4 max-lg:mt-1 max-lg:rounded-b-xl max-lg:bg-discord-elevated max-lg:px-4 max-lg:pt-3 max-lg:pb-[calc(0.75rem+env(safe-area-inset-bottom))] max-lg:border-t max-lg:border-black/20">
         <button
           type="button"
           onClick={submit}

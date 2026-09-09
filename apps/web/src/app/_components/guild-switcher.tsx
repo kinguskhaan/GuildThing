@@ -74,7 +74,7 @@ export function GuildSwitcher({
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-10 mt-1 w-56 rounded-xl bg-discord-elevated p-2 shadow-lg">
+        <div className="absolute left-0 top-full z-10 mt-1 w-full lg:w-56 rounded-xl bg-discord-elevated p-2 shadow-lg">
           {guilds.isLoading && (
             <span className="block px-2 py-1 text-sm text-discord-text-muted">
               Loading...

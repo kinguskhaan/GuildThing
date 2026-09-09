@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { ConfirmButton } from "~/app/_components/confirm-button";
+import { eventText } from "~/app/_components/guild-audit-log";
 import { classColor, relativeTime, absoluteTime } from "~/lib/format";
 import { api } from "~/trpc/react";
 import type { RouterOutputs } from "~/trpc/react";
@@ -74,14 +75,14 @@ export function GuildMemberDetail({
       className="w-full max-w-lg rounded-xl bg-discord-elevated p-0 text-discord-text backdrop:bg-black/60"
     >
       <div className="flex max-h-[85vh] flex-col">
-        <div className="flex items-center justify-between border-b border-black/20 px-6 py-4">
-          <div>
-            <h3 className="text-lg font-bold">
+        <div className="max-lg:px-4 flex items-center justify-between gap-3 border-b border-black/20 px-6 py-4">
+          <div className="min-w-0">
+            <h3 className="break-words text-lg font-bold">
               {nicknameRow?.preferredNickname ??
                 nicknameRow?.computedName ??
                 primary.claimedByDiscordTag}
             </h3>
-            <p className="text-sm text-discord-text-muted">
+            <p className="break-words text-sm text-discord-text-muted">
               {primary.claimedByDiscordTag}
               {nicknameRow?.currentDiscordNick && (
                 <> · Discord nick: {nicknameRow.currentDiscordNick}</>
@@ -91,14 +92,14 @@ export function GuildMemberDetail({
           <button
             type="button"
             onClick={() => dialogRef.current?.close()}
-            className="rounded-full px-2 py-1 text-discord-text-muted hover:bg-discord-elevated-hover hover:text-discord-text"
+            className="max-lg:px-3 max-lg:py-3 rounded-full px-2 py-1 text-discord-text-muted hover:bg-discord-elevated-hover hover:text-discord-text"
             aria-label="Close"
           >
             ✕
           </button>
         </div>
 
-        <div className="flex flex-col gap-5 overflow-y-auto px-6 py-4">
+        <div className="max-lg:px-4 flex flex-col gap-5 overflow-y-auto px-6 py-4">
           {nicknameRow && (
             <div className="flex flex-col gap-2">
               <span className="text-xs font-semibold tracking-wide text-discord-text-muted uppercase">
@@ -109,7 +110,7 @@ export function GuildMemberDetail({
               </p>
               <div className="flex items-center gap-2">
                 <input
-                  className="w-full rounded-full bg-discord-base px-3 py-1.5 text-sm text-discord-text"
+                  className="min-w-0 w-full rounded-full bg-discord-base px-3 py-1.5 text-sm text-discord-text"
                   value={nicknameDraft}
                   onChange={(e) => setNicknameDraft(e.target.value)}
                   placeholder="No override — using computed name"
@@ -148,8 +149,8 @@ export function GuildMemberDetail({
                   key={c.id}
                   className="flex items-center justify-between gap-2 rounded-lg bg-discord-base px-3 py-2 text-sm"
                 >
-                  <div>
-                    <span className="font-semibold" style={{ color: classColor(c.class) }}>
+                  <div className="min-w-0">
+                    <span className="break-words font-semibold" style={{ color: classColor(c.class) }}>
                       {c.name}
                     </span>{" "}
                     <span className="text-discord-text-muted">
@@ -169,7 +170,7 @@ export function GuildMemberDetail({
                     disabled={
                       clearClaim.isPending && clearClaim.variables?.rosterMemberId === c.id
                     }
-                    className="shrink-0 rounded-full bg-discord-elevated px-2 py-0.5 text-xs hover:bg-discord-elevated-hover"
+                    className="max-lg:px-3 max-lg:py-2 shrink-0 rounded-full bg-discord-elevated px-2 py-0.5 text-xs hover:bg-discord-elevated-hover"
                   />
                 </li>
               ))}
@@ -199,23 +200,7 @@ export function GuildMemberDetail({
                     >
                       {relativeTime(new Date(entry.detectedAt))}
                     </span>
-                    <span className="text-discord-text-muted">
-                      {entry.kind === "rank_change"
-                        ? `Rank ${entry.oldRank ?? "?"} → ${entry.newRank}`
-                        : entry.kind === "claim"
-                          ? `Claimed by ${entry.discordUserTag ?? "someone"}`
-                          : [
-                              entry.addedRoleNames.length > 0
-                                ? `+${entry.addedRoleNames.join(", ")}`
-                                : "",
-                              entry.removedRoleNames.length > 0
-                                ? `-${entry.removedRoleNames.join(", ")}`
-                                : "",
-                            ]
-                              .filter(Boolean)
-                              .join(" ") +
-                            ` by ${entry.source === "bot" ? "the bot" : (entry.executorTag ?? "someone")}`}
-                    </span>
+                    <span className="text-discord-text-muted">{eventText(entry)}</span>
                   </li>
                 ))}
               </ul>

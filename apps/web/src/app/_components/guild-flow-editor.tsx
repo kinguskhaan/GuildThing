@@ -29,6 +29,7 @@ import {
   type ReactFlowInstance,
 } from "@xyflow/react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { FaListUl, FaTimes } from "react-icons/fa";
 
 import { api } from "~/trpc/react";
 import type { RouterOutputs } from "~/trpc/react";
@@ -385,6 +386,16 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
     setSelectedStepId(step.id);
   }
 
+  // Tap/click fallback for the palette chips (drag events don't exist on
+  // touch): adds the step seeded-but-unwired — the rail flags it until
+  // it's wired in via a drop, the quick-add "+", or the link control.
+  function addUnwiredStep(type: StepType) {
+    const step = newStep(type);
+    setSteps((ss) => [...ss, step]);
+    setSelectedEdgeId(null);
+    setSelectedStepId(step.id);
+  }
+
   // Drop a step type onto an existing connection — splices it in the
   // middle: the original edge now points at the new step (keeping
   // whatever condition got you onto it), and a new unconditional edge
@@ -469,12 +480,7 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
     } else if (edgeId) {
       insertOnEdge(edgeId, type);
     } else {
-      // Dropped on empty canvas: a seeded-but-unwired step. The rail flags
-      // it until it's wired in — drawing first, connecting after.
-      const step = newStep(type);
-      setSteps((ss) => [...ss, step]);
-      setSelectedEdgeId(null);
-      setSelectedStepId(step.id);
+      addUnwiredStep(type);
     }
   }
 
@@ -752,7 +758,7 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
         : { text: "SAVED", cls: "text-[color:var(--schem-green)]" };
 
   return (
-    <div className="flex h-[calc(100dvh-15rem)] min-h-[560px] flex-col">
+    <div className="flex h-[calc(100dvh-15rem)] min-h-[560px] max-lg:min-h-0 flex-col">
       {/* ---- Toolbar: name, save state, palette, save ---- */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 pb-3">
         <h3 className="font-bold">Onboarding flow</h3>
@@ -768,8 +774,10 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
         <button
           type="button"
           onClick={() => setRailOpen((v) => !v)}
-          className="bg-discord-elevated rounded-lg px-3 py-1.5 text-xs font-semibold lg:hidden"
+          aria-expanded={railOpen}
+          className="bg-discord-elevated flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold max-lg:min-h-[44px] max-lg:px-4 lg:hidden"
         >
+          <FaListUl aria-hidden />
           Flow
         </button>
         {NEW_STEP_TYPES.map((t) => (
@@ -781,8 +789,9 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
               e.dataTransfer.setData("application/step-type", t.value);
               e.dataTransfer.effectAllowed = "copy";
             }}
-            className="bg-discord-elevated hover:bg-discord-elevated-hover cursor-grab rounded-full px-3 py-1.5 text-xs font-semibold active:cursor-grabbing"
-            title="Drag onto the canvas — or straight onto a step or a connection"
+            onClick={() => addUnwiredStep(t.value)}
+            className="bg-discord-elevated hover:bg-discord-elevated-hover cursor-grab rounded-full px-3 py-1.5 text-xs font-semibold max-lg:min-h-[44px] active:cursor-grabbing"
+            title="Drag onto the canvas — or straight onto a step or a connection. On touch, tap to add an unwired step."
           >
             + {t.label}
           </button>
@@ -791,7 +800,7 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
           type="button"
           onClick={handleSave}
           disabled={saveFlow.isPending}
-          className="bg-discord-brand rounded-full px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+          className="bg-discord-brand rounded-full px-4 py-1.5 text-sm font-semibold text-white max-lg:min-h-[44px] max-lg:px-5 disabled:opacity-50"
         >
           {saveFlow.isPending ? "Saving..." : "Save flow"}
         </button>
@@ -799,13 +808,34 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
 
       <div className="relative flex min-h-0 flex-1 items-stretch gap-3">
         {/* ---- Ledger rail: the flow's own table of contents ---- */}
+        {railOpen && (
+          <button
+            type="button"
+            aria-label="Close flow list"
+            onClick={() => setRailOpen(false)}
+            className="absolute inset-0 z-10 bg-black/50 lg:hidden"
+          />
+        )}
         <aside
-          className={`${railOpen ? "absolute inset-y-0 left-0 z-20 flex" : "hidden"} w-64 shrink-0 flex-col overflow-hidden rounded-xl bg-discord-elevated lg:static lg:flex`}
+          className={`${railOpen ? "max-lg:flex" : "max-lg:hidden"} w-64 shrink-0 flex-col overflow-hidden rounded-xl bg-discord-elevated max-lg:absolute max-lg:inset-y-0 max-lg:left-0 max-lg:z-20 max-lg:shadow-[0_0_40px_rgba(0,0,0,0.6)] lg:static lg:flex`}
         >
+          <div className="flex items-center justify-between border-black/20 border-b p-2 lg:hidden">
+            <p className="schem-kicker text-discord-text-muted px-1.5 text-[10px]">
+              Flow steps
+            </p>
+            <button
+              type="button"
+              onClick={() => setRailOpen(false)}
+              aria-label="Close flow list"
+              className="text-discord-text-muted flex h-11 w-11 items-center justify-center rounded-lg hover:text-discord-text"
+            >
+              <FaTimes aria-hidden />
+            </button>
+          </div>
           <div className="min-h-0 flex-1 overflow-y-auto p-2">
             {railSteps.length === 0 && (
               <p className="text-discord-text-muted p-2 text-sm">
-                Empty flow. Drag a step type from the toolbar onto the canvas.
+                Empty flow. Drag a step type from the toolbar onto the canvas — or tap one to add it unwired.
               </p>
             )}
             {railSteps.map((s, i) => {
@@ -821,7 +851,10 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
                     type="button"
                     onMouseEnter={() => setHoveredStepId(s.id)}
                     onMouseLeave={() => setHoveredStepId(null)}
-                    onClick={() => jumpToStep(s.id)}
+                    onClick={() => {
+                      jumpToStep(s.id);
+                      setRailOpen(false);
+                    }}
                     className={`flex w-full flex-col gap-0.5 rounded-lg px-2.5 py-2 text-left transition ${
                       selectedStepId === s.id
                         ? "bg-discord-base shadow-[inset_2px_0_0_var(--schem-line)]"
@@ -864,8 +897,9 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
                         setSelectedStepId(null);
                         setSelectedStubId(null);
                         setSelectedEdgeId(e.id);
+                        setRailOpen(false);
                       }}
-                      className={`text-discord-text-muted ml-4 block w-[calc(100%-1rem)] truncate rounded-md border-l px-2 py-1 text-left text-xs ${
+                      className={`text-discord-text-muted ml-4 block w-[calc(100%-1rem)] truncate rounded-md border-l px-2 py-1 text-left text-xs max-lg:min-h-[44px] ${
                         isBackEdge(e, backEdges)
                           ? "border-[color:var(--schem-amber)]"
                           : "border-black/20"
@@ -897,7 +931,11 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
                     e.dataTransfer.setData("application/step-type", t.value);
                     e.dataTransfer.effectAllowed = "copy";
                   }}
-                  className="bg-discord-base hover:bg-discord-elevated-hover cursor-grab rounded-lg px-2 py-1.5 text-left text-xs font-semibold active:cursor-grabbing"
+                  onClick={() => {
+                    addUnwiredStep(t.value);
+                    setRailOpen(false);
+                  }}
+                  className="bg-discord-base hover:bg-discord-elevated-hover cursor-grab rounded-lg px-2 py-1.5 text-left text-xs font-semibold max-lg:min-h-[44px] active:cursor-grabbing"
                 >
                   + {t.label}
                 </button>
@@ -955,7 +993,19 @@ export function GuildFlowEditor({ guildId }: { guildId: string }) {
 
         {/* ---- Inspector: the selected thing's controls, docked right ---- */}
         {(selectedStep ?? selectedEdge ?? selectedStub) && (
-          <aside className="max-md:absolute max-md:inset-x-3 max-md:bottom-3 max-md:z-20 max-md:max-h-[60%] flex w-72 shrink-0 flex-col gap-2 overflow-y-auto">
+          <aside className="max-lg:absolute max-lg:inset-x-3 max-lg:bottom-3 max-lg:z-20 max-lg:max-h-[70dvh] max-lg:w-auto flex w-72 shrink-0 flex-col gap-2 overflow-y-auto">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedStepId(null);
+                setSelectedEdgeId(null);
+                setSelectedStubId(null);
+              }}
+              aria-label="Close panel"
+              className="text-discord-text-muted hover:text-discord-text sticky top-0 z-10 ml-auto flex h-11 w-11 items-center justify-center rounded-full bg-discord-elevated shadow-[0_4px_12px_rgba(0,0,0,0.5)] lg:hidden"
+            >
+              <FaTimes aria-hidden />
+            </button>
             {selectedStep && (
               <>
                 {selectedStep.type === "question" && (
@@ -1066,7 +1116,7 @@ function LinkExistingControl({
       onChange={(e) => {
         if (e.target.value) onLink(e.target.value);
       }}
-      className="bg-discord-elevated hover:bg-discord-elevated-hover text-discord-text-muted w-72 shrink-0 rounded-full px-3 py-1.5 text-xs"
+      className="bg-discord-elevated hover:bg-discord-elevated-hover text-discord-text-muted w-full shrink-0 rounded-full px-3 py-1.5 text-xs"
     >
       <option value="">Link to an existing step…</option>
       {others.map((s) => (

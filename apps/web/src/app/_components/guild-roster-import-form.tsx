@@ -101,7 +101,7 @@ export function GuildRosterImportForm({
       </p>
 
       <textarea
-        className="h-40 rounded-lg bg-discord-base px-4 py-2 font-mono text-xs text-discord-text"
+        className="h-40 rounded-lg bg-discord-base px-4 py-2 font-mono text-base lg:text-xs text-discord-text"
         value={raw}
         onChange={(e) => setRaw(e.target.value)}
         placeholder='Paste the export string, e.g. {"guild":"...","members":[...]}'
@@ -118,6 +118,7 @@ export function GuildRosterImportForm({
         </p>
       )}
 
+      <div className="max-lg:sticky max-lg:bottom-0 max-lg:-mx-4 max-lg:-mb-4 max-lg:mt-1 max-lg:flex max-lg:rounded-b-xl max-lg:bg-discord-elevated max-lg:px-4 max-lg:pt-3 max-lg:pb-[calc(0.75rem+env(safe-area-inset-bottom))] max-lg:border-t max-lg:border-black/20">
       <ConfirmButton
         label={importRoster.isPending ? "Importing..." : "Import"}
         confirmLabel="Replace roster"
@@ -126,6 +127,7 @@ export function GuildRosterImportForm({
         disabled={importRoster.isPending || raw.trim() === ""}
         className="self-start rounded-full bg-discord-elevated-hover px-6 py-2 text-sm font-semibold transition hover:bg-discord-brand disabled:opacity-50"
       />
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
-
 import { useState } from "react";
+
+import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 
 import {
   wowIconUrl,
@@ -48,6 +49,12 @@ interface CanvasProps {
   onRemoveGroup: (groupIndex: number) => void;
   onSetSpec: (slot: CompSlot, specToken: string | null) => void;
   onSetClass: (slot: CompSlot, classToken: string) => void;
+  /** Touch equivalents for the drag-only bench flows: bench a placed
+   * group block / return a bench block to the first empty group slot.
+   * Their buttons render below lg only, so desktop drag stays the sole
+   * affordance there. */
+  onBenchAt?: (slot: CompSlot) => void;
+  onPlaceFromBench?: (slot: CompSlot) => void;
   /** Names of a placed roster member's OTHER claimed characters that are
    * also placed in this comp — surfaces same-player alt collisions. */
   getAltWarning?: (rosterMemberId: string | null) => string[];
@@ -64,6 +71,8 @@ export function CompBlock({
   onSetClass,
   onDragStart,
   onDragEnd,
+  onBench,
+  onPlaceFirst,
   dragging = false,
   altWarningNames = [],
   readOnly = false,
@@ -77,6 +86,10 @@ export function CompBlock({
   onSetClass?: (slot: CompSlot, classToken: string) => void;
   onDragStart?: () => void;
   onDragEnd?: () => void;
+  /** Touch equivalents for the drag-only bench flows — their buttons
+   * render below lg only, so desktop keeps drag as the sole affordance. */
+  onBench?: () => void;
+  onPlaceFirst?: () => void;
   dragging?: boolean;
   /** Names of this character's OTHER claimed characters also placed in the comp. */
   altWarningNames?: string[];
@@ -159,7 +172,7 @@ export function CompBlock({
               ? `Change ${label}'s specialization`
               : `Set ${label}'s specialization (synced from Battle.net when configured)`
           }
-          className={`hover:text-discord-text truncate rounded px-1 text-xs transition ${
+          className={`hover:text-discord-text truncate rounded px-1 text-xs transition max-lg:px-2 ${
             spec ? "text-discord-text-muted" : "text-discord-link"
           }`}
         >
@@ -256,9 +269,31 @@ export function CompBlock({
           type="button"
           onClick={() => onRemove?.()}
           aria-label={`Remove ${label} from this slot`}
-          className="text-discord-text-muted hover:text-discord-text ml-auto rounded px-1 text-xs opacity-0 transition group-hover:opacity-100"
+          className="text-discord-text-muted hover:text-discord-text ml-auto rounded px-1 text-xs opacity-0 transition group-hover:opacity-100 max-lg:px-2 max-lg:opacity-100"
         >
           ✕
+        </button>
+      )}
+      {!readOnly && onBench && (
+        <button
+          type="button"
+          onClick={onBench}
+          aria-label={`Bench ${label}`}
+          title="Bench — members move back into groups by tapping the up arrow on a bench block"
+          className="text-discord-text-muted hover:text-discord-text rounded p-2 transition lg:hidden"
+        >
+          <FaArrowDown className="h-3.5 w-3.5" aria-hidden />
+        </button>
+      )}
+      {!readOnly && onPlaceFirst && (
+        <button
+          type="button"
+          onClick={onPlaceFirst}
+          aria-label={`Place ${label} into the first open group slot`}
+          title="Place into the first open group slot"
+          className="text-discord-text-muted hover:text-discord-text rounded p-2 transition lg:hidden"
+        >
+          <FaArrowUp className="h-3.5 w-3.5" aria-hidden />
         </button>
       )}
     </div>
@@ -306,6 +341,8 @@ export function RaidCompCanvas({
   onRemoveGroup,
   onSetSpec,
   onSetClass,
+  onBenchAt,
+  onPlaceFromBench,
   getAltWarning,
 }: CanvasProps) {
   const bench = benchSlots(comp);
@@ -328,6 +365,14 @@ export function RaidCompCanvas({
       setDraggingSlotKey(null);
       onDragPayloadChange(null);
     },
+    // Touch-only handlers (buttons render below lg): group blocks bench,
+    // bench blocks return to the first open group slot.
+    onBench:
+      slot.groupIndex >= 0 && onBenchAt ? () => onBenchAt(slot) : undefined,
+    onPlaceFirst:
+      slot.groupIndex < 0 && onPlaceFromBench
+        ? () => onPlaceFromBench(slot)
+        : undefined,
   });
 
   const groups = [];
@@ -367,7 +412,7 @@ export function RaidCompCanvas({
               onClick={() => onRemoveGroup(g)}
               aria-label={`Remove group ${g + 1} — its members move to the bench`}
               title="Remove group — members move to the bench"
-              className="text-discord-text-muted hover:text-discord-text rounded px-1 text-xs transition"
+              className="text-discord-text-muted hover:text-discord-text rounded px-1 text-xs transition max-lg:px-2 max-lg:py-1.5"
             >
               ✕
             </button>

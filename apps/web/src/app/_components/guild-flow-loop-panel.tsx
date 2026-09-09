@@ -12,7 +12,7 @@ export function GuildFlowLoopPanel({
   onDelete: () => void;
 }) {
   return (
-    <div className="bg-discord-elevated flex w-72 shrink-0 flex-col gap-3 rounded-xl p-4 text-sm">
+    <div className="bg-discord-elevated flex w-full shrink-0 flex-col gap-3 rounded-xl p-4 text-sm">
       <div className="flex items-center justify-between">
         <h4 className="font-bold">Edit loop</h4>
         <button
