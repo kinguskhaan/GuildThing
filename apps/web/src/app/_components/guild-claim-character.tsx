@@ -44,6 +44,7 @@ export function GuildClaimCharacter({
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [discordUserId, setDiscordUserId] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
   const [nameInput, setNameInput] = useState("");
   const [names, setNames] = useState<string[]>([]);
   const [rank, setRank] = useState("");
@@ -61,6 +62,7 @@ export function GuildClaimCharacter({
     setNicknameDraft(prefill?.preferredNickname ?? "");
     setNameInput("");
     setNames([]);
+    setRoleFilter("");
     setRank("");
     setLevel("");
     setCharClass("");
@@ -72,6 +74,16 @@ export function GuildClaimCharacter({
   const members = api.guild.guildMembersForClaim.useQuery(
     { guildId },
     { enabled: open },
+  );
+
+  // Role filter narrows the member dropdown; the selected member is
+  // always looked up from the full list so their role chips stay visible
+  // even if the active filter would hide them.
+  const visibleMembers = (members.data?.members ?? []).filter(
+    (m) => roleFilter === "" || m.roleIds.includes(roleFilter),
+  );
+  const selectedMember = members.data?.members.find(
+    (m) => m.id === discordUserId,
   );
   const claim = api.guild.adminClaimCharacter.useMutation();
   const setOverride = api.guild.setMemberNicknameOverride.useMutation({
@@ -87,7 +99,7 @@ export function GuildClaimCharacter({
   }
 
   async function submit() {
-    const member = members.data?.find((m) => m.id === discordUserId);
+    const member = members.data?.members.find((m) => m.id === discordUserId);
     if (!member || names.length === 0) return;
     const out: string[] = [];
     for (const name of names) {
@@ -191,12 +203,56 @@ export function GuildClaimCharacter({
           <span className="text-discord-text-muted text-xs font-semibold uppercase tracking-wide">
             Discord member
           </span>
-          <MemberPicker
-            members={members.data}
-            value={discordUserId}
-            onSelect={setDiscordUserId}
-            disabled={!!prefill || claim.isPending}
-          />
+          <div className="flex gap-2">
+            <MemberPicker
+              members={visibleMembers}
+              value={discordUserId}
+              onSelect={setDiscordUserId}
+              disabled={!!prefill || claim.isPending}
+            />
+            <select
+              className="bg-discord-base text-discord-text w-44 shrink-0 rounded-full px-4 py-2"
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              aria-label="Filter members by Discord role"
+            >
+              <option value="">All Discord roles</option>
+              {(members.data?.roles ?? []).map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {selectedMember && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {selectedMember.roleIds.length === 0 ? (
+                <p className="text-discord-text-muted text-xs">
+                  No Discord roles.
+                </p>
+              ) : (
+                selectedMember.roleIds.map((roleId) => {
+                  const role = (members.data?.roles ?? []).find(
+                    (r) => r.id === roleId,
+                  );
+                  if (!role) return null;
+                  return (
+                    <span
+                      key={roleId}
+                      className="bg-discord-base rounded-full px-3 py-1 text-xs font-medium"
+                      style={
+                        role.color !== 0
+                          ? { color: `#${role.color.toString(16).padStart(6, "0")}` }
+                          : undefined
+                      }
+                    >
+                      {role.name}
+                    </span>
+                  );
+                })
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">
@@ -312,15 +368,25 @@ export function GuildClaimCharacter({
 // Selection-only combobox over the guild's claimable Discord members —
 // the value must be one of the listed members, so the claim can't be
 // pointed at a typo'd or nonexistent account. Typing filters (fzf-style
-// substring match); Enter or click picks. The raw text never becomes the
-// claim target.
+// substring match over server nick AND account tag); Enter or click
+// picks. The raw text never becomes the claim target. Rows show the
+// member's current server nickname with the account tag in parens —
+// nicks drift, the tag is who they actually are.
+
+// Dropdown/input label for a member: server nick first (what the admin
+// actually sees in Discord), account tag in parens as the stable identity.
+function memberLabel(m: { tag: string; nick: string | null } | null): string {
+  if (!m) return "";
+  return m.nick ? `${m.nick} (${m.tag})` : m.tag;
+}
+
 function MemberPicker({
   members,
   value,
   onSelect,
   disabled,
 }: {
-  members: { id: string; tag: string }[] | undefined;
+  members: { id: string; tag: string; nick: string | null }[] | undefined;
   value: string;
   onSelect: (id: string) => void;
   disabled?: boolean;
@@ -330,14 +396,18 @@ function MemberPicker({
   const selected = members?.find((m) => m.id === value) ?? null;
   const q = query.trim().toLowerCase();
   const matches = q
-    ? (members ?? []).filter((m) => m.tag.toLowerCase().includes(q))
+    ? (members ?? []).filter(
+        (m) =>
+          m.tag.toLowerCase().includes(q) ||
+          (m.nick ?? "").toLowerCase().includes(q),
+      )
     : (members ?? []);
 
   return (
     <div className="relative flex-1">
       <input
         className="bg-discord-base text-discord-text placeholder:text-discord-text-muted w-full rounded-full px-4 py-2"
-        value={open ? query : (selected?.tag ?? "")}
+        value={open ? query : memberLabel(selected)}
         placeholder="Which Discord member? Type to filter…"
         disabled={disabled}
         onFocus={() => {
@@ -371,7 +441,7 @@ function MemberPicker({
               }}
               className="text-discord-text hover:bg-discord-elevated-hover block w-full px-4 py-1.5 text-left text-sm"
             >
-              {m.tag}
+              {memberLabel(m)}
             </button>
           ))}
           {matches.length === 0 && (

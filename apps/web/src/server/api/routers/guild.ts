@@ -1235,10 +1235,22 @@ export const guildRouter = createTRPCRouter({
           : forbiddenOrRateLimited(retryAfterSeconds);
       }
 
-      const members = await getGuildMembers(guild.discordGuildId);
-      return members
-        .filter((m) => !m.bot)
-        .map((m) => ({ id: m.id, tag: m.tag }));
+      const [members, roles] = await Promise.all([
+        getGuildMembers(guild.discordGuildId),
+        getGuildRoles(guild.discordGuildId),
+      ]);
+      const knownRoleIds = new Set(roles.map((r) => r.id));
+      return {
+        roles: roles.map((r) => ({ id: r.id, name: r.name, color: r.color })),
+        members: members
+          .filter((m) => !m.bot)
+          .map((m) => ({
+            id: m.id,
+            tag: m.tag,
+            nick: m.nick,
+            roleIds: m.roleIds.filter((id) => knownRoleIds.has(id)),
+          })),
+      };
     }),
 
   // Manually claims a character for a Discord account — the admin
